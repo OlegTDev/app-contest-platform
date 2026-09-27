@@ -42,6 +42,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'ldap' => [
+            'driver' => 'session',
+            'provider'=> 'ldap',
+        ],
     ],
 
     /*
@@ -73,10 +77,11 @@ return [
             'rules' => [],
             'database' => [
                 'model' => App\Models\User::class,
-                'sync_passwords' => false, // Пароли в нашей БД хранить не нужно
+                'sync_passwords' => false,
+                'password_column' => false,
                 'sync_attributes' => [
-                    'name' => 'cn',
                     'email' => 'mail',
+                    'name' => 'samaccountname',
                 ],
             ],
         ],

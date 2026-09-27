@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'guard' => 'web',
+    'guard' => env('AUTH_GUARD', 'web'),
 
     /*
     |--------------------------------------------------------------------------
@@ -161,9 +161,9 @@ return [
     */
 
     'features' => [
-        Features::passkeys([
-            'confirmPassword' => true,
-        ]),
+        // Features::passkeys([
+        //     'confirmPassword' => true,
+        // ]),
     ],
 
 ];
