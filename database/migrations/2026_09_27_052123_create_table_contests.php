@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->string('title');
-            $table->jsonb('project_schema');
+            $table->string('type', 50)->index();
+            $table->jsonb('project_schema')->nullable();
             $table->timestamps();
         });
     }
