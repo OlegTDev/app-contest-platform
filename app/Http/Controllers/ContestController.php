@@ -99,7 +99,7 @@ class ContestController extends Controller
                 'author_department' => $entry->author_department,
                 'votes_count' => $entry->votes_count,
                 'fields_data' => $entry->fields_data,
-                'media' => $entry->contest->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
+                'media' => $entry->media->map(fn ($m) => [
                     'id' => $m->id,
                     'file_name' => $m->file_name,
                     'file_url' => $m->file_url,

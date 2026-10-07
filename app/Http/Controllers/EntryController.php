@@ -21,6 +21,7 @@ class EntryController extends Controller
 
         if ($contest->type->value === 'voting') {
             $entries = $contest->entries()
+                ->with('media')
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($entry) => [
@@ -31,10 +32,20 @@ class EntryController extends Controller
                     'author_department' => $entry->author_department,
                     'fields_data' => $entry->fields_data,
                     'votes_count' => $entry->votes_count,
+                    'media' => $entry->media->map(fn ($m) => [
+                        'id' => $m->id,
+                        'file_name' => $m->file_name,
+                        'file_url' => $m->file_url,
+                        'file_type' => $m->file_type,
+                        'file_extension' => $m->file_extension,
+                        'file_size' => $m->file_size,
+                        'created_at' => $m->created_at->format('Y-m-d H:i'),
+                    ]),
                     'created_at' => $entry->created_at->format('Y-m-d H:i'),
                 ]);
         } else {
             $entries = $contest->quizEntries()
+                ->with('media')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($entry) => [
@@ -46,6 +57,15 @@ class EntryController extends Controller
                     'show_from' => $entry->show_from?->format('Y-m-d H:i'),
                     'show_until' => $entry->show_until?->format('Y-m-d H:i'),
                     'is_scheduled' => $entry->isScheduled(),
+                    'media' => $entry->media->map(fn ($m) => [
+                        'id' => $m->id,
+                        'file_name' => $m->file_name,
+                        'file_url' => $m->file_url,
+                        'file_type' => $m->file_type,
+                        'file_extension' => $m->file_extension,
+                        'file_size' => $m->file_size,
+                        'created_at' => $m->created_at->format('Y-m-d H:i'),
+                    ]),
                     'created_at' => $entry->created_at->format('Y-m-d H:i'),
                 ]);
         }
@@ -244,6 +264,15 @@ class EntryController extends Controller
                     'fields_data' => $entry->fields_data,
                     'votes_count' => $entry->votes_count,
                     'is_voted' => in_array($entry->id, $userVotes),
+                    'media' => $entry->media->map(fn ($m) => [
+                        'id' => $m->id,
+                        'file_name' => $m->file_name,
+                        'file_url' => $m->file_url,
+                        'file_type' => $m->file_type,
+                        'file_extension' => $m->file_extension,
+                        'file_size' => $m->file_size,
+                        'created_at' => $m->created_at->format('Y-m-d H:i'),
+                    ]),
                 ]),
             ]);
         }
@@ -267,6 +296,15 @@ class EntryController extends Controller
                 'description' => $entry->description,
                 'fields_data' => $entry->fields_data,
                 'is_scheduled' => $entry->isScheduled(),
+                'media' => $entry->media->map(fn ($m) => [
+                    'id' => $m->id,
+                    'file_name' => $m->file_name,
+                    'file_url' => $m->file_url,
+                    'file_type' => $m->file_type,
+                    'file_extension' => $m->file_extension,
+                    'file_size' => $m->file_size,
+                    'created_at' => $m->created_at->format('Y-m-d H:i'),
+                ]),
             ]),
         ]);
     }

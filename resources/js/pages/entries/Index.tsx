@@ -1,9 +1,19 @@
 import { Head, Link } from "@inertiajs/react";
-import { Button, Card, List, Table, Tag, Typography, Space, Divider } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
+import { Button, Card, Table, Tag, Typography, Space, Divider } from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, PaperClipOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 const { Title, Text, Paragraph } = Typography;
+
+type MediaItem = {
+    id: number;
+    file_name: string;
+    file_url: string;
+    file_type: string;
+    file_extension: string;
+    file_size: number | null;
+    created_at: string;
+};
 
 type EntryItem = {
     id: number;
@@ -11,6 +21,7 @@ type EntryItem = {
     description: string | null;
     votes_count: number;
     is_scheduled: boolean;
+    media: MediaItem[];
     created_at: string;
 };
 
@@ -36,6 +47,11 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
                     <Text strong>{title}</Text>
                     {record.is_scheduled && (
                         <Tag color="blue">Таймер</Tag>
+                    )}
+                    {record.media.length > 0 && (
+                        <Tag color="geekblue">
+                            <PaperClipOutlined /> {record.media.length}
+                        </Tag>
                     )}
                 </Space>
             ),
@@ -64,9 +80,14 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
         {
             title: "Действия",
             key: "actions",
-            width: 200,
+            width: 280,
             render: (_: unknown, record: EntryItem) => (
                 <Space size="small">
+                    <Link href={`/contest/${contest.id}/entries/${record.id}/media`}>
+                        <Button size="small" icon={<PaperClipOutlined />}>
+                            Медиа
+                        </Button>
+                    </Link>
                     <Link href={`/contest/${contest.id}/entries/${record.id}/edit`}>
                         <Button size="small" icon={<EditOutlined />}>
                             Изменить

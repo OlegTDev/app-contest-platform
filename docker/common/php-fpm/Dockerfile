@@ -40,6 +40,12 @@ FROM base AS dev
 
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 
+RUN { \
+    echo 'upload_max_filesize=200M'; \
+    echo 'post_max_size=200M'; \
+    echo 'max_file_uploads=20'; \
+    } > /usr/local/etc/php/conf.d/docker-php-ext-upload.ini
+
 USER app
 
 
@@ -56,6 +62,9 @@ RUN { \
     echo 'opcache.interned_strings_buffer=8'; \
     echo 'opcache.max_accelerated_files=10000'; \
     echo 'opcache.validate_timestamps=0'; \
+    echo 'upload_max_filesize=200M'; \
+    echo 'post_max_size=200M'; \
+    echo 'max_file_uploads=20'; \
     } > /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 

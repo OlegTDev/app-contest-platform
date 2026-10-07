@@ -1,6 +1,6 @@
 import { Head, Link, router } from "@inertiajs/react";
 import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PaperClipOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { destroy } from "@/routes/contest";
 
@@ -104,6 +104,9 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
             </div>
             {contest.is_owner && (
               <Space>
+                <Link href={`/contest/${contest.id}/media`}>
+                  <Button icon={<PaperClipOutlined />}>Медиа</Button>
+                </Link>
                 <Link href={`/contest/${contest.id}/edit`}>
                   <Button icon={<EditOutlined />}>Редактировать</Button>
                 </Link>

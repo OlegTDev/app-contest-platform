@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contest;
+use App\Models\ContestEntry;
 use App\Models\Media;
+use App\Models\QuizEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,19 +37,24 @@ class MediaController extends Controller
         ]);
     }
 
-    public function store(Request $request, Contest $contest): JsonResponse
+    public function store(Request $request, Contest $contest): RedirectResponse
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
 
+        $maxSize = config('media.max_upload_size');
+
         $request->validate([
             'files' => 'required|array',
-            'files.*' => 'file|max:10240', // max 10MB per file
+            "files.*" => "file|max:{$maxSize}",
+            'entry_id' => 'nullable|integer',
+            'entry_type' => 'nullable|string',
         ]);
 
-        $uploaded = [];
+        $entryId = $request->input('entry_id');
+        $entryType = $request->input('entry_type');
 
         foreach ($request->file('files') as $file) {
-            $path = $file->store('media/' . $contest->id, 'public');
+            $originalName = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
             $mimeType = $file->getMimeType();
 
@@ -60,36 +66,111 @@ class MediaController extends Controller
                 default => 'document',
             };
 
-            $media = Media::create([
+            $uniqueName = uniqid() . '.' . $extension;
+            $path = $file->storeAs('media/' . $contest->id, $uniqueName, 'public');
+
+            Media::create([
                 'contest_id' => $contest->id,
-                'file_name' => $file->getClientOriginalName(),
+                'entry_id' => $entryId,
+                'entry_type' => $entryType ?: 'Contest',
+                'file_name' => $originalName,
                 'file_path' => $path,
                 'file_type' => $fileType,
                 'file_extension' => $extension,
                 'file_size' => $file->getSize(),
             ]);
-
-            $uploaded[] = [
-                'id' => $media->id,
-                'file_name' => $media->file_name,
-                'file_url' => $media->file_url,
-                'file_type' => $media->file_type,
-                'file_extension' => $media->file_extension,
-                'file_size' => $media->file_size,
-                'created_at' => $media->created_at->format('Y-m-d H:i'),
-            ];
         }
 
-        return response()->json([
-            'message' => 'Files uploaded successfully.',
-            'media' => $uploaded,
+        return redirect()->back()->with('success', 'Файлы успешно загружены.');
+    }
+
+    public function entryIndex(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): Response
+    {
+        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($entry->contest_id === $contest->id, 404);
+
+        $media = $entry->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
+            'id' => $m->id,
+            'file_name' => $m->file_name,
+            'file_url' => $m->file_url,
+            'file_type' => $m->file_type,
+            'file_extension' => $m->file_extension,
+            'file_size' => $m->file_size,
+            'created_at' => $m->created_at->format('Y-m-d H:i'),
         ]);
+
+        return Inertia::render('media/EntryIndex', [
+            'contest' => [
+                'id' => $contest->id,
+                'title' => $contest->title,
+            ],
+            'entry' => [
+                'id' => $entry->id,
+                'title' => $entry->title,
+            ],
+            'media' => $media,
+        ]);
+    }
+
+    public function entryStore(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): RedirectResponse
+    {
+        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($entry->contest_id === $contest->id, 404);
+
+        $maxSize = config('media.max_upload_size');
+
+        $request->validate([
+            'files' => 'required|array',
+            "files.*" => "file|max:{$maxSize}",
+        ]);
+
+        foreach ($request->file('files') as $file) {
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $mimeType = $file->getMimeType();
+
+            $fileType = match (true) {
+                str_starts_with($mimeType, 'image/') => 'image',
+                str_starts_with($mimeType, 'video/') => 'video',
+                str_starts_with($mimeType, 'audio/') => 'audio',
+                $extension === 'pdf' => 'pdf',
+                default => 'document',
+            };
+
+            $uniqueName = uniqid() . '.' . $extension;
+            $path = $file->storeAs('media/' . $contest->id, $uniqueName, 'public');
+
+            Media::create([
+                'contest_id' => $contest->id,
+                'entry_id' => $entry->id,
+                'entry_type' => get_class($entry),
+                'file_name' => $originalName,
+                'file_path' => $path,
+                'file_type' => $fileType,
+                'file_extension' => $extension,
+                'file_size' => $file->getSize(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Файлы успешно загружены.');
     }
 
     public function destroy(Request $request, Contest $contest, Media $media): RedirectResponse
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
+
+        Storage::disk('public')->delete($media->file_path);
+        $media->delete();
+
+        return back()->with('success', 'Media deleted successfully.');
+    }
+
+    public function entryDestroy(Request $request, Contest $contest, ContestEntry|QuizEntry $entry, Media $media): RedirectResponse
+    {
+        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($media->contest_id === $contest->id, 404);
+        abort_unless($media->entry_id === $entry->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
         $media->delete();

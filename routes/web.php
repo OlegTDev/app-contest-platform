@@ -34,6 +34,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('media', [MediaController::class, 'index'])->name('media.index');
         Route::post('media', [MediaController::class, 'store'])->name('media.store');
         Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+        // Entry media routes
+        Route::get('entries/{entry}/media', [MediaController::class, 'entryIndex'])->name('entry.media.index');
+        Route::post('entries/{entry}/media', [MediaController::class, 'entryStore'])->name('entry.media.store');
+        Route::delete('entries/{entry}/media/{media}', [MediaController::class, 'entryDestroy'])->name('entry.media.destroy');
     });
 
     // Quiz routes (nested under contest)

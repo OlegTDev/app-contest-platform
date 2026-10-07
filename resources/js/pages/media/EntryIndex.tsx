@@ -33,8 +33,14 @@ type ContestItem = {
     title: string;
 };
 
-type MediaIndexProps = {
+type EntryItem = {
+    id: number;
+    title: string;
+};
+
+type EntryMediaIndexProps = {
     contest: ContestItem;
+    entry: EntryItem;
     media: MediaItem[];
 };
 
@@ -87,7 +93,7 @@ const formatFileSize = (bytes: number | null): string => {
     return `${mb.toFixed(2)} МБ`;
 };
 
-export default function MediaIndex({ contest, media }: MediaIndexProps): React.JSX.Element {
+export default function EntryMediaIndex({ contest, entry, media }: EntryMediaIndexProps): React.JSX.Element {
     const { app } = usePage().props as { app: { max_upload_size: number } };
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState<MediaItem | null>(null);
@@ -116,7 +122,7 @@ export default function MediaIndex({ contest, media }: MediaIndexProps): React.J
             formData.append('files[]', file);
         });
 
-        router.post(`/contest/${contest.id}/media`, formData, {
+        router.post(`/contest/${contest.id}/entries/${entry.id}/media`, formData, {
             preserveScroll: true,
             onSuccess: () => {
                 message.success('Файлы успешно загружены');
@@ -137,7 +143,7 @@ export default function MediaIndex({ contest, media }: MediaIndexProps): React.J
 
     const handleDelete = (id: number) => {
         if (confirm('Вы уверены, что хотите удалить этот файл?')) {
-            router.delete(`/contest/${contest.id}/media/${id}`, {
+            router.delete(`/contest/${contest.id}/entries/${entry.id}/media/${id}`, {
                 preserveScroll: true,
             });
         }
@@ -249,19 +255,21 @@ export default function MediaIndex({ contest, media }: MediaIndexProps): React.J
 
     return (
         <>
-            <Head title={`Медиа: ${contest.title}`} />
+            <Head title={`Медиа: ${entry.title}`} />
 
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 0' }}>
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <Link href={`/contest/${contest.id}`}>
+                            <Link href={`/contest/${contest.id}/entries`}>
                                 <Button type="text" icon={<ArrowLeftOutlined />} style={{ float: 'left', marginRight: 12 }}>
                                     Назад
                                 </Button>
                             </Link>
                             <Title level={2} style={{ margin: 0 }}>{contest.title}</Title>
-                            <Text type="secondary">Управление медиафайлами</Text>
+                            <Text type="secondary">
+                                Медиафайлы работы: <strong>{entry.title}</strong>
+                            </Text>
                         </div>
                         <Button
                             type="primary"

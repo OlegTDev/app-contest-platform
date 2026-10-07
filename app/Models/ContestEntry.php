@@ -42,6 +42,14 @@ class ContestEntry extends Model
     }
 
     /**
+     * @return MorphMany<Media, $this>
+     */
+    public function media(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Media::class, 'entry');
+    }
+
+    /**
      * Check if the entry is currently visible (no time restrictions).
      */
     public function isVisible(): bool
