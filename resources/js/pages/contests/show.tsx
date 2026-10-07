@@ -6,16 +6,19 @@ import { destroy } from "@/routes/contest";
 
 const { Title, Text, Paragraph } = Typography;
 
-type QuizEntryItem = {
+type QuizActivity = {
   id: number;
+  type: "quiz";
   title: string;
   description: string | null;
   is_scheduled: boolean;
+  is_visible: boolean;
   created_at: string;
 };
 
-type EntryItem = {
+type VotingActivity = {
   id: number;
+  type: "voting";
   title: string;
   description: string | null;
   author_name: string | null;
@@ -23,6 +26,8 @@ type EntryItem = {
   votes_count: number;
   created_at: string;
 };
+
+type ActivityItem = QuizActivity | VotingActivity;
 
 type ContestItem = {
   id: number;
@@ -34,8 +39,7 @@ type ContestItem = {
   end_at: string | null;
   is_active: boolean;
   is_owner: boolean;
-  quizEntries: QuizEntryItem[];
-  entries: EntryItem[];
+  activities: ActivityItem[];
   created_at: string;
 };
 
@@ -131,13 +135,13 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
             </Card>
           )}
 
-          {/* Quiz Entries Section (for quiz contests) */}
+          {/* Quiz Activities Section (for quiz contests) */}
           {contest.type === "quiz" && (
             <Card
               title={
                 <Space>
                   <span>Вопросы</span>
-                  <Tag>{contest.quizEntries.length}</Tag>
+                  <Tag>{contest.activities.length}</Tag>
                 </Space>
               }
               extra={
@@ -156,40 +160,43 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 ) : null
               }
             >
-              {contest.quizEntries.length === 0 ? (
+              {contest.activities.length === 0 ? (
                 <Empty description="Вопросов пока нет" />
               ) : (
                 <List
-                  dataSource={contest.quizEntries}
-                  renderItem={(entry) => (
-                    <List.Item>
-                      <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                        <Space>
-                          <Text strong>{entry.title}</Text>
-                          {entry.is_scheduled && (
-                            <Tag color="blue">Таймер</Tag>
+                  dataSource={contest.activities}
+                  renderItem={(activity) => {
+                    if (activity.type !== "quiz") return null;
+                    return (
+                      <List.Item>
+                        <Space style={{ width: "100%", justifyContent: "space-between" }}>
+                          <Space>
+                            <Text strong>{activity.title}</Text>
+                            {activity.is_scheduled && (
+                              <Tag color="blue">Таймер</Tag>
+                            )}
+                          </Space>
+                          {!contest.is_owner && contest.is_active && (
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              {dayjs(activity.created_at).format("DD.MM.YYYY")}
+                            </Text>
                           )}
                         </Space>
-                        {!contest.is_owner && contest.is_active && (
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {dayjs(entry.created_at).format("DD.MM.YYYY")}
-                          </Text>
-                        )}
-                      </Space>
-                    </List.Item>
-                  )}
+                      </List.Item>
+                    );
+                  }}
                 />
               )}
             </Card>
           )}
 
-          {/* Entries Section (for voting contests) */}
+          {/* Voting Activities Section (for voting contests) */}
           {contest.type === "voting" && (
             <Card
               title={
                 <Space>
                   <span>Работы</span>
-                  <Tag>{contest.entries.length}</Tag>
+                  <Tag>{contest.activities.length}</Tag>
                 </Space>
               }
               extra={
@@ -208,29 +215,32 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 ) : null
               }
             >
-              {contest.entries.length === 0 ? (
+              {contest.activities.length === 0 ? (
                 <Empty description="Работ пока нет" />
               ) : (
                 <List
-                  dataSource={contest.entries}
-                  renderItem={(entry) => (
-                    <List.Item>
-                      <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                        <Space>
-                          <Text strong>{entry.title}</Text>
-                          {entry.author_name && (
-                            <Tag>{entry.author_name}</Tag>
+                  dataSource={contest.activities}
+                  renderItem={(activity) => {
+                    if (activity.type !== "voting") return null;
+                    return (
+                      <List.Item>
+                        <Space style={{ width: "100%", justifyContent: "space-between" }}>
+                          <Space>
+                            <Text strong>{activity.title}</Text>
+                            {activity.author_name && (
+                              <Tag>{activity.author_name}</Tag>
+                            )}
+                            <Tag>{activity.votes_count} голосов</Tag>
+                          </Space>
+                          {!contest.is_owner && contest.is_active && (
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              {dayjs(activity.created_at).format("DD.MM.YYYY")}
+                            </Text>
                           )}
-                          <Tag>{entry.votes_count} голосов</Tag>
                         </Space>
-                        {!contest.is_owner && contest.is_active && (
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {dayjs(entry.created_at).format("DD.MM.YYYY")}
-                          </Text>
-                        )}
-                      </Space>
-                    </List.Item>
-                  )}
+                      </List.Item>
+                    );
+                  }}
                 />
               )}
             </Card>

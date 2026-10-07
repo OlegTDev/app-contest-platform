@@ -7,6 +7,20 @@ use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
 
 
+// Public routes (no authentication required)
+Route::prefix('contests')->group(function () {
+    Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
+    Route::get('{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
+});
+
+// Public entry voting (no authentication required)
+Route::prefix('contest/{contest}')->group(function () {
+    Route::get('entries/public', [EntryController::class, 'publicIndex'])->name('entries.public');
+    Route::post('entries/{entry}/vote', [VoteController::class, 'store'])->name('entries.vote');
+    Route::delete('entries/{entry}/vote', [VoteController::class, 'destroy'])->name('entries.vote.destroy');
+    Route::get('entries/leaderboard', [VoteController::class, 'leaderboard'])->name('entries.leaderboard');
+});
+
 Route::middleware(['auth'])->group(function () {
     Route::inertia('/', 'welcome')->name('home');
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
@@ -34,12 +48,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('entries/{entry}/edit', [EntryController::class, 'edit'])->name('entries.edit');
         Route::patch('entries/{entry}', [EntryController::class, 'update'])->name('entries.update');
         Route::delete('entries/{entry}', [EntryController::class, 'destroy'])->name('entries.destroy');
-        Route::get('entries/public', [EntryController::class, 'publicIndex'])->name('entries.public');
-
-        // Vote routes
-        Route::post('entries/{entry}/vote', [VoteController::class, 'store'])->name('entries.vote');
-        Route::delete('entries/{entry}/vote', [VoteController::class, 'destroy'])->name('entries.vote.destroy');
-        Route::get('entries/leaderboard', [VoteController::class, 'leaderboard'])->name('entries.leaderboard');
     });
 });
 

@@ -40,4 +40,12 @@ class ContestEntry extends Model
     {
         return $this->hasMany(ContestVote::class);
     }
+
+    /**
+     * Check if the entry is currently visible (no time restrictions).
+     */
+    public function isVisible(): bool
+    {
+        return true;
+    }
 }

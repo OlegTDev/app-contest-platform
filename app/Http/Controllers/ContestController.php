@@ -12,29 +12,135 @@ use Inertia\Response;
 
 class ContestController extends Controller
 {
+    /**
+     * Публичная страница — только активные конкурсы
+     */
+    public function publicIndex(): Response
+    {
+        $contests = Contest::where('status', 'published')
+            ->where(function ($query) {
+                $query->whereNull('start_at')
+                      ->orWhere('start_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_at')
+                      ->orWhere('end_at', '>=', now());
+            })
+            ->with(['quizEntries', 'entries'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn ($contest) => [
+                'id' => $contest->id,
+                'title' => $contest->title,
+                'type' => $contest->type->value,
+                'description' => $contest->description,
+                'start_at' => $contest->start_at?->format('Y-m-d H:i'),
+                'end_at' => $contest->end_at?->format('Y-m-d H:i'),
+                'quiz_entry_count' => $contest->quizEntries->count(),
+                'entry_count' => $contest->entries->count(),
+                'created_at' => $contest->created_at->format('Y-m-d H:i'),
+            ]);
+
+        return Inertia::render('contests/PublicIndex', [
+            'contests' => $contests,
+        ]);
+    }
+
+    /**
+     * Публичная страница конкурса — детали и активности
+     */
+    public function publicShow(Request $request, Contest $contest): Response
+    {
+        // Only show published contests that are currently active
+        abort_unless($contest->status === 'published', 404);
+
+        $contest->load(['quizEntries' => function ($query) {
+            $query->where(function ($q) {
+                $q->whereNull('show_from')
+                  ->orWhere('show_from', '<=', now());
+            })->where(function ($q) {
+                $q->whereNull('show_until')
+                  ->orWhere('show_until', '>=', now());
+            })->orderBy('sort_order');
+        }, 'entries' => function ($query) {
+            $query->orderBy('id');
+        }]);
+
+        // Check if contest time window is active
+        $now = now();
+        $isTimeActive = true;
+
+        if ($contest->start_at && $now->lt($contest->start_at)) {
+            $isTimeActive = false;
+        }
+
+        if ($contest->end_at && $now->gt($contest->end_at)) {
+            $isTimeActive = false;
+        }
+
+        $activities = [];
+
+        if ($contest->type->value === 'quiz') {
+            $activities = $contest->quizEntries->map(fn ($entry) => [
+                'id' => $entry->id,
+                'type' => 'quiz',
+                'title' => $entry->title,
+                'description' => $entry->description,
+                'is_visible' => $entry->isVisible(),
+                'created_at' => $entry->created_at->format('Y-m-d H:i'),
+            ]);
+        } else {
+            $activities = $contest->entries->map(fn ($entry) => [
+                'id' => $entry->id,
+                'type' => 'voting',
+                'title' => $entry->title,
+                'description' => $entry->description,
+                'author_name' => $entry->author_name,
+                'author_department' => $entry->author_department,
+                'votes_count' => $entry->votes_count,
+                'created_at' => $entry->created_at->format('Y-m-d H:i'),
+            ]);
+        }
+
+        return Inertia::render('contests/PublicShow', [
+            'contest' => [
+                'id' => $contest->id,
+                'title' => $contest->title,
+                'type' => $contest->type->value,
+                'status' => $contest->status,
+                'description' => $contest->description,
+                'start_at' => $contest->start_at?->format('Y-m-d H:i'),
+                'end_at' => $contest->end_at?->format('Y-m-d H:i'),
+                'is_active' => $contest->isActive(),
+                'is_time_active' => $isTimeActive,
+                'activities' => $activities,
+                'created_at' => $contest->created_at->format('Y-m-d H:i'),
+            ],
+        ]);
+    }
+
+    /**
+     * Админка — все конкурсы
+     */
     public function index(Request $request): Response
     {
         $query = Contest::with(['quizEntries', 'entries'])
             ->orderByDesc('created_at');
 
-        // Фильтр по статусу
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Фильтр по типу
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 
-        // Поиск по названию
         if ($request->filled('search')) {
             $query->where('title', 'ilike', '%' . $request->search . '%');
         }
 
         $contests = $query->paginate(15);
 
-        // Transform items while keeping paginator structure
         $contests->transform(fn ($contest) => [
             'id' => $contest->id,
             'title' => $contest->title,
@@ -86,6 +192,31 @@ class ContestController extends Controller
             $query->orderBy('id');
         }]);
 
+        $activities = [];
+
+        if ($contest->type->value === 'quiz') {
+            $activities = $contest->quizEntries->map(fn ($entry) => [
+                'id' => $entry->id,
+                'type' => 'quiz',
+                'title' => $entry->title,
+                'description' => $entry->description,
+                'is_scheduled' => $entry->isScheduled(),
+                'is_visible' => $entry->isVisible(),
+                'created_at' => $entry->created_at->format('Y-m-d H:i'),
+            ]);
+        } else {
+            $activities = $contest->entries->map(fn ($entry) => [
+                'id' => $entry->id,
+                'type' => 'voting',
+                'title' => $entry->title,
+                'description' => $entry->description,
+                'author_name' => $entry->author_name,
+                'author_department' => $entry->author_department,
+                'votes_count' => $entry->votes_count,
+                'created_at' => $entry->created_at->format('Y-m-d H:i'),
+            ]);
+        }
+
         return Inertia::render('contests/show', [
             'contest' => [
                 'id' => $contest->id,
@@ -97,22 +228,7 @@ class ContestController extends Controller
                 'end_at' => $contest->end_at?->format('Y-m-d H:i'),
                 'is_active' => $contest->isActive(),
                 'is_owner' => $request->user()->id === $contest->user_id,
-                'quizEntries' => $contest->quizEntries->map(fn ($entry) => [
-                    'id' => $entry->id,
-                    'title' => $entry->title,
-                    'description' => $entry->description,
-                    'is_scheduled' => $entry->isScheduled(),
-                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
-                ]),
-                'entries' => $contest->entries->map(fn ($entry) => [
-                    'id' => $entry->id,
-                    'title' => $entry->title,
-                    'description' => $entry->description,
-                    'author_name' => $entry->author_name,
-                    'author_department' => $entry->author_department,
-                    'votes_count' => $entry->votes_count,
-                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
-                ]),
+                'activities' => $activities,
                 'created_at' => $contest->created_at->format('Y-m-d H:i'),
             ],
         ]);

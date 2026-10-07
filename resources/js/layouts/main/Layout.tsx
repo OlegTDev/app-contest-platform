@@ -27,14 +27,14 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
       label: <Link href="/">Главная</Link>,
     },
     {
-      key: '/contest',
+      key: '/contests',
       icon: <TeamOutlined />,
-      label: <Link href="/contest">Конкурсы</Link>,
+      label: <Link href="/contests">Конкурсы</Link>,
     },
     {
-      key: '/contest/create',
+      key: '/contest',
       icon: <TrophyOutlined />,
-      label: <Link href="/contest/create">Создать конкурс</Link>,
+      label: <Link href="/contest">Управление</Link>,
     },
   ];
 
@@ -99,8 +99,8 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
           />
           <div style={{ color: '#666', fontSize: 14 }}>
             {url === '/' ? 'Главная' :
-             url === '/contest' ? 'Конкурсы' :
-             url === '/contest/create' ? 'Создать конкурс' :
+             url === '/contests' ? 'Конкурсы' :
+             url === '/contest' ? 'Управление' :
              url.replace(/^\//, '').replace(/\//g, ' / ')}
           </div>
         </Header>

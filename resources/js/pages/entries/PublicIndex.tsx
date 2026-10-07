@@ -1,4 +1,4 @@
-import { Head, router, usePage } from "@inertiajs/react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import { Button, Card, List, Result, Space, Typography, Tag, message } from "antd";
 import { HeartOutlined, HeartFilled, TrophyOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
