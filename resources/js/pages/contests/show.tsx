@@ -84,7 +84,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
     <>
       <Head title={contest.title} />
 
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 0" }}>
+      <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>

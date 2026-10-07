@@ -120,7 +120,7 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
         <>
             <Head title={`Карточки: ${contest.title}`} />
 
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 0" }}>
+            <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>

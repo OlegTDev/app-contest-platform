@@ -98,7 +98,7 @@ export default function QuizIndex({ contests }: QuizIndexProps): React.JSX.Eleme
     <>
       <Head title="Викторины" />
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 0" }}>
+      <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Title level={2}>Викторины</Title>
 
         {contests.length === 0 ? (

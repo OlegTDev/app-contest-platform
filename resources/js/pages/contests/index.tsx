@@ -195,7 +195,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
     <>
       <Head title="Конкурсы" />
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 0" }}>
+      <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Title level={2} style={{ margin: 0 }}>

@@ -40,7 +40,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
 
     const fieldsData = (entry.fields_data as Record<string, unknown>) || {};
 
-    const { data, setData, put, processing, errors } = useForm<EditEntryForm>({
+    const { data, setData, patch, processing, errors } = useForm<EditEntryForm>({
         title: entry.title,
         description: entry.description || "",
         author_name: (fieldsData.author_name as string) || "",
@@ -52,7 +52,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        put(`/contest/${contest.id}/entries/${entry.id}`, {
+        patch(`/contest/${contest.id}/entries/${entry.id}`, {
             data: {
                 title: data.title,
                 description: data.description || null,
@@ -74,7 +74,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
         <>
             <Head title="Редактировать карточку" />
 
-            <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 0" }}>
+            <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     <div>
                         <Link href={`/contest/${contest.id}/entries`}>

@@ -48,7 +48,7 @@ export default function QuizLeaderboard({ quiz, contest, leaderboard }: QuizLead
     <>
       <Head title="Таблица лидеров" />
 
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 0" }}>
+      <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div>
             <Link href={`/contest/${contest.id}`}>

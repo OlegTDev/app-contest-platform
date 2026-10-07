@@ -213,7 +213,7 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
     <>
       <Head title={`Редактировать: ${contest.title}`} />
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 0" }}>
+      <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Link href={`/contest/${contest.id}`}>
           <Button type="text" style={{ float: "left", marginRight: 12 }}>
             ← Назад
