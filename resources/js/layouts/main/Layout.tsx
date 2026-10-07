@@ -39,7 +39,7 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
   ];
 
   return (
-    <Layout style={{ height: '100vh' }}>
+    <Layout style={{ minHeight: '100vh' }}>
       <Sider
         trigger={null}
         collapsible
@@ -78,6 +78,9 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
         style={{
           marginLeft: collapsed ? 80 : 200,
           transition: 'margin-left 0.2s',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
         }}
       >
         <Header style={{
@@ -86,6 +89,7 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexShrink: 0,
         }}>
           <Button
             type="text"
@@ -99,18 +103,19 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
           />
           <div style={{ color: '#666', fontSize: 14 }}>
             {url === '/' ? 'Главная' :
-             url === '/contests' ? 'Конкурсы' :
-             url === '/contest' ? 'Управление' :
+             url === '/contest' ? 'Конкурсы' :
+             url === '/contest/create' ? 'Создать конкурс' :
              url.replace(/^\//, '').replace(/\//g, ' / ')}
           </div>
         </Header>
         <Content
           style={{
+            flex: 1,
             margin: '24px 16px',
             padding: 24,
-            minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
+            minHeight: 0,
           }}
         >
           {children}

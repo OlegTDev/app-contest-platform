@@ -1,8 +1,8 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col } from "antd";
-import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, EyeOutlined } from "@ant-design/icons";
+import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, message } from "antd";
+import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, EyeOutlined, PlusOutlined, PaperClipOutlined, CloseOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -64,24 +64,16 @@ const statusLabels: Record<string, string> = {
     closed: "Закрыт",
 };
 
-const getFileIcon = (type: string) => {
-    switch (type) {
-        case 'image':
-            return '🖼️';
-        case 'video':
-            return '🎥';
-        case 'pdf':
-            return '📄';
-        case 'document':
-            return '📎';
-        default:
-            return '📁';
-    }
-};
-
 export default function PublicShow({ contest }: PublicShowProps): React.JSX.Element {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState<MediaItem | null>(null);
+    const [mediaDrawerOpen, setMediaDrawerOpen] = useState(false);
+    const [selectedEntry, setSelectedEntry] = useState<VotingActivity | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const maxUploadSizeMB = 100;
 
     const handleVoteRedirect = () => {
         router.get(`/contest/${contest.id}/entries/public`, {}, {
@@ -103,6 +95,83 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
     const handlePreview = (file: MediaItem) => {
         setPreviewFile(file);
         setPreviewOpen(true);
+    };
+
+    const handleOpenMedia = (entry: VotingActivity) => {
+        setSelectedEntry(entry);
+        setMediaDrawerOpen(true);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setSelectedFiles(Array.from(e.target.files));
+        }
+    };
+
+    const handleUploadMedia = async () => {
+        if (!selectedEntry || selectedFiles.length === 0) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+            formData.append('files[]', file);
+        });
+
+        try {
+            await fetch(`/contest/${contest.id}/entries/${selectedEntry.id}/media`, {
+                method: 'POST',
+                body: formData,
+            });
+            message.success('Файлы загружены');
+            setSelectedFiles([]);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            window.location.reload();
+        } catch {
+            message.error('Ошибка загрузки');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const getFileIcon = (type: string) => {
+        switch (type) {
+            case 'image':
+                return <FileImageOutlined style={{ color: '#52c41a' }} />;
+            case 'video':
+                return <VideoCameraOutlined style={{ color: '#722ed1' }} />;
+            case 'pdf':
+                return <FilePdfOutlined style={{ color: '#ff4d4f' }} />;
+            default:
+                return <FileOutlined style={{ color: '#999' }} />;
+        }
+    };
+
+    const getFileTypeLabel = (type: string) => {
+        const labels: Record<string, string> = {
+            image: 'Изображение',
+            video: 'Видео',
+            pdf: 'PDF',
+            document: 'Документ',
+        };
+        return labels[type] || type;
+    };
+
+    const getFileTypeColor = (type: string) => {
+        const colors: Record<string, string> = {
+            image: 'green',
+            video: 'purple',
+            pdf: 'red',
+            document: 'blue',
+        };
+        return colors[type] || 'default';
+    };
+
+    const formatFileSize = (bytes: number | null): string => {
+        if (!bytes) return '—';
+        const mb = bytes / (1024 * 1024);
+        return `${mb.toFixed(2)} МБ`;
     };
 
     const renderPreview = () => {
@@ -366,6 +435,19 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                                                 >
                                                                     Просмотр
                                                                 </Button>
+                                                                <Button
+                                                                    type="primary"
+                                                                    size="small"
+                                                                    icon={<PaperClipOutlined />}
+                                                                    style={{ position: 'absolute', bottom: 8, left: 8 }}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        handleOpenMedia(activity);
+                                                                    }}
+                                                                >
+                                                                    {activity.media.length} файлов
+                                                                </Button>
                                                             </div>
                                                         ) : (
                                                             <div style={{ height: 200, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
@@ -429,6 +511,113 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
             >
                 {renderPreview()}
             </Modal>
+
+            {/* Media Drawer */}
+            <Drawer
+                title={
+                    <Space>
+                        <PaperClipOutlined />
+                        <span>Медиафайлы: {selectedEntry?.title}</span>
+                    </Space>
+                }
+                placement="right"
+                onClose={() => setMediaDrawerOpen(false)}
+                open={mediaDrawerOpen}
+                width={500}
+            >
+                <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                    {/* Upload Section */}
+                    <Card size="small" title="Загрузить файлы">
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx"
+                            style={{ display: 'none' }}
+                            onChange={handleFileChange}
+                        />
+                        <Button
+                            type="dashed"
+                            onClick={() => fileInputRef.current?.click()}
+                            style={{ width: '100%', marginBottom: 12 }}
+                        >
+                            <PlusOutlined /> Выбрать файлы
+                        </Button>
+                        {selectedFiles.length > 0 && (
+                            <div style={{ marginBottom: 12 }}>
+                                <Text style={{ display: 'block', marginBottom: 8 }}>
+                                    Выбрано: {selectedFiles.length} файл(ов)
+                                </Text>
+                                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                    {selectedFiles.map((file, index) => (
+                                        <Tag key={index} color="blue">
+                                            {file.name} ({(file.size / 1024).toFixed(1)} КБ)
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </div>
+                        )}
+                        <Button
+                            type="primary"
+                            block
+                            loading={uploading}
+                            disabled={selectedFiles.length === 0}
+                            onClick={handleUploadMedia}
+                        >
+                            Загрузить
+                        </Button>
+                    </Card>
+
+                    {/* Existing Files */}
+                    <Card size="small" title="Загруженные файлы">
+                        {selectedEntry?.media && selectedEntry.media.length > 0 ? (
+                            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                {selectedEntry.media.map((file) => (
+                                    <Card
+                                        key={file.id}
+                                        size="small"
+                                        hoverable
+                                        styles={{ body: { padding: '8px 12px' } }}
+                                    >
+                                        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                                            <Space>
+                                                {getFileIcon(file.file_type)}
+                                                <Space direction="vertical" size={0}>
+                                                    <Text strong style={{ fontSize: 13 }}>{file.file_name}</Text>
+                                                    <Tag color={getFileTypeColor(file.file_type)}>
+                                                        {getFileTypeLabel(file.file_type)}
+                                                    </Tag>
+                                                    <Text type="secondary" style={{ fontSize: 11 }}>
+                                                        {formatFileSize(file.file_size)}
+                                                    </Text>
+                                                </Space>
+                                            </Space>
+                                            <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<EyeOutlined />}
+                                                onClick={() => {
+                                                    setPreviewFile(file);
+                                                    setPreviewOpen(true);
+                                                }}
+                                            />
+                                            <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<DownloadOutlined />}
+                                                href={file.file_url}
+                                                download
+                                            />
+                                        </Space>
+                                    </Card>
+                                ))}
+                            </Space>
+                        ) : (
+                            <Empty description="Нет файлов" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                        )}
+                    </Card>
+                </Space>
+            </Drawer>
         </>
     );
 }
