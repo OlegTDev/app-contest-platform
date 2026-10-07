@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property array|null $fields_data
  * @property int $votes_count
  */
-#[Fillable(['contest_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count'])]
+#[Fillable(['contest_id', 'user_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count'])]
 class ContestEntry extends Model
 {
     protected $casts = [

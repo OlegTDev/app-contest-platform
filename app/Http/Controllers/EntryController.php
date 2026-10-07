@@ -112,7 +112,7 @@ class EntryController extends Controller
                 'fields_data' => ['nullable', 'array'],
             ]);
 
-            $contest->entries()->create($validated);
+            $contest->entries()->create([...$validated, 'user_id' => $request->user()->id]);
         } else {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:255'],
