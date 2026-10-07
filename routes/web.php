@@ -9,10 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 
 // Public routes (no authentication required)
-Route::prefix('contests')->group(function () {
-    Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
-    Route::get('{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
-});
+Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
+Route::get('contests/{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
 
 // Public entry voting (no authentication required)
 Route::prefix('contest/{contest}')->group(function () {

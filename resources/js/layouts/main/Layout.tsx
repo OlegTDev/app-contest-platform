@@ -27,11 +27,6 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
       label: <Link href="/">Главная</Link>,
     },
     {
-      key: '/contests',
-      icon: <TeamOutlined />,
-      label: <Link href="/contests">Конкурсы</Link>,
-    },
-    {
       key: '/contest',
       icon: <TrophyOutlined />,
       label: <Link href="/contest">Управление</Link>,
@@ -102,8 +97,8 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
             }}
           />
           <div style={{ color: '#666', fontSize: 14 }}>
-            {url === '/' ? 'Главная' :
-             url === '/contest' ? 'Конкурсы' :
+            {url === '/' ? 'Конкурсы' :
+             url === '/contest' ? 'Управление' :
              url === '/contest/create' ? 'Создать конкурс' :
              url.replace(/^\//, '').replace(/\//g, ' / ')}
           </div>

@@ -231,7 +231,7 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                     : "Следите за обновлениями"
                             }
                             extra={[
-                                <Link key="back" href="/contests">
+                                <Link key="back" href="/">
                                     <Button type="primary">К конкурсам</Button>
                                 </Link>,
                             ]}
@@ -254,7 +254,7 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                             title="Конкурс завершён"
                             subTitle={`Статус: ${statusLabels[contest.status] || contest.status}`}
                             extra={[
-                                <Link key="back" href="/contests">
+                                <Link key="back" href="/">
                                     <Button type="primary">К конкурсам</Button>
                                 </Link>,
                             ]}
@@ -272,7 +272,7 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
             <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     {/* Back button */}
-                    <Link href="/contests">
+                    <Link href="/">
                         <Button type="text" icon={<ArrowLeftOutlined />}>
                             К конкурсам
                         </Button>
