@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContestController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('contest', ContestController::class);
     Route::patch('contest/{contest}/status', [ContestController::class, 'updateStatus'])->name('contest.status');
+
+    // Media routes (nested under contest)
+    Route::prefix('contest/{contest}')->group(function () {
+        Route::get('media', [MediaController::class, 'index'])->name('media.index');
+        Route::post('media', [MediaController::class, 'store'])->name('media.store');
+        Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    });
 
     // Quiz routes (nested under contest)
     Route::prefix('contest/{contest}')->group(function () {

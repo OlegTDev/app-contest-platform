@@ -61,6 +61,14 @@ class Contest extends Model
     }
 
     /**
+     * @return HasMany<Media, $this>
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class);
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function author(): BelongsTo

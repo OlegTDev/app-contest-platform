@@ -98,6 +98,16 @@ class ContestController extends Controller
                 'author_name' => $entry->author_name,
                 'author_department' => $entry->author_department,
                 'votes_count' => $entry->votes_count,
+                'fields_data' => $entry->fields_data,
+                'media' => $entry->contest->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
+                    'id' => $m->id,
+                    'file_name' => $m->file_name,
+                    'file_url' => $m->file_url,
+                    'file_type' => $m->file_type,
+                    'file_extension' => $m->file_extension,
+                    'file_size' => $m->file_size,
+                    'created_at' => $m->created_at->format('Y-m-d H:i'),
+                ]),
                 'created_at' => $entry->created_at->format('Y-m-d H:i'),
             ]);
         }
