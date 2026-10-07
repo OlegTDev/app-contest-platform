@@ -24,6 +24,7 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\Contest> $contests
  */
 #[Fillable(['name', 'email', 'password', 'guid', 'domain'])]
 #[Hidden(['password'])]
@@ -32,6 +33,22 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser, Ldap
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
     use AuthenticatesWithLdap;
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Contest, $this>
+     */
+    public function contests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Contest::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\ContestVote, $this>
+     */
+    public function votes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\ContestVote::class, 'user_id');
+    }
 
     /**
      * Get the attributes that should be cast.

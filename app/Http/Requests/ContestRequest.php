@@ -25,9 +25,12 @@ class ContestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // 'title' => ['required', 'string'],
-
+            'title' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(ContestType::class)],
+            'status' => ['sometimes', 'string', 'in:draft,published,paused,closed'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'start_at' => ['nullable', 'date_format:Y-m-d H:i:s'],
+            'end_at' => ['nullable', 'date_format:Y-m-d H:i:s'],
             'project_schema' => ['array', 'nullable'],
             'project_schema.*.name' => ['required', 'string'],
             'project_schema.*.label' => ['required', 'string'],
