@@ -1,5 +1,5 @@
-import { Head, Link } from "@inertiajs/react";
-import { Button, Card, Table, Tag, Typography, Space, Divider } from "antd";
+import { Head, Link, router } from "@inertiajs/react";
+import { Button, Card, Table, Tag, Typography, Space, Divider, message, Popconfirm } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, PaperClipOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
@@ -37,6 +37,14 @@ type EntriesIndexProps = {
 };
 
 export default function EntriesIndex({ contest, entries }: EntriesIndexProps): React.JSX.Element {
+    const handleDelete = (id: number, title: string) => {
+        if (confirm(`Вы уверены, что хотите удалить "${title}"?`)) {
+            router.delete(`/contest/${contest.id}/entries/${id}`, {
+                preserveScroll: true,
+            });
+        }
+    };
+
     const columns = [
         {
             title: "Название",
@@ -93,7 +101,16 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
                             Изменить
                         </Button>
                     </Link>
-                    <Button size="small" danger icon={<DeleteOutlined />} />
+                    <Popconfirm
+                        title="Удалить"
+                        description="Это действие нельзя отменить"
+                        onConfirm={() => handleDelete(record.id, record.title)}
+                        okText="Удалить"
+                        cancelText="Отмена"
+                        okButtonProps={{ danger: true }}
+                    >
+                        <Button size="small" danger icon={<DeleteOutlined />} />
+                    </Popconfirm>
                 </Space>
             ),
         },
