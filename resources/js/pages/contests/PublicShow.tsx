@@ -1,6 +1,6 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, message } from "antd";
-import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, EyeOutlined, PaperClipOutlined, CloseOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, Divider, message } from "antd";
+import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, PaperClipOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState } from 'react';
 import { vote } from "@/routes/entries";
@@ -125,6 +125,26 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
     const handlePreview = (file: MediaItem) => {
         setPreviewFile(file);
         setPreviewOpen(true);
+    };
+
+    const handleDownload = (file: MediaItem) => {
+        const a = document.createElement('a');
+        a.href = file.file_url;
+        a.download = file.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    const handleMediaClick = (file: MediaItem) => {
+        // Изображения открываются через Image.PreviewGroup (галерею),
+        // поэтому здесь обрабатываем только не-изображения.
+        if (file.file_type === 'video' || file.file_type === 'pdf') {
+            handlePreview(file);
+        } else {
+            // Для всех остальных типов (document и пр.) — сразу скачивание.
+            handleDownload(file);
+        }
     };
 
     const handleOpenMedia = (entry: VotingActivity) => {
@@ -415,30 +435,18 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                                                     </div>
                                                                 )}
                                                                 <Button
-                                                                    type="primary"
+                                                                    type={activity.is_voted ? 'primary' : 'default'}
+                                                                    danger={activity.is_voted}
                                                                     size="small"
-                                                                    icon={<EyeOutlined />}
+                                                                    icon={activity.is_voted ? <HeartFilled /> : <HeartOutlined />}
                                                                     style={{ position: 'absolute', bottom: 8, right: 8 }}
                                                                     onClick={(e) => {
                                                                         e.preventDefault();
                                                                         e.stopPropagation();
-                                                                        handlePreview(mainMedia);
+                                                                        handleVote(activity);
                                                                     }}
                                                                 >
-                                                                    Просмотр
-                                                                </Button>
-                                                                <Button
-                                                                    type="primary"
-                                                                    size="small"
-                                                                    icon={<PaperClipOutlined />}
-                                                                    style={{ position: 'absolute', bottom: 8, left: 8 }}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        e.stopPropagation();
-                                                                        handleOpenMedia(activity);
-                                                                    }}
-                                                                >
-                                                                    {activity.media.length} файлов
+                                                                    {activity.is_voted ? 'Убрать голос' : 'Проголосовать'}
                                                                 </Button>
                                                             </div>
                                                         ) : (
@@ -469,7 +477,7 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                                                 📎 {activity.media.length} файл(ов)
                                                             </Tag>
                                                         )}
-                                                        <Space>
+                                                        <Space style={{ marginTop: 'auto' }}>
                                                             <TrophyOutlined style={{ color: "#faad14" }} />
                                                             <Tag color="blue">
                                                                 {activity.votes_count}{" "}
@@ -549,49 +557,69 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                         </Card>
                     )}
 
-                    {/* Existing Files */}
-                    <Card size="small" title="Загруженные файлы">
+                    {/* Existing Files — gallery */}
+                    <Card size="small" title="Медиа">
                         {activeEntry?.media && activeEntry.media.length > 0 ? (
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                                {activeEntry.media.map((file) => (
-                                    <Card
-                                        key={file.id}
-                                        size="small"
-                                        hoverable
-                                        styles={{ body: { padding: '8px 12px' } }}
-                                    >
-                                        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                                            <Space>
-                                                {getFileIcon(file.file_type)}
-                                                <Space direction="vertical" size={0}>
-                                                    <Text strong style={{ fontSize: 13 }}>{file.file_name}</Text>
-                                                    <Tag color={getFileTypeColor(file.file_type)}>
-                                                        {getFileTypeLabel(file.file_type)}
-                                                    </Tag>
-                                                    <Text type="secondary" style={{ fontSize: 11 }}>
-                                                        {formatFileSize(file.file_size)}
-                                                    </Text>
-                                                </Space>
-                                            </Space>
-                                            <Button
-                                                type="text"
-                                                size="small"
-                                                icon={<EyeOutlined />}
-                                                onClick={() => {
-                                                    setPreviewFile(file);
-                                                    setPreviewOpen(true);
-                                                }}
-                                            />
-                                            <Button
-                                                type="text"
-                                                size="small"
-                                                icon={<DownloadOutlined />}
-                                                href={file.file_url}
-                                                download
-                                            />
-                                        </Space>
-                                    </Card>
-                                ))}
+                                {/* Images gallery */}
+                                {activeEntry.media.filter((f) => f.file_type === 'image').length > 0 && (
+                                    <Image.PreviewGroup>
+                                        <Row gutter={[8, 8]}>
+                                            {activeEntry.media
+                                                .filter((f) => f.file_type === 'image')
+                                                .map((file) => (
+                                                    <Col span={8} key={file.id}>
+                                                        <Image
+                                                            src={file.file_url}
+                                                            alt={file.file_name}
+                                                            width="100%"
+                                                            height={80}
+                                                            style={{
+                                                                objectFit: 'cover',
+                                                                borderRadius: 6,
+                                                                border: '1px solid #f0f0f0',
+                                                            }}
+                                                            preview={{ mask: null }}
+                                                        />
+                                                    </Col>
+                                                ))}
+                                        </Row>
+                                    </Image.PreviewGroup>
+                                )}
+
+                                {/* Non-image files (video, pdf, documents) */}
+                                {activeEntry.media.filter((f) => f.file_type !== 'image').length > 0 && (
+                                    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                        <Divider style={{ margin: '4px 0' }} />
+                                        {activeEntry.media
+                                            .filter((f) => f.file_type !== 'image')
+                                            .map((file) => (
+                                                <Card
+                                                    key={file.id}
+                                                    size="small"
+                                                    hoverable
+                                                    styles={{ body: { padding: '8px 12px' } }}
+                                                    onClick={() => handleMediaClick(file)}
+                                                >
+                                                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                                                        <Space>
+                                                            {getFileIcon(file.file_type)}
+                                                            <Space direction="vertical" size={0}>
+                                                                <Text strong style={{ fontSize: 13 }}>{file.file_name}</Text>
+                                                                <Tag color={getFileTypeColor(file.file_type)}>
+                                                                    {getFileTypeLabel(file.file_type)}
+                                                                </Tag>
+                                                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                                                    {formatFileSize(file.file_size)}
+                                                                </Text>
+                                                            </Space>
+                                                        </Space>
+                                                        <DownloadOutlined style={{ color: '#999' }} />
+                                                    </Space>
+                                                </Card>
+                                            ))}
+                                    </Space>
+                                )}
                             </Space>
                         ) : (
                             <Empty description="Нет файлов" image={Empty.PRESENTED_IMAGE_SIMPLE} />
