@@ -84,12 +84,16 @@ class MediaController extends Controller
         return redirect()->back()->with('success', 'Файлы успешно загружены.');
     }
 
-    public function entryIndex(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): Response
+    public function entryIndex(Request $request, Contest $contest, string $entry): Response
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
 
-        $media = $entry->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
+        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
+            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+
+        abort_unless($entryModel, 404);
+
+        $media = $entryModel->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
             'id' => $m->id,
             'file_name' => $m->file_name,
             'file_url' => $m->file_url,
@@ -105,17 +109,21 @@ class MediaController extends Controller
                 'title' => $contest->title,
             ],
             'entry' => [
-                'id' => $entry->id,
-                'title' => $entry->title,
+                'id' => $entryModel->id,
+                'title' => $entryModel->title,
             ],
             'media' => $media,
         ]);
     }
 
-    public function entryStore(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): RedirectResponse
+    public function entryStore(Request $request, Contest $contest, string $entry): RedirectResponse
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
+
+        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
+            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+
+        abort_unless($entryModel, 404);
 
         $maxSize = config('media.max_upload_size');
 
@@ -142,8 +150,8 @@ class MediaController extends Controller
 
             Media::create([
                 'contest_id' => $contest->id,
-                'entry_id' => $entry->id,
-                'entry_type' => get_class($entry),
+                'entry_id' => $entryModel->id,
+                'entry_type' => get_class($entryModel),
                 'file_name' => $originalName,
                 'file_path' => $path,
                 'file_type' => $fileType,
@@ -166,11 +174,16 @@ class MediaController extends Controller
         return back()->with('success', 'Media deleted successfully.');
     }
 
-    public function entryDestroy(Request $request, Contest $contest, ContestEntry|QuizEntry $entry, Media $media): RedirectResponse
+    public function entryDestroy(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
-        abort_unless($media->entry_id === $entry->id, 404);
+
+        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
+            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+
+        abort_unless($entryModel, 404);
+        abort_unless($media->entry_id === $entryModel->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
         $media->delete();

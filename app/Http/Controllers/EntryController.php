@@ -132,13 +132,12 @@ class EntryController extends Controller
     /**
      * Show form for editing an entry.
      */
-    public function edit(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): Response
+    public function edit(Request $request, Contest $contest, string $entry): Response
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
 
         if ($contest->type->value === 'voting') {
-            $entry = $contest->entries()->findOrFail($entry->id);
+            $entryModel = $contest->entries()->findOrFail($entry);
 
             return Inertia::render('entries/Edit', [
                 'contest' => [
@@ -147,17 +146,17 @@ class EntryController extends Controller
                     'type' => $contest->type->value,
                 ],
                 'entry' => [
-                    'id' => $entry->id,
-                    'title' => $entry->title,
-                    'description' => $entry->description,
-                    'author_name' => $entry->author_name,
-                    'author_department' => $entry->author_department,
-                    'fields_data' => $entry->fields_data,
+                    'id' => $entryModel->id,
+                    'title' => $entryModel->title,
+                    'description' => $entryModel->description,
+                    'author_name' => $entryModel->author_name,
+                    'author_department' => $entryModel->author_department,
+                    'fields_data' => $entryModel->fields_data,
                 ],
             ]);
         }
 
-        $entry = $contest->quizEntries()->findOrFail($entry->id);
+        $entryModel = $contest->quizEntries()->findOrFail($entry);
 
         return Inertia::render('entries/Edit', [
             'contest' => [
@@ -166,13 +165,13 @@ class EntryController extends Controller
                 'type' => $contest->type->value,
             ],
             'entry' => [
-                'id' => $entry->id,
-                'title' => $entry->title,
-                'description' => $entry->description,
-                'fields_data' => $entry->fields_data,
-                'sort_order' => $entry->sort_order,
-                'show_from' => $entry->show_from?->format('Y-m-d H:i'),
-                'show_until' => $entry->show_until?->format('Y-m-d H:i'),
+                'id' => $entryModel->id,
+                'title' => $entryModel->title,
+                'description' => $entryModel->description,
+                'fields_data' => $entryModel->fields_data,
+                'sort_order' => $entryModel->sort_order,
+                'show_from' => $entryModel->show_from?->format('Y-m-d H:i'),
+                'show_until' => $entryModel->show_until?->format('Y-m-d H:i'),
             ],
         ]);
     }
@@ -180,10 +179,9 @@ class EntryController extends Controller
     /**
      * Update an entry.
      */
-    public function update(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): RedirectResponse
+    public function update(Request $request, Contest $contest, string $entry): RedirectResponse
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
 
         if ($contest->type->value === 'voting') {
             $validated = $request->validate([
@@ -194,7 +192,7 @@ class EntryController extends Controller
                 'fields_data' => ['nullable', 'array'],
             ]);
 
-            $contest->entries()->where('id', $entry->id)->update($validated);
+            $contest->entries()->where('id', $entry)->update($validated);
         } else {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:255'],
@@ -205,7 +203,7 @@ class EntryController extends Controller
                 'show_until' => ['nullable', 'date_format:Y-m-d H:i:s'],
             ]);
 
-            $contest->quizEntries()->where('id', $entry->id)->update($validated);
+            $contest->quizEntries()->where('id', $entry)->update($validated);
         }
 
         return redirect()->route('entries.index', $contest)->with('success', 'Entry updated successfully.');
@@ -214,15 +212,14 @@ class EntryController extends Controller
     /**
      * Delete an entry.
      */
-    public function destroy(Request $request, Contest $contest, ContestEntry|QuizEntry $entry): RedirectResponse
+    public function destroy(Request $request, Contest $contest, string $entry): RedirectResponse
     {
         abort_unless($request->user()->id === $contest->user_id, 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
 
         if ($contest->type->value === 'voting') {
-            $contest->entries()->where('id', $entry->id)->delete();
+            $contest->entries()->where('id', $entry)->delete();
         } else {
-            $contest->quizEntries()->where('id', $entry->id)->delete();
+            $contest->quizEntries()->where('id', $entry)->delete();
         }
 
         return redirect()->route('entries.index', $contest)->with('success', 'Entry deleted successfully.');
