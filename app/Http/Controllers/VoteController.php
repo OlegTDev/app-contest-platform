@@ -6,6 +6,7 @@ use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\ContestVote;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,13 +15,21 @@ class VoteController extends Controller
     /**
      * Vote for an entry.
      */
-    public function store(Request $request, Contest $contest, ContestEntry $entry): JsonResponse
+    public function store(Request $request, Contest $contest, ContestEntry $entry): RedirectResponse|JsonResponse
     {
         abort_unless($contest->isActive(), 403, 'This contest is not currently available.');
         abort_unless($entry->contest_id === $contest->id, 404);
         abort_unless($entry->isVisible(), 403, 'This entry is not currently available.');
 
         $user = $request->user();
+
+        if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Для голосования необходимо авторизоваться.'], 401);
+            }
+
+            return redirect()->route('login');
+        }
 
         // Check if user already voted for this entry
         $existing = ContestVote::where('contest_id', $contest->id)
@@ -29,10 +38,7 @@ class VoteController extends Controller
             ->first();
 
         if ($existing) {
-            return response()->json([
-                'message' => 'You have already voted for this entry.',
-                'already_voted' => true,
-            ], 422);
+            return back()->with('error', 'Вы уже проголосовали за эту работу.');
         }
 
         DB::transaction(function () use ($contest, $entry, $user) {
@@ -47,22 +53,26 @@ class VoteController extends Controller
             $entry->increment('votes_count');
         });
 
-        return response()->json([
-            'message' => 'Vote recorded successfully.',
-            'votes_count' => $entry->votes_count + 1,
-            'already_voted' => false,
-        ]);
+        return back()->with('success', 'Голос засчитан!');
     }
 
     /**
      * Remove a vote.
      */
-    public function destroy(Request $request, Contest $contest, ContestEntry $entry): JsonResponse
+    public function destroy(Request $request, Contest $contest, ContestEntry $entry): RedirectResponse|JsonResponse
     {
         abort_unless($contest->isActive(), 403, 'This contest is not currently available.');
         abort_unless($entry->contest_id === $contest->id, 404);
 
         $user = $request->user();
+
+        if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Для голосования необходимо авторизоваться.'], 401);
+            }
+
+            return redirect()->route('login');
+        }
 
         $vote = ContestVote::where('contest_id', $contest->id)
             ->where('entry_id', $entry->id)
@@ -70,9 +80,7 @@ class VoteController extends Controller
             ->first();
 
         if (!$vote) {
-            return response()->json([
-                'message' => 'You have not voted for this entry.',
-            ], 422);
+            return back()->with('error', 'Вы не голосовали за эту работу.');
         }
 
         DB::transaction(function () use ($vote, $entry) {
@@ -80,10 +88,7 @@ class VoteController extends Controller
             $entry->decrement('votes_count');
         });
 
-        return response()->json([
-            'message' => 'Vote removed successfully.',
-            'votes_count' => max(0, $entry->votes_count - 1),
-        ]);
+        return back()->with('success', 'Голос удалён.');
     }
 
     /**

@@ -1,8 +1,10 @@
 import { Head, Link, router } from "@inertiajs/react";
 import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, message } from "antd";
-import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, EyeOutlined, PlusOutlined, PaperClipOutlined, CloseOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, EyeOutlined, PlusOutlined, PaperClipOutlined, CloseOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState, useRef } from 'react';
+import { vote } from "@/routes/entries";
+import { destroy as voteDestroy } from "@/routes/entries/vote";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -13,6 +15,7 @@ type MediaItem = {
     file_type: string;
     file_extension: string;
     file_size: number | null;
+    is_main: boolean;
     created_at: string;
 };
 
@@ -33,6 +36,7 @@ type VotingActivity = {
     author_name: string | null;
     author_department: string | null;
     votes_count: number;
+    is_voted: boolean;
     media: MediaItem[];
     created_at: string;
 };
@@ -70,15 +74,46 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
     const [mediaDrawerOpen, setMediaDrawerOpen] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState<VotingActivity | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [voting, setVoting] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const maxUploadSizeMB = 100;
 
-    const handleVoteRedirect = () => {
-        router.get(`/contest/${contest.id}/entries/public`, {}, {
+    const activeEntry =
+        contest.activities.find(
+            (a): a is VotingActivity => a.type === "voting" && a.id === selectedEntry?.id
+        ) ?? null;
+
+    const handleVote = (entry: VotingActivity) => {
+        if (!contest.is_active) {
+            message.warning("Голосование сейчас недоступно");
+            return;
+        }
+
+        setVoting(true);
+
+        const options = {
             preserveScroll: true,
-        });
+            preserveState: true,
+            onSuccess: () => {
+                setVoting(false);
+                message.success(entry.is_voted ? "Голос удалён" : "Голос засчитан!");
+            },
+            onError: () => {
+                setVoting(false);
+                message.error("Не удалось проголосовать");
+            },
+            onFinish: () => setVoting(false),
+        };
+
+        if (entry.is_voted) {
+            // Снимаем голос через DELETE-маршрут (wayfinder: entries.vote.destroy)
+            router.delete(voteDestroy({ contest: contest.id, entry: entry.id }).url, options);
+        } else {
+            // Голосуем через POST-маршрут (wayfinder: entries.vote)
+            router.post(vote({ contest: contest.id, entry: entry.id }).url, {}, options);
+        }
     };
 
     const handleQuizRedirect = () => {
@@ -377,48 +412,43 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                 <Space>
                                     <ThunderboltOutlined style={{ color: "#52c41a" }} />
                                     <span>Работы</span>
-                                    <Tag>{contest.activities.length}</Tag>
+                                    <Tag>{contest.activities.filter((a) => a.type === "voting").length}</Tag>
                                 </Space>
                             }
-                            extra={
-                                contest.is_active && contest.activities.length > 0 ? (
-                                    <Button
-                                        type="primary"
-                                        icon={<ThunderboltOutlined />}
-                                        onClick={handleVoteRedirect}
-                                    >
-                                        Голосовать
-                                    </Button>
-                                ) : null
-                            }
                         >
-                            {contest.activities.length === 0 ? (
+                            {contest.activities.filter((a) => a.type === "voting").length === 0 ? (
                                 <Empty description="Работ пока нет" />
                             ) : (
                                 <Row gutter={[16, 16]}>
                                     {contest.activities.map((activity) => {
                                         if (activity.type !== "voting") return null;
-                                        const hasMedia = activity.media && activity.media.length > 0;
+                                        // Show only the file marked as main (is_main: true); fallback to the first file if none is marked.
+                                        const mainMedia =
+                                            activity.media.find((m) => m.is_main) ??
+                                            activity.media[0] ??
+                                            null;
+                                        const hasMedia = mainMedia !== null;
 
                                         return (
                                             <Col xs={24} sm={12} lg={8} key={activity.id}>
                                                 <Card
                                                     hoverable
                                                     style={{ height: '100%' }}
+                                                    onClick={() => handleOpenMedia(activity)}
                                                     cover={
                                                         hasMedia ? (
                                                             <div style={{ height: 200, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                                                                {activity.media[0].file_type === 'image' ? (
+                                                                {mainMedia.file_type === 'image' ? (
                                                                     <img
-                                                                        src={activity.media[0].file_url}
+                                                                        src={mainMedia.file_url}
                                                                         alt={activity.title}
                                                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                                     />
                                                                 ) : (
                                                                     <div style={{ textAlign: 'center' }}>
-                                                                        <span style={{ fontSize: 48 }}>{getFileIcon(activity.media[0].file_type)}</span>
+                                                                        <span style={{ fontSize: 48 }}>{getFileIcon(mainMedia.file_type)}</span>
                                                                         <p style={{ margin: '8px 0 0', fontSize: 12, color: '#999' }}>
-                                                                            {activity.media[0].file_name}
+                                                                            {mainMedia.file_name}
                                                                         </p>
                                                                     </div>
                                                                 )}
@@ -430,7 +460,7 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                                                     onClick={(e) => {
                                                                         e.preventDefault();
                                                                         e.stopPropagation();
-                                                                        handlePreview(activity.media[0]);
+                                                                        handlePreview(mainMedia);
                                                                     }}
                                                                 >
                                                                     Просмотр
@@ -517,7 +547,7 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                 title={
                     <Space>
                         <PaperClipOutlined />
-                        <span>Медиафайлы: {selectedEntry?.title}</span>
+                        <span>Работа: {activeEntry?.title ?? ""}</span>
                     </Space>
                 }
                 placement="right"
@@ -526,6 +556,37 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                 width={500}
             >
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                    {/* Vote Section */}
+                    {activeEntry && contest.is_active && (
+                        <Card size="small">
+                            <Space
+                                style={{ width: '100%', justifyContent: 'space-between' }}
+                                wrap
+                            >
+                                <Space>
+                                    <TrophyOutlined style={{ color: '#faad14' }} />
+                                    <Text strong>
+                                        {activeEntry.votes_count}{' '}
+                                        {activeEntry.votes_count === 1
+                                            ? 'голос'
+                                            : activeEntry.votes_count < 5
+                                                ? 'голоса'
+                                                : 'голосов'}
+                                    </Text>
+                                </Space>
+                                <Button
+                                    type={activeEntry.is_voted ? 'primary' : 'default'}
+                                    danger={activeEntry.is_voted}
+                                    icon={activeEntry.is_voted ? <HeartFilled /> : <HeartOutlined />}
+                                    loading={voting}
+                                    onClick={() => handleVote(activeEntry)}
+                                >
+                                    {activeEntry.is_voted ? 'Убрать голос' : 'Проголосовать'}
+                                </Button>
+                            </Space>
+                        </Card>
+                    )}
+
                     {/* Upload Section */}
                     <Card size="small" title="Загрузить файлы">
                         <input
@@ -570,9 +631,9 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
 
                     {/* Existing Files */}
                     <Card size="small" title="Загруженные файлы">
-                        {selectedEntry?.media && selectedEntry.media.length > 0 ? (
+                        {activeEntry?.media && activeEntry.media.length > 0 ? (
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                                {selectedEntry.media.map((file) => (
+                                {activeEntry.media.map((file) => (
                                     <Card
                                         key={file.id}
                                         size="small"

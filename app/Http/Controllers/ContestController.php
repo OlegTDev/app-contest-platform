@@ -64,7 +64,7 @@ class ContestController extends Controller
             })->orderBy('sort_order');
         }, 'entries' => function ($query) {
             $query->orderBy('id');
-        }]);
+        }, 'entries.media']);
 
         // Check if contest time window is active
         $now = now();
@@ -77,6 +77,11 @@ class ContestController extends Controller
         if ($contest->end_at && $now->gt($contest->end_at)) {
             $isTimeActive = false;
         }
+
+        $user = $request->user();
+        $userVotes = $user
+            ? $user->votes()->where('contest_id', $contest->id)->pluck('entry_id')->toArray()
+            : [];
 
         $activities = [];
 
@@ -98,6 +103,7 @@ class ContestController extends Controller
                 'author_name' => $entry->author_name,
                 'author_department' => $entry->author_department,
                 'votes_count' => $entry->votes_count,
+                'is_voted' => in_array($entry->id, $userVotes),
                 'fields_data' => $entry->fields_data,
                 'media' => $entry->media->map(fn ($m) => [
                     'id' => $m->id,
@@ -106,6 +112,7 @@ class ContestController extends Controller
                     'file_type' => $m->file_type,
                     'file_extension' => $m->file_extension,
                     'file_size' => $m->file_size,
+                    'is_main' => $m->is_main,
                     'created_at' => $m->created_at->format('Y-m-d H:i'),
                 ]),
                 'created_at' => $entry->created_at->format('Y-m-d H:i'),

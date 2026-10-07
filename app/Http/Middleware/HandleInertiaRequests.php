@@ -45,6 +45,11 @@ class HandleInertiaRequests extends Middleware
             'app' => [
                 'max_upload_size' => config('media.max_upload_size'),
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            'csrf_token' => csrf_token(),
         ];
     }
 }

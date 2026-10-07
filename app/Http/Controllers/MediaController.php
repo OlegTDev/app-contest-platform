@@ -25,6 +25,7 @@ class MediaController extends Controller
             'file_type' => $m->file_type,
             'file_extension' => $m->file_extension,
             'file_size' => $m->file_size,
+            'is_main' => $m->is_main,
             'created_at' => $m->created_at->format('Y-m-d H:i'),
         ]);
 
@@ -100,6 +101,7 @@ class MediaController extends Controller
             'file_type' => $m->file_type,
             'file_extension' => $m->file_extension,
             'file_size' => $m->file_size,
+            'is_main' => $m->is_main,
             'created_at' => $m->created_at->format('Y-m-d H:i'),
         ]);
 
@@ -189,5 +191,29 @@ class MediaController extends Controller
         $media->delete();
 
         return back()->with('success', 'Media deleted successfully.');
+    }
+
+    public function toggleMain(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
+    {
+        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($media->contest_id === $contest->id, 404);
+
+        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
+            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+
+        abort_unless($entryModel, 404);
+        abort_unless($media->entry_id === $entryModel->id, 404);
+
+        // If setting this file as main, unset the previous main file of this entry.
+        if (! $media->is_main) {
+            Media::where('entry_id', $entryModel->id)
+                ->where('entry_type', get_class($entryModel))
+                ->where('is_main', true)
+                ->update(['is_main' => false]);
+        }
+
+        $media->update(['is_main' => ! $media->is_main]);
+
+        return back()->with('success', $media->is_main ? 'Файл сделан главным.' : 'Файл больше не главный.');
     }
 }

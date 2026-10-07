@@ -21,7 +21,6 @@ Route::prefix('contest/{contest}')->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::inertia('/', 'welcome')->name('home');
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
     Route::resource('contest', ContestController::class);
@@ -37,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('entries/{entry}/media', [MediaController::class, 'entryIndex'])->name('entry.media.index');
         Route::post('entries/{entry}/media', [MediaController::class, 'entryStore'])->name('entry.media.store');
         Route::delete('entries/{entry}/media/{media}', [MediaController::class, 'entryDestroy'])->name('entry.media.destroy');
+        Route::post('entries/{entry}/media/{media}/main', [MediaController::class, 'toggleMain'])->name('entry.media.toggleMain');
     });
 
     // Quiz routes (nested under contest)

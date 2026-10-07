@@ -1,9 +1,14 @@
-import { Head, Link, router, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Button, Card, List, Result, Space, Typography, Tag, message } from "antd";
 import { HeartOutlined, HeartFilled, TrophyOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 const { Title, Text, Paragraph } = Typography;
+
+// Show flash messages
+const { flash } = usePage<{ flash?: { success?: string; error?: string } }>().props;
+if (flash?.success) message.success(flash.success);
+if (flash?.error) message.error(flash.error);
 
 type EntryItem = {
     id: number;
@@ -30,28 +35,8 @@ type PublicIndexProps = {
 };
 
 export default function PublicIndex({ contest, entries }: PublicIndexProps): React.JSX.Element {
-    const { flash } = usePage<{ flash?: { success?: string; error?: string } }>().props;
-
-    const handleVote = (entryId: number, isVoted: boolean) => {
-        const url = `/contest/${contest.id}/entries/${entryId}/vote`;
-
-        if (isVoted) {
-            router.delete(url, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    message.success("Голос удалён");
-                },
-            });
-        } else {
-            router.post(url, {}, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    message.success("Голос засчитан!");
-                },
-            });
-        }
-    };
-
+    const { props } = usePage();
+    const csrfToken = props?.csrf_token ?? '';
     const sortedEntries = [...entries].sort((a, b) => b.votes_count - a.votes_count);
 
     if (entries.length === 0) {
@@ -180,14 +165,32 @@ export default function PublicIndex({ contest, entries }: PublicIndexProps): Rea
                                             )}
 
                                             <Space style={{ marginTop: "auto" }}>
-                                                <Button
-                                                    type={entry.is_voted ? "primary" : "default"}
-                                                    icon={entry.is_voted ? <HeartFilled /> : <HeartOutlined />}
-                                                    onClick={() => handleVote(entry.id, entry.is_voted)}
-                                                    style={{ flex: 1 }}
-                                                >
-                                                    {entry.votes_count}
-                                                </Button>
+                                                {entry.is_voted ? (
+                                                    <form action={`/contest/${contest.id}/entries/${entry.id}/vote`} method="post">
+                                                        <input type="hidden" name="_method" value="DELETE" />
+                                                        <input type="hidden" name="_token" defaultValue={csrfToken} />
+                                                        <Button
+                                                            type="primary"
+                                                            icon={<HeartFilled />}
+                                                            htmlType="submit"
+                                                            style={{ flex: 1 }}
+                                                        >
+                                                            {entry.votes_count}
+                                                        </Button>
+                                                    </form>
+                                                ) : (
+                                                    <form action={`/contest/${contest.id}/entries/${entry.id}/vote`} method="post">
+                                                        <input type="hidden" name="_token" defaultValue={csrfToken} />
+                                                        <Button
+                                                            type="default"
+                                                            icon={<HeartOutlined />}
+                                                            htmlType="submit"
+                                                            style={{ flex: 1 }}
+                                                        >
+                                                            {entry.votes_count}
+                                                        </Button>
+                                                    </form>
+                                                )}
                                             </Space>
                                         </Space>
                                     </Card>

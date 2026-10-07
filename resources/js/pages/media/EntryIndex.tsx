@@ -12,6 +12,8 @@ import {
     DownloadOutlined,
     EyeOutlined,
     ArrowLeftOutlined,
+    StarOutlined,
+    StarFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState, useRef } from 'react';
@@ -25,6 +27,7 @@ type MediaItem = {
     file_type: string;
     file_extension: string;
     file_size: number | null;
+    is_main: boolean;
     created_at: string;
 };
 
@@ -149,6 +152,18 @@ export default function EntryMediaIndex({ contest, entry, media }: EntryMediaInd
         }
     };
 
+    const handleToggleMain = (file: MediaItem) => {
+        router.post(`/contest/${contest.id}/entries/${entry.id}/media/${file.id}/main`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.success(file.is_main ? 'Файл больше не главный' : 'Файл сделан главным');
+            },
+            onError: () => {
+                message.error('Не удалось изменить главный файл');
+            },
+        });
+    };
+
     const handlePreview = (file: MediaItem) => {
         setPreviewFile(file);
         setPreviewOpen(true);
@@ -167,6 +182,33 @@ export default function EntryMediaIndex({ contest, entry, media }: EntryMediaInd
                         {getFileTypeLabel(record.file_type)}
                     </Tag>
                 </Space>
+            ),
+        },
+        {
+            title: 'Главный',
+            dataIndex: 'is_main',
+            key: 'is_main',
+            width: 110,
+            render: (isMain: boolean, record: MediaItem) => (
+                isMain ? (
+                    <Button
+                        type="link"
+                        size="small"
+                        icon={<StarFilled style={{ color: '#faad14' }} />}
+                        onClick={() => handleToggleMain(record)}
+                    >
+                        Главный
+                    </Button>
+                ) : (
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<StarOutlined />}
+                        onClick={() => handleToggleMain(record)}
+                    >
+                        Сделать главным
+                    </Button>
+                )
             ),
         },
         {
