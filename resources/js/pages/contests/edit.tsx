@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-import { Button, Card, DatePicker, Form, Input, Select, Space, Typography } from "antd";
+import { Alert, Button, Card, DatePicker, Form, Input, Select, Space, Typography } from "antd";
 import dayjs from "dayjs";
 import { update } from "@/routes/admin/contests";
 
@@ -56,6 +56,10 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
       preserveScroll: true,
     });
   };
+
+  const errorMessages = Object.values(errors).filter(
+    (value): value is string => typeof value === "string"
+  );
 
   const addField = (type: TypeField) => {
     const timestamp = Date.now();
@@ -222,6 +226,21 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
             <h1>Редактировать конкурс</h1>
           </Space>
 
+          {errorMessages.length > 0 && (
+            <Alert
+              type="error"
+              showIcon
+              message="Не удалось сохранить конкурс"
+              description={
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {errorMessages.map((message, index) => (
+                    <li key={index}>{message}</li>
+                  ))}
+                </ul>
+              }
+            />
+          )}
+
           <form onSubmit={handleSubmit}>
             <Card title="Основная информация">
               <Space direction="vertical" size="middle" style={{ width: "100%" }}>
@@ -284,7 +303,11 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
 
             <Card title="Период проведения">
               <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-                <Form.Item label="Начало">
+                <Form.Item
+                  label="Начало"
+                  validateStatus={errors.start_at ? "error" : ""}
+                  help={errors.start_at}
+                >
                   <DatePicker
                     showTime
                     value={data.start_at ? dayjs(data.start_at) : null}
@@ -299,7 +322,11 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
                   />
                 </Form.Item>
 
-                <Form.Item label="Окончание">
+                <Form.Item
+                  label="Окончание"
+                  validateStatus={errors.end_at ? "error" : ""}
+                  help={errors.end_at}
+                >
                   <DatePicker
                     showTime
                     value={data.end_at ? dayjs(data.end_at) : null}
