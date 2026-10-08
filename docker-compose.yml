@@ -29,7 +29,11 @@ services:
         volumes:
             - ./:/app
         depends_on:
-            - postgres
+            postgres:
+                condition: service_started
+        # stdin_open: true
+        # tty: true
+        # command: tail -f /dev/null
 
     postgres:
         image: postgres:18-alpine
@@ -40,7 +44,7 @@ services:
         ports:
             - 5433:5432
         volumes:
-            - postgres_data_app_staff:/var/lib/postgresql/data
+            - postgres_data_app_staff:/var/lib/postgresql
 
 volumes:
     postgres_data_app_staff:
