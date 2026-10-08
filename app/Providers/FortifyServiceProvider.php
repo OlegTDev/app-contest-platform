@@ -39,17 +39,14 @@ class FortifyServiceProvider extends ServiceProvider
                 'password' => $request->password,
             ];
 
-            if ($this->app->environment('local')) {
-                if (Auth::attempt([
-                    'email' => $credentials['samaccountname'],
-                    'password' => $credentials['password'],
-                ])) {
-                    return Auth::user();
-                }
-                return null;
+            if (Auth::attempt([
+                'email' => $credentials['samaccountname'],
+                'password' => $credentials['password'],
+            ])) {
+                return Auth::user();
             }
 
-            if (Auth::guard('ldap')->attempt($credentials)) {
+            if ($this->app->environment('production') && Auth::guard('ldap')->attempt($credentials)) {
                 $user = Auth::guard('ldap')->user();
                 return $user;
             }
