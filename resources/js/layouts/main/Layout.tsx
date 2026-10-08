@@ -6,17 +6,29 @@ import {
   TeamOutlined,
   TrophyOutlined,
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 
 const { Header, Sider, Content } = Layout;
+
+const SIDEBAR_STORAGE_KEY = 'sidebar_collapsed';
+
+function getInitialCollapsed(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true';
+}
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function MainLayout({ children }: LayoutProps): React.JSX.Element {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(getInitialCollapsed);
+
+  // Persist the collapsed state so the sidebar keeps its state across reloads.
+  useEffect(() => {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
+  }, [collapsed]);
   const { url } = usePage();
   const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
