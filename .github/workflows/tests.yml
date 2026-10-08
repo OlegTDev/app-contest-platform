@@ -13,6 +13,21 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,7 +37,8 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
+          extensions: intl, mbstring, pdo_pgsql, zip, openssl
           tools: composer:v2
           coverage: none
 
@@ -32,7 +48,33 @@ jobs:
           node-version: '22'
 
       - name: Setup Application
-        run: composer setup
+        run: |
+          cp .env.example .env
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          npm ci --prefer-offline
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: ${{ secrets.DB_HOST || '127.0.0.1' }}
+          DB_PORT: ${{ secrets.DB_PORT || '5432' }}
+          DB_DATABASE: testing
+          DB_USERNAME: postgres
+          DB_PASSWORD: password
 
-      - name: Run CI Checks
-        run: composer ci:check
+      - name: Generate application key
+        run: php artisan key:generate --ansi
+
+      - name: Run PHPStan (Level 7)
+        run: phpstan analyse --no-progress
+
+      - name: Run Pint (code style)
+        run: pint --test --parallel
+
+      - name: Run PHPUnit / Pest
+        run: php artisan test
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: ${{ job.services.postgres.ports['5432'] }}
+          DB_DATABASE: testing
+          DB_USERNAME: postgres
+          DB_PASSWORD: password
