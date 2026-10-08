@@ -64,10 +64,10 @@ jobs:
         run: php artisan key:generate --ansi
 
       - name: Run PHPStan (Level 7)
-        run: phpstan analyse --no-progress
+        run: vendor/bin/phpstan analyse --no-progress
 
       - name: Run Pint (code style)
-        run: pint --test --parallel
+        run: vendor/bin/pint --test --parallel
 
       - name: Run PHPUnit / Pest
         run: php artisan test
