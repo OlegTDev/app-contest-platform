@@ -119,6 +119,23 @@ class ContestController extends Controller
             ]);
         }
 
+        $leaderboard = [];
+        if ($contest->type->value === 'voting') {
+            $leaderboard = $contest->entries()
+                ->whereNotNull('votes_count')
+                ->orderByDesc('votes_count')
+                ->limit(50)
+                ->get()
+                ->map(fn ($entry) => [
+                    'id' => $entry->id,
+                    'title' => $entry->title,
+                    'votes_count' => $entry->votes_count,
+                    'author' => $entry->author_name ? [
+                        'name' => $entry->author_name,
+                    ] : null,
+                ]);
+        }
+
         return Inertia::render('contests/PublicShow', [
             'contest' => [
                 'id' => $contest->id,
@@ -133,6 +150,7 @@ class ContestController extends Controller
                 'activities' => $activities,
                 'created_at' => $contest->created_at->format('Y-m-d H:i'),
             ],
+            'leaderboard' => $leaderboard,
         ]);
     }
 
