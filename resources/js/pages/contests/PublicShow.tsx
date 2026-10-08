@@ -127,6 +127,13 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
         setPreviewOpen(true);
     };
 
+    const closePreview = () => {
+        // Сбрасываем файл и закрываем модалку, чтобы медиа (видео/аудио)
+        // гарантированно остановилось и размонтировалось.
+        setPreviewOpen(false);
+        setPreviewFile(null);
+    };
+
     const handleDownload = (file: MediaItem) => {
         const a = document.createElement('a');
         a.href = file.file_url;
@@ -505,7 +512,8 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                 title={previewFile?.file_name}
                 open={previewOpen}
                 footer={null}
-                onCancel={() => setPreviewOpen(false)}
+                onCancel={closePreview}
+                destroyOnHidden
                 width="80%"
                 style={{ maxWidth: 1200 }}
             >
