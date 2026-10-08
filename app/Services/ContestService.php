@@ -176,8 +176,8 @@ final readonly class ContestService
             'type' => $contest->type->value,
             'status' => $contest->status,
             'description' => $contest->description,
-            'start_at' => $contest->start_at?->format('Y-m-d H:i'),
-            'end_at' => $contest->end_at?->format('Y-m-d H:i'),
+            'start_at' => $contest->start_at?->format('Y-m-d H:i:s'),
+            'end_at' => $contest->end_at?->format('Y-m-d H:i:s'),
             'project_schema' => $contest->project_schema ?? [],
         ];
     }
