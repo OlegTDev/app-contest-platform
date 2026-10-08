@@ -39,9 +39,9 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
       label: <Link href="/">Главная</Link>,
     },
     {
-      key: '/contest',
+      key: '/admin/contests',
       icon: <TrophyOutlined />,
-      label: <Link href="/contest">Управление</Link>,
+      label: <Link href="/admin/contests">Управление</Link>,
     },
   ];
 
@@ -77,7 +77,7 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={[url.startsWith('/contest') ? '/contest' : '/']}
+          defaultSelectedKeys={[url.startsWith('/admin/contests') ? '/admin/contests' : '/']}
           items={menuItems}
         />
       </Sider>
@@ -110,8 +110,8 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
           />
           <div style={{ color: '#666', fontSize: 14 }}>
             {url === '/' ? 'Конкурсы' :
-             url === '/contest' ? 'Управление' :
-             url === '/contest/create' ? 'Создать конкурс' :
+             url === '/admin/contests' ? 'Управление' :
+             url === '/admin/contests/create' ? 'Создать конкурс' :
              url.replace(/^\//, '').replace(/\//g, ' / ')}
           </div>
         </Header>

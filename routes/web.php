@@ -12,58 +12,71 @@ use App\Http\Controllers\QuizController;
 use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
 
-
-// Public routes (no authentication required)
-Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
-Route::get('contests/{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
-
-// Public entry voting (no authentication required)
-Route::prefix('contest/{contest}')->group(function () {
-    Route::get('entries/public', [EntryController::class, 'publicIndex'])->name('entries.public');
-    Route::post('entries/{entry}/vote', [VoteController::class, 'store'])->name('entries.vote');
-    Route::delete('entries/{entry}/vote', [VoteController::class, 'destroy'])->name('entries.vote.destroy');
-    Route::get('entries/leaderboard', [VoteController::class, 'leaderboard'])->name('entries.leaderboard');
-});
-
 Route::middleware(['auth'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
-    Route::resource('contest', ContestAdminController::class);
-    Route::patch('contest/{contest}/status', [ContestAdminController::class, 'updateStatus'])->name('contest.status');
+    // Contest management (public pages for authenticated users)
+    Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
+    Route::get('contests/{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
 
-    // Media routes (nested under contest)
-    Route::prefix('contest/{contest}')->group(function () {
-        Route::get('media', [MediaController::class, 'index'])->name('media.index');
-        Route::post('media', [MediaController::class, 'store'])->name('media.store');
-        Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    // Admin contest management
+    Route::prefix('admin/contests')->group(function () {
+        Route::get('/', [ContestAdminController::class, 'index'])->name('admin.contests.index');
+        Route::get('/create', [ContestAdminController::class, 'create'])->name('admin.contests.create');
+        Route::post('/', [ContestAdminController::class, 'store'])->name('admin.contests.store');
+        Route::get('/{contest}', [ContestAdminController::class, 'show'])->name('admin.contests.show');
+        Route::get('/{contest}/edit', [ContestAdminController::class, 'edit'])->name('admin.contests.edit');
+        Route::patch('/{contest}', [ContestAdminController::class, 'update'])->name('admin.contests.update');
+        Route::delete('/{contest}', [ContestAdminController::class, 'destroy'])->name('admin.contests.destroy');
+        Route::patch('/{contest}/status', [ContestAdminController::class, 'updateStatus'])->name('admin.contests.status');
 
-        // Entry media routes
-        Route::get('entries/{entry}/media', [MediaController::class, 'entryIndex'])->name('entry.media.index');
-        Route::post('entries/{entry}/media', [MediaController::class, 'entryStore'])->name('entry.media.store');
-        Route::delete('entries/{entry}/media/{media}', [MediaController::class, 'entryDestroy'])->name('entry.media.destroy');
-        Route::post('entries/{entry}/media/{media}/main', [MediaController::class, 'toggleMain'])->name('entry.media.toggleMain');
+        // Entry management (general routes first, then parameterized)
+        Route::get('/{contest}/entries', [EntryController::class, 'index'])->name('admin.entries.index');
+        Route::get('/{contest}/entries/create', [EntryController::class, 'create'])->name('admin.entries.create');
+        Route::post('/{contest}/entries', [EntryController::class, 'store'])->name('admin.entries.store');
+        Route::get('/{contest}/entries/leaderboard', [VoteController::class, 'leaderboard'])->name('admin.entries.leaderboard');
+        Route::get('/{contest}/entries/{entry}/edit', [EntryController::class, 'edit'])->name('admin.entries.edit');
+        Route::patch('/{contest}/entries/{entry}', [EntryController::class, 'update'])->name('admin.entries.update');
+        Route::delete('/{contest}/entries/{entry}', [EntryController::class, 'destroy'])->name('admin.entries.destroy');
+
+        // Media management (general routes first, then parameterized)
+        Route::get('/{contest}/media', [MediaController::class, 'index'])->name('admin.media.index');
+        Route::post('/{contest}/media', [MediaController::class, 'store'])->name('admin.media.store');
+        Route::delete('/{contest}/media/{media}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
+        Route::get('/{contest}/entries/{entry}/media', [MediaController::class, 'entryIndex'])->name('admin.entry.media.index');
+        Route::post('/{contest}/entries/{entry}/media', [MediaController::class, 'entryStore'])->name('admin.entry.media.store');
+        Route::delete('/{contest}/entries/{entry}/media/{media}', [MediaController::class, 'entryDestroy'])->name('admin.entry.media.destroy');
+        Route::post('/{contest}/entries/{entry}/media/{media}/main', [MediaController::class, 'toggleMain'])->name('admin.entry.media.toggleMain');
+
+        // Voting
+        Route::post('/{contest}/entries/{entry}/vote', [VoteController::class, 'store'])->name('admin.entries.vote');
+        Route::delete('/{contest}/entries/{entry}/vote', [VoteController::class, 'destroy'])->name('admin.entries.vote.destroy');
+
+        // Quiz management (general routes first, then parameterized)
+        Route::get('/{contest}/quizzes', [QuizController::class, 'index'])->name('admin.quizzes.index');
+        Route::get('/{contest}/quizzes/create', [QuizController::class, 'create'])->name('admin.quizzes.create');
+        Route::post('/{contest}/quizzes', [QuizController::class, 'store'])->name('admin.quizzes.store');
+        Route::get('/{contest}/quizzes/{quiz}/take', [QuizController::class, 'take'])->name('admin.quizzes.take');
+        Route::get('/{contest}/quizzes/{quiz}/result', [QuizController::class, 'result'])->name('admin.quizzes.result');
+        Route::get('/{contest}/quizzes/{quiz}/leaderboard', [QuizController::class, 'leaderboard'])->name('admin.quizzes.leaderboard');
+        Route::post('/{contest}/quizzes/{quiz}/submit', [QuizController::class, 'submit'])->name('admin.quizzes.submit');
+        Route::get('/{contest}/quizzes/{quiz}/edit', [QuizController::class, 'edit'])->name('admin.quizzes.edit');
+        Route::patch('/{contest}/quizzes/{quiz}', [QuizController::class, 'update'])->name('admin.quizzes.update');
+        Route::delete('/{contest}/quizzes/{quiz}', [QuizController::class, 'destroy'])->name('admin.quizzes.destroy');
     });
 
-    // Quiz routes (nested under contest)
+    // Contest detail (public pages for authenticated users)
     Route::prefix('contest/{contest}')->group(function () {
-        Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
-        Route::get('quizzes/create', [QuizController::class, 'create'])->name('quizzes.create');
-        Route::post('quizzes', [QuizController::class, 'store'])->name('quizzes.store');
-        Route::get('quizzes/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
-        Route::patch('quizzes/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
-        Route::delete('quizzes/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+        // Public voting
+        Route::post('entries/{entry}/vote', [VoteController::class, 'store'])->name('entries.vote');
+        Route::delete('entries/{entry}/vote', [VoteController::class, 'destroy'])->name('entries.vote.destroy');
+        Route::get('entries/leaderboard', [VoteController::class, 'leaderboard'])->name('entries.leaderboard');
+
+        // Quiz participation
         Route::get('quizzes/{quiz}/take', [QuizController::class, 'take'])->name('quizzes.take');
         Route::post('quizzes/{quiz}/submit', [QuizController::class, 'submit'])->name('quizzes.submit');
         Route::get('quizzes/{quiz}/result', [QuizController::class, 'result'])->name('quizzes.result');
         Route::get('quizzes/{quiz}/leaderboard', [QuizController::class, 'leaderboard'])->name('quizzes.leaderboard');
-
-        // Entry routes (for voting contests and quiz questions)
-        Route::get('entries', [EntryController::class, 'index'])->name('entries.index');
-        Route::get('entries/create', [EntryController::class, 'create'])->name('entries.create');
-        Route::post('entries', [EntryController::class, 'store'])->name('entries.store');
-        Route::get('entries/{entry}/edit', [EntryController::class, 'edit'])->name('entries.edit');
-        Route::patch('entries/{entry}', [EntryController::class, 'update'])->name('entries.update');
-        Route::delete('entries/{entry}', [EntryController::class, 'destroy'])->name('entries.destroy');
     });
 });
 

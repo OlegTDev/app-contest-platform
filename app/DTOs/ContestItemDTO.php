@@ -22,7 +22,6 @@ final readonly class ContestItemDTO
         public int $quizEntryCount,
         public int $entryCount,
         public string $createdAt,
-        /** @var array<int, SelectOptionType> */
         public array $contestTypes = [],
     ) {}
 

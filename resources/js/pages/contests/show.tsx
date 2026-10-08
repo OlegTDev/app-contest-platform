@@ -2,7 +2,7 @@ import { Head, Link, router } from "@inertiajs/react";
 import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PaperClipOutlined, SettingOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { destroy } from "@/routes/contest";
+import { destroy, edit, status } from "@/routes/admin/contests";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -71,7 +71,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
   };
 
   const handleStatusChange = (newStatus: string) => {
-    router.patch(`/contest/${contest.id}/status`, { status: newStatus }, {
+    router.patch(status({ contest: contest.id }).url, { status: newStatus }, {
       preserveScroll: true,
     });
   };
@@ -87,8 +87,11 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
       <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Space>
+              <Link href="/admin/contests">
+                <Button type="text">← Назад</Button>
+              </Link>
               <Space>
                 <Title level={2} style={{ margin: 0 }}>{contest.title}</Title>
                 <Tag color={statusColors[contest.status] || "default"}>
@@ -101,13 +104,13 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               <Paragraph type="secondary" style={{ marginBottom: 0 }}>
                 Тип: {getTypeLabel(contest.type)} | Создан: {dayjs(contest.created_at).format("DD.MM.YYYY HH:mm")}
               </Paragraph>
-            </div>
+            </Space>
             {contest.is_owner && (
               <Space>
-                <Link href={`/contest/${contest.id}/media`}>
+                <Link href={`/admin/contests/${contest.id}/media`}>
                   <Button icon={<PaperClipOutlined />}>Медиа</Button>
                 </Link>
-                <Link href={`/contest/${contest.id}/edit`}>
+                <Link href={edit({ contest: contest.id }).url}>
                   <Button icon={<EditOutlined />}>Редактировать</Button>
                 </Link>
                 <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
@@ -149,13 +152,13 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               }
               extra={
                 contest.is_owner ? (
-                  <Link href={`/contest/${contest.id}/entries/create`}>
+                  <Link href={`/admin/contests/${contest.id}/entries/create`}>
                     <Button type="primary" icon={<PlusOutlined />}>
                       Добавить вопрос
                     </Button>
                   </Link>
                 ) : contest.is_active ? (
-                  <Link href={`/contest/${contest.id}/entries/public`}>
+                  <Link href={`/admin/contests/${contest.id}/entries/public`}>
                     <Button type="primary" icon={<PlayCircleOutlined />}>
                       Пройти
                     </Button>
@@ -203,24 +206,16 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 </Space>
               }
               extra={
-                contest.is_owner ? (
-                  <Space>
-                    <Link href={`/contest/${contest.id}/entries`}>
-                      <Button icon={<SettingOutlined />}>Управление</Button>
-                    </Link>
-                    <Link href={`/contest/${contest.id}/entries/create`}>
-                      <Button type="primary" icon={<PlusOutlined />}>
-                        Добавить работу
-                      </Button>
-                    </Link>
-                  </Space>
-                ) : contest.is_active ? (
-                  <Link href={`/contest/${contest.id}/entries/public`}>
-                    <Button type="primary" icon={<PlayCircleOutlined />}>
-                      Голосовать
+                <Space>
+                  <Link href={`/admin/contests/${contest.id}/entries`}>
+                    <Button icon={<SettingOutlined />}>Управление</Button>
+                  </Link>
+                  <Link href={`/admin/contests/${contest.id}/entries/create`}>
+                    <Button type="primary" icon={<PlusOutlined />}>
+                      Добавить работу
                     </Button>
                   </Link>
-                ) : null
+                </Space>
               }
             >
               {contest.activities.length === 0 ? (
@@ -240,11 +235,6 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                             )}
                             <Tag>{activity.votes_count} голосов</Tag>
                           </Space>
-                          {!contest.is_owner && contest.is_active && (
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {dayjs(activity.created_at).format("DD.MM.YYYY")}
-                            </Text>
-                          )}
                         </Space>
                       </List.Item>
                     );
@@ -255,7 +245,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
           )}
 
           {/* Back button */}
-          <Link href="/contest">
+          <Link href="/admin/contests">
             <Button>← Назад к конкурсам</Button>
           </Link>
         </Space>

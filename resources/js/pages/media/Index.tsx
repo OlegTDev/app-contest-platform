@@ -116,7 +116,7 @@ export default function MediaIndex({ contest, media }: MediaIndexProps): React.J
             formData.append('files[]', file);
         });
 
-        router.post(`/contest/${contest.id}/media`, formData, {
+        router.post(`/admin/contests/${contest.id}/media`, formData, {
             preserveScroll: true,
             onSuccess: () => {
                 message.success('Файлы успешно загружены');
@@ -137,7 +137,7 @@ export default function MediaIndex({ contest, media }: MediaIndexProps): React.J
 
     const handleDelete = (id: number) => {
         if (confirm('Вы уверены, что хотите удалить этот файл?')) {
-            router.delete(`/contest/${contest.id}/media/${id}`, {
+            router.delete(`/admin/contests/${contest.id}/media/${id}`, {
                 preserveScroll: true,
             });
         }
@@ -255,7 +255,7 @@ export default function MediaIndex({ contest, media }: MediaIndexProps): React.J
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <Link href={`/contest/${contest.id}`}>
+                            <Link href={`/admin/contests/${contest.id}`}>
                                 <Button type="text" icon={<ArrowLeftOutlined />} style={{ float: 'left', marginRight: 12 }}>
                                     Назад
                                 </Button>

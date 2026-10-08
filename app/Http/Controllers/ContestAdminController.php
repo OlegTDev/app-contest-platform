@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Contest;
 use App\Services\ContestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class ContestAdminController extends Controller
             'status' => $request->input('status'),
             'type' => $request->input('type'),
             'search' => $request->input('search'),
-        ]);
+        ], $this->user()->id);
 
         return Inertia::render('contests/index', [
             'contests' => $contests,
@@ -52,30 +53,30 @@ class ContestAdminController extends Controller
      */
     public function store(\App\Http\Requests\ContestRequest $request): RedirectResponse
     {
-        \App\Models\Contest::create($request->validated());
+        Contest::create($request->validated());
 
-        return to_route('contest.index')->with('success', 'Contest created successfully.');
+        return to_route('admin.contests.index')->with('success', 'Contest created successfully.');
     }
 
     /**
      * Админка — страница конкурса.
      */
-    public function show(Request $request, \App\Models\Contest $contest): Response
+    public function show(Contest $contest): Response
     {
         $data = $this->contestService->getAdminShowData($contest);
 
         return Inertia::render('contests/show', [
             'contest' => $data,
-            'is_owner' => $request->user()->id === $contest->user_id,
+            'is_owner' => $this->user()->id === $contest->user_id,
         ]);
     }
 
     /**
      * Форма редактирования конкурса.
      */
-    public function edit(Request $request, \App\Models\Contest $contest): Response
+    public function edit(Contest $contest): Response
     {
-        $this->authorizeOwner($request->user(), $contest);
+        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
 
         return Inertia::render('contests/edit', [
             'contest' => $this->contestService->getAdminEditData($contest),
@@ -86,33 +87,33 @@ class ContestAdminController extends Controller
     /**
      * Обновление конкурса.
      */
-    public function update(\App\Http\Requests\ContestRequest $request, \App\Models\Contest $contest): RedirectResponse
+    public function update(\App\Http\Requests\ContestRequest $request, Contest $contest): RedirectResponse
     {
-        $this->authorizeOwner($request->user(), $contest);
+        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
 
         $contest->update($request->validated());
 
-        return to_route('contest.show', $contest)->with('success', 'Contest updated successfully.');
+        return to_route('admin.contests.show', $contest)->with('success', 'Contest updated successfully.');
     }
 
     /**
      * Удаление конкурса.
      */
-    public function destroy(Request $request, \App\Models\Contest $contest): RedirectResponse
+    public function destroy(Contest $contest): RedirectResponse
     {
-        $this->authorizeOwner($request->user(), $contest);
+        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to delete this contest.');
 
         $contest->delete();
 
-        return to_route('contest.index')->with('success', 'Contest deleted successfully.');
+        return to_route('admin.contests.index')->with('success', 'Contest deleted successfully.');
     }
 
     /**
      * Обновление статуса конкурса.
      */
-    public function updateStatus(Request $request, \App\Models\Contest $contest): RedirectResponse
+    public function updateStatus(Request $request, Contest $contest): RedirectResponse
     {
-        $this->authorizeOwner($request->user(), $contest);
+        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
 
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:draft,published,paused,closed'],
@@ -124,10 +125,16 @@ class ContestAdminController extends Controller
     }
 
     /**
-     * Проверить права владельца конкурса.
+     * Получить текущего авторизованного пользователя.
      */
-    private function authorizeOwner(\Illuminate\Contracts\Auth\Authenticatable $user, \App\Models\Contest $contest): void
+    private function user(): \App\Models\User
     {
-        abort_unless($user->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
+        $user = request()->user();
+
+        if (! $user instanceof \App\Models\User) {
+            abort(401, 'User not authenticated.');
+        }
+
+        return $user;
     }
 }

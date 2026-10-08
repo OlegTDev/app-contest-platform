@@ -1,7 +1,7 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { Button, Card, DatePicker, Form, Input, message, Space, Typography } from "antd";
 import dayjs from "dayjs";
-import { update } from "@/routes/contest";
+import { update } from "@/routes/admin/contests";
 
 const { Title, Text } = Typography;
 
@@ -52,7 +52,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        patch(`/contest/${contest.id}/entries/${entry.id}`, {
+        patch(`/admin/contests/${contest.id}/entries/${entry.id}`, {
             data: {
                 title: data.title,
                 description: data.description || null,
@@ -76,17 +76,17 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
 
             <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
-                    <div>
-                        <Link href={`/contest/${contest.id}/entries`}>
-                            <Button type="text" style={{ float: "left", marginRight: 12 }}>
-                                ← Назад
-                            </Button>
+                    <Space>
+                        <Link href={`/admin/contests/${contest.id}/entries`}>
+                            <Button type="text">← Назад</Button>
                         </Link>
-                        <Title level={2}>Редактировать карточку</Title>
-                        <Text type="secondary">
-                            Конкурс: <Text strong>{contest.title}</Text>
-                        </Text>
-                    </div>
+                        <div>
+                            <Title level={2} style={{ margin: 0 }}>Редактировать карточку</Title>
+                            <Text type="secondary">
+                                Конкурс: <Text strong>{contest.title}</Text>
+                            </Text>
+                        </div>
+                    </Space>
 
                     <form onSubmit={handleSubmit}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -193,7 +193,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
                                     >
                                         Сохранить изменения
                                     </Button>
-                                    <Link href={`/contest/${contest.id}/entries`}>
+                    <Link href={`/admin/contests/${contest.id}/entries`}>
                                         <Button>Отмена</Button>
                                     </Link>
                                 </Space>

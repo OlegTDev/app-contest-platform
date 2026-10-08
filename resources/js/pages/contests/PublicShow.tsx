@@ -127,7 +127,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
             const firstQuiz = contest.activities.find(
                 (a) => a.type === "quiz"
             ) as QuizActivity;
-            router.get(`/contest/${contest.id}/quizzes/${firstQuiz.id}/take`, {}, {
+            router.get(`/admin/contests/${contest.id}/quizzes/${firstQuiz.id}/take`, {}, {
                 preserveScroll: true,
             });
         }

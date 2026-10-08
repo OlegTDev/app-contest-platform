@@ -25,14 +25,14 @@ type QuizIndexProps = {
   contests: ContestItem[];
 };
 
-export default function QuizIndex({ contests }: QuizIndexProps): React.JSX.Element {
+export default function QuizIndex({ contest, quizzes }: QuizIndexProps): React.JSX.Element {
   const quizColumns = [
     {
       title: "Название",
       dataIndex: "title",
       key: "title",
       render: (title: string, record: QuizItem) => (
-        <Link href={`/contest/${record.id}/quizzes/${record.id}/edit`}>{title}</Link>
+        <Link href={`/admin/contests/${record.id}/quizzes/${record.id}/edit`}>{title}</Link>
       ),
     },
     {
@@ -72,8 +72,8 @@ export default function QuizIndex({ contests }: QuizIndexProps): React.JSX.Eleme
       key: "quizzes",
       render: (quizzes: QuizItem[]) => (
         <Table
-          columns={quizColumns}
-          dataSource={quizzes}
+          columns={contestColumns}
+            dataSource={quizzes}
           pagination={false}
           size="small"
           rowKey="id"
@@ -85,7 +85,7 @@ export default function QuizIndex({ contests }: QuizIndexProps): React.JSX.Eleme
       key: "actions",
       width: 150,
       render: (_: unknown, record: ContestItem) => (
-        <Link href={`/contest/${record.id}/quizzes/create`}>
+        <Link href={`/admin/contests/${record.id}/quizzes/create`}>
           <Button type="primary" size="small" icon={<PlusOutlined />}>
             Добавить викторину
           </Button>

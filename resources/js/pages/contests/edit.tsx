@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from "@inertiajs/react";
 import { Button, Card, DatePicker, Form, Input, Select, Space, Typography } from "antd";
 import dayjs from "dayjs";
-import { update } from "@/routes/contest";
+import { update } from "@/routes/admin/contests";
 
 const { Text } = Typography;
 
@@ -40,7 +40,7 @@ type ContestEditProps = {
 };
 
 export default function ContestEdit({ contest, contestTypes }: ContestEditProps): React.JSX.Element {
-  const { data, setData, put, processing, errors } = useForm<FormType>({
+  const { data, setData, patch, processing, errors } = useForm<FormType>({
     title: contest.title,
     type: contest.type,
     status: contest.status,
@@ -52,7 +52,7 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    put(update({ contest: contest.id }).url, {
+    patch(update({ contest: contest.id }).url, {
       preserveScroll: true,
     });
   };
@@ -214,13 +214,13 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
       <Head title={`Редактировать: ${contest.title}`} />
 
       <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
-        <Link href={`/contest/${contest.id}`}>
-          <Button type="text" style={{ float: "left", marginRight: 12 }}>
-            ← Назад
-          </Button>
-        </Link>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <h1>Редактировать конкурс</h1>
+          <Space>
+            <Link href={`/admin/contests/${contest.id}`}>
+              <Button type="text">← Назад</Button>
+            </Link>
+            <h1>Редактировать конкурс</h1>
+          </Space>
 
           <form onSubmit={handleSubmit}>
             <Card title="Основная информация">
@@ -334,7 +334,7 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
                 >
                   Сохранить изменения
                 </Button>
-                <Link href={`/contest/${contest.id}`}>
+                <Link href={`/admin/contests/${contest.id}`}>
                   <Button>Отмена</Button>
                 </Link>
               </Space>

@@ -39,7 +39,7 @@ type EntriesIndexProps = {
 export default function EntriesIndex({ contest, entries }: EntriesIndexProps): React.JSX.Element {
     const handleDelete = (id: number, title: string) => {
         if (confirm(`Вы уверены, что хотите удалить "${title}"?`)) {
-            router.delete(`/contest/${contest.id}/entries/${id}`, {
+            router.delete(`/admin/contests/${contest.id}/entries/${id}`, {
                 preserveScroll: true,
             });
         }
@@ -91,12 +91,12 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
             width: 280,
             render: (_: unknown, record: EntryItem) => (
                 <Space size="small">
-                    <Link href={`/contest/${contest.id}/entries/${record.id}/media`}>
+                    <Link href={`/admin/contests/${contest.id}/entries/${record.id}/media`}>
                         <Button size="small" icon={<PaperClipOutlined />}>
                             Медиа
                         </Button>
                     </Link>
-                    <Link href={`/contest/${contest.id}/entries/${record.id}/edit`}>
+                    <Link href={`/admin/contests/${contest.id}/entries/${record.id}/edit`}>
                         <Button size="small" icon={<EditOutlined />}>
                             Изменить
                         </Button>
@@ -123,11 +123,9 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
             <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div>
-                            <Link href={`/contest/${contest.id}`}>
-                                <Button type="text" style={{ float: "left", marginRight: 12 }}>
-                                    ← Назад
-                                </Button>
+                        <Space>
+                            <Link href={`/admin/contests/${contest.id}`}>
+                                <Button type="text">← Назад</Button>
                             </Link>
                             <Title level={2} style={{ margin: 0 }}>
                                 Карточки
@@ -135,8 +133,8 @@ export default function EntriesIndex({ contest, entries }: EntriesIndexProps): R
                             <Paragraph type="secondary">
                                 {contest.title} | Всего: {entries.length}
                             </Paragraph>
-                        </div>
-                        <Link href={`/contest/${contest.id}/entries/create`}>
+                        </Space>
+                        <Link href={`/admin/contests/${contest.id}/entries/create`}>
                             <Button type="primary" icon={<PlusOutlined />}>
                                 Добавить карточку
                             </Button>

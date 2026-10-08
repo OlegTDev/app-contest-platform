@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from "@inertiajs/react";
 import { Button, Card, Checkbox, Form, Input, Radio, Space, Typography, message } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { store, edit, update } from "@/routes/quizzes";
+import { store, edit, update } from "@/routes/admin/contests";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -189,7 +189,7 @@ export default function QuizBuilder({ contest, quiz, initialQuestions }: QuizBui
       <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div>
-            <Link href={`/contest/${contest.id}`}>
+            <Link href={`/admin/contests/${contest.id}`}>
               <Button type="text" style={{ float: "left", marginRight: 12 }}>
                 ← Назад
               </Button>

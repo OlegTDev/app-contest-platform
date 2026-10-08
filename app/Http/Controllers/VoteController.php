@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\ContestVote;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,21 +16,13 @@ class VoteController extends Controller
     /**
      * Vote for an entry.
      */
-    public function store(Request $request, Contest $contest, ContestEntry $entry): RedirectResponse|JsonResponse
+    public function store(Request $request, Contest $contest, ContestEntry $entry): RedirectResponse
     {
         abort_unless($contest->isActive(), 403, 'This contest is not currently available.');
         abort_unless($entry->contest_id === $contest->id, 404);
         abort_unless($entry->isVisible(), 403, 'This entry is not currently available.');
 
         $user = $request->user();
-
-        if (! $user) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Для голосования необходимо авторизоваться.'], 401);
-            }
-
-            return redirect()->route('login');
-        }
 
         // Check if user already voted for this entry
         $existing = ContestVote::where('contest_id', $contest->id)
@@ -59,20 +52,12 @@ class VoteController extends Controller
     /**
      * Remove a vote.
      */
-    public function destroy(Request $request, Contest $contest, ContestEntry $entry): RedirectResponse|JsonResponse
+    public function destroy(Request $request, Contest $contest, ContestEntry $entry): RedirectResponse
     {
         abort_unless($contest->isActive(), 403, 'This contest is not currently available.');
         abort_unless($entry->contest_id === $contest->id, 404);
 
         $user = $request->user();
-
-        if (! $user) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Для голосования необходимо авторизоваться.'], 401);
-            }
-
-            return redirect()->route('login');
-        }
 
         $vote = ContestVote::where('contest_id', $contest->id)
             ->where('entry_id', $entry->id)
@@ -94,13 +79,11 @@ class VoteController extends Controller
     /**
      * Get leaderboard for a contest.
      */
-    public function leaderboard(Request $request, Contest $contest): JsonResponse
+    public function leaderboard(Request $request, Contest $contest): \Illuminate\Http\JsonResponse
     {
         abort_unless($contest->isActive(), 403, 'This contest is not currently available.');
 
         $leaderboard = $contest->entries()
-            ->with(['author'])
-            ->whereNotNull('votes_count')
             ->orderByDesc('votes_count')
             ->limit(50)
             ->get()
@@ -108,9 +91,7 @@ class VoteController extends Controller
                 'id' => $entry->id,
                 'title' => $entry->title,
                 'votes_count' => $entry->votes_count,
-                'author' => $entry->author ? [
-                    'name' => $entry->author->name,
-                ] : null,
+                'author_name' => $entry->author_name,
             ]);
 
         return response()->json(['leaderboard' => $leaderboard]);

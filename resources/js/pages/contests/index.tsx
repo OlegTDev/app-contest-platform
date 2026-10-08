@@ -2,7 +2,7 @@ import { Head, Link, router } from "@inertiajs/react";
 import { Button, Card, Input, Select, Space, Table, Tag, Typography } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { destroy } from "@/routes/contest";
+import { destroy, show, edit, status } from "@/routes/admin/contests";
 
 const { Title, Text } = Typography;
 
@@ -71,7 +71,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
   };
 
   const handleStatusChange = (id: number, newStatus: string) => {
-    router.patch(`/contest/${id}/status`, { status: newStatus }, {
+    router.patch(status({ contest: id }).url, { status: newStatus }, {
       preserveScroll: true,
     });
   };
@@ -83,7 +83,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
     } else {
       params.delete(key);
     }
-    router.get(`/contest?${params.toString()}`, {}, { preserveState: true });
+    router.get('/admin/contests' + (params.toString() ? '?' + params.toString() : ''), {}, { preserveState: true });
   };
 
   const getTypeLabel = (type: string) => {
@@ -97,7 +97,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
       key: "title",
       width: 250,
       render: (title: string, record: ContestItem) => (
-        <Link href={`/contest/${record.id}`}>
+        <Link href={show({ contest: record.id }).url}>
           <Text strong>{title}</Text>
         </Link>
       ),
@@ -150,12 +150,12 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
       width: 220,
       render: (_: unknown, record: ContestItem) => (
         <Space size="small">
-          <Link href={`/contest/${record.id}`}>
+          <Link href={show({ contest: record.id }).url}>
             <Button size="small">Открыть</Button>
           </Link>
           {record.is_owner && (
             <>
-              <Link href={`/contest/${record.id}/edit`}>
+              <Link href={edit({ contest: record.id }).url}>
                 <Button size="small" type="primary">
                   Изменить
                 </Button>
@@ -201,7 +201,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
             <Title level={2} style={{ margin: 0 }}>
               Конкурсы
             </Title>
-            <Link href="/contest/create">
+            <Link href="/admin/contests/create">
               <Button type="primary" icon={<PlusOutlined />}>
                 Создать конкурс
               </Button>
@@ -264,7 +264,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
                   } else {
                     params.delete('per_page');
                   }
-                  router.get(`/contest?${params.toString()}`, {}, { preserveState: true });
+                  router.get('/admin/contests' + (params.toString() ? '?' + params.toString() : ''), {}, { preserveState: true });
                 },
               }}
               scroll={{ x: 1400 }}

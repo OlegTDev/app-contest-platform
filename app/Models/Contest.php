@@ -13,12 +13,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property int $user_id
- * @property string $type
+ * @property ContestType $type
  * @property string $title
  * @property string $status
  * @property string|null $description
- * @property \Illuminate\Carbon|null $start_at
- * @property \Illuminate\Carbon|null $end_at
+ * @property \Carbon\CarbonInterface|null $start_at
+ * @property \Carbon\CarbonInterface|null $end_at
  * @property mixed $project_schema
  * @property \Illuminate\Database\Eloquent\Collection<int, Project> $projects
  * @property \Illuminate\Database\Eloquent\Collection<int, ContestEntry> $entries

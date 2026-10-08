@@ -125,7 +125,7 @@ export default function EntryMediaIndex({ contest, entry, media }: EntryMediaInd
             formData.append('files[]', file);
         });
 
-        router.post(`/contest/${contest.id}/entries/${entry.id}/media`, formData, {
+        router.post(`/admin/contests/${contest.id}/entries/${entry.id}/media`, formData, {
             preserveScroll: true,
             onSuccess: () => {
                 message.success('Файлы успешно загружены');
@@ -146,14 +146,14 @@ export default function EntryMediaIndex({ contest, entry, media }: EntryMediaInd
 
     const handleDelete = (id: number) => {
         if (confirm('Вы уверены, что хотите удалить этот файл?')) {
-            router.delete(`/contest/${contest.id}/entries/${entry.id}/media/${id}`, {
+            router.delete(`/admin/contests/${contest.id}/entries/${entry.id}/media/${id}`, {
                 preserveScroll: true,
             });
         }
     };
 
     const handleToggleMain = (file: MediaItem) => {
-        router.post(`/contest/${contest.id}/entries/${entry.id}/media/${file.id}/main`, {}, {
+        router.post(`/admin/contests/${contest.id}/entries/${entry.id}/media/${file.id}/main`, {}, {
             preserveScroll: true,
             onSuccess: () => {
                 message.success(file.is_main ? 'Файл больше не главный' : 'Файл сделан главным');
@@ -303,7 +303,7 @@ export default function EntryMediaIndex({ contest, entry, media }: EntryMediaInd
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <Link href={`/contest/${contest.id}/entries`}>
+                            <Link href={`/admin/contests/${contest.id}/entries`}>
                                 <Button type="text" icon={<ArrowLeftOutlined />} style={{ float: 'left', marginRight: 12 }}>
                                     Назад
                                 </Button>

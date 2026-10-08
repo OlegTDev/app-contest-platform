@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from "@inertiajs/react";
 import { Button, Card, Checkbox, Radio, Result, Space, Typography } from "antd";
 import { PlayCircleOutlined } from "@ant-design/icons";
-import { take, submit } from "@/routes/quizzes";
+import { router } from "@inertiajs/react";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -59,7 +59,7 @@ export default function QuizTake({ quiz, contest, alreadyCompleted, existingAnsw
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    post(submit({ contest: contest.id, quiz: quiz.id }).url, {
+    post(`/admin/contests/${contest.id}/quizzes/${quiz.id}/submit`, {
       onError: (error) => {
         console.error("Quiz submit error:", error);
       },
@@ -93,7 +93,7 @@ export default function QuizTake({ quiz, contest, alreadyCompleted, existingAnsw
               title="Вы уже прошли эту викторину"
               subTitle="Пройти заново нельзя. Результаты уже сохранены."
               extra={[
-                <Link key="result" href={`/contest/${contest.id}/quizzes/${quiz.id}/result`}>
+                <Link key="result" href={`/admin/contests/${contest.id}/quizzes/${quiz.id}/result`}>
                   <Button type="primary">Посмотреть результаты</Button>
                 </Link>,
               ]}
@@ -111,7 +111,7 @@ export default function QuizTake({ quiz, contest, alreadyCompleted, existingAnsw
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div>
-            <Link href={`/contest/${contest.id}`}>
+            <Link href={`/admin/contests/${contest.id}`}>
               <Button type="text" style={{ float: "left", marginRight: 12 }}>
                 ← Назад
               </Button>

@@ -118,9 +118,9 @@ final readonly class ContestService
      *
      * @param array<string, string|null> $filters
      *
-     * @return Collection<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, created_at: string}>
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}>
      */
-    public function getAdminContests(array $filters): Collection
+    public function getAdminContests(array $filters, int $userId): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $query = Contest::with(['quizEntries', 'entries'])
             ->orderByDesc('created_at');
@@ -137,23 +137,30 @@ final readonly class ContestService
             $query->where('title', 'ilike', '%' . $filters['search'] . '%');
         }
 
-        return $query->paginate(15)->map(fn (Contest $contest): array => [
-            'id' => $contest->id,
-            'title' => $contest->title,
-            'type' => $contest->type->value,
-            'status' => $contest->status,
-            'description' => $contest->description,
-            'start_at' => $contest->start_at?->format('Y-m-d H:i'),
-            'end_at' => $contest->end_at?->format('Y-m-d H:i'),
-            'is_active' => $contest->isActive(),
-            'quiz_entry_count' => $contest->quizEntries->count(),
-            'entry_count' => $contest->entries->count(),
-            'author' => [
-                'id' => $contest->user_id,
-                'name' => $contest->author !== null ? $contest->author->name : 'Unknown',
-            ],
-            'created_at' => $contest->created_at->format('Y-m-d H:i'),
-        ]);
+        $paginator = $query->paginate(15);
+
+        $paginator->getCollection()->transform(function (Contest $contest) use ($userId): array {
+            return [
+                'id' => $contest->id,
+                'title' => $contest->title,
+                'type' => $contest->type->value,
+                'status' => $contest->status,
+                'description' => $contest->description,
+                'start_at' => $contest->start_at?->format('Y-m-d H:i'),
+                'end_at' => $contest->end_at?->format('Y-m-d H:i'),
+                'is_active' => $contest->isActive(),
+                'quiz_entry_count' => $contest->quizEntries->count(),
+                'entry_count' => $contest->entries->count(),
+                'author' => [
+                    'id' => $contest->user_id,
+                    'name' => $contest->author !== null ? $contest->author->name : 'Unknown',
+                ],
+                'is_owner' => $contest->user_id === $userId,
+                'created_at' => $contest->created_at->format('Y-m-d H:i'),
+            ];
+        });
+
+        return $paginator;
     }
 
     /**

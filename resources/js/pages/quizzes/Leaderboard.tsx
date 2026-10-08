@@ -51,7 +51,7 @@ export default function QuizLeaderboard({ quiz, contest, leaderboard }: QuizLead
       <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div>
-            <Link href={`/contest/${contest.id}`}>
+<Link href={`/admin/contests/${contest.id}`}>
               <Button type="text" style={{ float: "left", marginRight: 12 }}>
                 ← Назад
               </Button>
@@ -69,7 +69,7 @@ export default function QuizLeaderboard({ quiz, contest, leaderboard }: QuizLead
                 title="Пока нет участников"
                 subTitle="Станьте первым, кто пройдёт эту викторину!"
                 extra={[
-                  <Link key="take" href={`/contest/${contest.id}/quizzes/${quiz.id}/take`}>
+                  <Link key="take" href={`/admin/contests/${contest.id}/quizzes/${quiz.id}/take`}>
                     <Button type="primary">Пройти викторину</Button>
                   </Link>,
                 ]}
@@ -111,7 +111,7 @@ export default function QuizLeaderboard({ quiz, contest, leaderboard }: QuizLead
             </Card>
           )}
 
-          <Link href={`/contest/${contest.id}`}>
+          <Link href={`/admin/contests/${admin/contests.id}`}>
             <Button>К конкурсу</Button>
           </Link>
         </Space>

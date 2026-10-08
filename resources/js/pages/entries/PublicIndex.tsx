@@ -50,7 +50,7 @@ export default function PublicIndex({ contest, entries }: PublicIndexProps): Rea
                             title="Пока нет работ для голосования"
                             subTitle="Карточки будут добавлены организатором"
                             extra={[
-                                <Link key="back" href={`/contest/${contest.id}`}>
+                                <Link key="back" href={`/contests/${contest.id}`}>
                                     <Button type="primary">К конкурсу</Button>
                                 </Link>,
                             ]}
@@ -68,7 +68,7 @@ export default function PublicIndex({ contest, entries }: PublicIndexProps): Rea
             <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     <div>
-                        <Link href={`/contest/${contest.id}`}>
+                        <Link href={`/contests/${contest.id}`}>
                             <Button type="text" icon={<ArrowLeftOutlined />} style={{ float: "left", marginRight: 12 }}>
                                 Назад
                             </Button>
@@ -166,7 +166,7 @@ export default function PublicIndex({ contest, entries }: PublicIndexProps): Rea
 
                                             <Space style={{ marginTop: "auto" }}>
                                                 {entry.is_voted ? (
-                                                    <form action={`/contest/${contest.id}/entries/${entry.id}/vote`} method="post">
+                                                    <form action={`/admin/contests/${contest.id}/entries/${entry.id}/vote`} method="post">
                                                         <input type="hidden" name="_method" value="DELETE" />
                                                         <input type="hidden" name="_token" defaultValue={csrfToken} />
                                                         <Button
@@ -179,7 +179,7 @@ export default function PublicIndex({ contest, entries }: PublicIndexProps): Rea
                                                         </Button>
                                                     </form>
                                                 ) : (
-                                                    <form action={`/contest/${contest.id}/entries/${entry.id}/vote`} method="post">
+                                                    <form action={`/admin/contests/${contest.id}/entries/${entry.id}/vote`} method="post">
                                                         <input type="hidden" name="_token" defaultValue={csrfToken} />
                                                         <Button
                                                             type="default"

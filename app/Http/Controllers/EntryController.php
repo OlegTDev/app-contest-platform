@@ -128,7 +128,7 @@ class EntryController extends Controller
             $contest->quizEntries()->create($validated);
         }
 
-        return redirect()->route('entries.index', $contest)->with('success', 'Entry created successfully.');
+        return redirect()->route('admin.entries.index', $contest)->with('success', 'Entry created successfully.');
     }
 
     /**
@@ -208,7 +208,7 @@ class EntryController extends Controller
             $contest->quizEntries()->where('id', $entry)->update($validated);
         }
 
-        return redirect()->route('entries.index', $contest)->with('success', 'Entry updated successfully.');
+        return redirect()->route('admin.entries.index', $contest)->with('success', 'Entry updated successfully.');
     }
 
     /**
@@ -224,89 +224,6 @@ class EntryController extends Controller
             $contest->quizEntries()->where('id', $entry)->delete();
         }
 
-        return redirect()->route('entries.index', $contest)->with('success', 'Entry deleted successfully.');
-    }
-
-    /**
-     * Display entries for public voting (for participants).
-     */
-    public function publicIndex(Request $request, Contest $contest): Response
-    {
-        abort_unless($contest->isActive(), 403);
-
-        $user = $request->user();
-
-        if ($contest->type->value === 'voting') {
-            $query = $contest->entries();
-
-            $entries = $query->get()->filter(function ($entry) {
-                return $entry->isVisible();
-            })->sortBy('id')->values();
-
-            $userVotes = $user->votes()
-                ->where('contest_id', $contest->id)
-                ->pluck('entry_id')
-                ->toArray();
-
-            return Inertia::render('entries/PublicIndex', [
-                'contest' => [
-                    'id' => $contest->id,
-                    'title' => $contest->title,
-                    'type' => $contest->type->value,
-                ],
-                'entries' => $entries->map(fn ($entry) => [
-                    'id' => $entry->id,
-                    'title' => $entry->title,
-                    'description' => $entry->description,
-                    'author_name' => $entry->author_name,
-                    'author_department' => $entry->author_department,
-                    'fields_data' => $entry->fields_data,
-                    'votes_count' => $entry->votes_count,
-                    'is_voted' => in_array($entry->id, $userVotes),
-                    'media' => $entry->media->map(fn ($m) => [
-                        'id' => $m->id,
-                        'file_name' => $m->file_name,
-                        'file_url' => $m->file_url,
-                        'file_type' => $m->file_type,
-                        'file_extension' => $m->file_extension,
-                        'file_size' => $m->file_size,
-                        'is_main' => $m->is_main,
-                        'created_at' => $m->created_at->format('Y-m-d H:i'),
-                    ]),
-                ]),
-            ]);
-        }
-
-        // For quiz contests
-        $query = $contest->quizEntries();
-
-        $entries = $query->get()->filter(function ($entry) {
-            return $entry->isVisible();
-        })->sortBy('sort_order')->values();
-
-        return Inertia::render('entries/PublicIndex', [
-            'contest' => [
-                'id' => $contest->id,
-                'title' => $contest->title,
-                'type' => $contest->type->value,
-            ],
-            'entries' => $entries->map(fn ($entry) => [
-                'id' => $entry->id,
-                'title' => $entry->title,
-                'description' => $entry->description,
-                'fields_data' => $entry->fields_data,
-                'is_scheduled' => $entry->isScheduled(),
-                'media' => $entry->media->map(fn ($m) => [
-                    'id' => $m->id,
-                    'file_name' => $m->file_name,
-                    'file_url' => $m->file_url,
-                    'file_type' => $m->file_type,
-                    'file_extension' => $m->file_extension,
-                    'file_size' => $m->file_size,
-                    'is_main' => $m->is_main,
-                    'created_at' => $m->created_at->format('Y-m-d H:i'),
-                ]),
-            ]),
-        ]);
+        return redirect()->route('admin.entries.index', $contest)->with('success', 'Entry deleted successfully.');
     }
 }

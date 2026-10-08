@@ -3,7 +3,7 @@ import { Button, Card, Checkbox, Empty, Form, Input, Select, Space, Tag, Typogra
 import { BsInputCursor, BsTextareaResize, BsUpload, BsXCircle } from "react-icons/bs";
 import { CgSelectR } from "react-icons/cg";
 import { MinusCircleOutlined } from '@ant-design/icons';
-import { store } from "@/routes/contest";
+import { store } from "@/routes/admin/contests";
 
 
 const { Text } = Typography;
