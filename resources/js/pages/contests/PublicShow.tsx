@@ -1,5 +1,5 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, Divider, message } from "antd";
+import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, Divider, Table, message } from "antd";
 import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, PaperClipOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState } from 'react';
@@ -59,6 +59,16 @@ type ContestItem = {
 
 type PublicShowProps = {
     contest: ContestItem;
+    leaderboard: LeaderboardItem[];
+};
+
+type LeaderboardItem = {
+    id: number;
+    title: string;
+    votes_count: number;
+    author: {
+        name: string;
+    } | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -68,12 +78,13 @@ const statusLabels: Record<string, string> = {
     closed: "Закрыт",
 };
 
-export default function PublicShow({ contest }: PublicShowProps): React.JSX.Element {
+export default function PublicShow({ contest, leaderboard }: PublicShowProps): React.JSX.Element {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState<MediaItem | null>(null);
     const [mediaDrawerOpen, setMediaDrawerOpen] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState<VotingActivity | null>(null);
     const [voting, setVoting] = useState(false);
+    const [leaderboardDrawerOpen, setLeaderboardDrawerOpen] = useState(false);
 
     const activeEntry =
         contest.activities.find(
@@ -404,6 +415,17 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                                     <Tag>{contest.activities.filter((a) => a.type === "voting").length}</Tag>
                                 </Space>
                             }
+                            extra={
+                                contest.activities.some((a) => a.type === "voting") ? (
+                                    <Button
+                                        type="primary"
+                                        icon={<TrophyOutlined />}
+                                        onClick={() => setLeaderboardDrawerOpen(true)}
+                                    >
+                                        Результаты голосования
+                                    </Button>
+                                ) : null
+                            }
                         >
                             {contest.activities.filter((a) => a.type === "voting").length === 0 ? (
                                 <Empty description="Работ пока нет" />
@@ -634,6 +656,73 @@ export default function PublicShow({ contest }: PublicShowProps): React.JSX.Elem
                         )}
                     </Card>
                 </Space>
+            </Drawer>
+            {/* Leaderboard Drawer */}
+            <Drawer
+                title={
+                    <Space>
+                        <TrophyOutlined style={{ color: "#faad14" }} />
+                        <span>Результаты голосования</span>
+                    </Space>
+                }
+                placement="right"
+                onClose={() => setLeaderboardDrawerOpen(false)}
+                open={leaderboardDrawerOpen}
+                width={600}
+            >
+                {leaderboard.length === 0 ? (
+                    <Empty description="Голосов пока нет" />
+                ) : (
+                    <Table
+                        dataSource={leaderboard}
+                        rowKey="id"
+                        pagination={false}
+                        size="small"
+                        columns={[
+                            {
+                                title: '#',
+                                key: 'rank',
+                                width: 50,
+                                render: (_: unknown, __: LeaderboardItem, index: number) => (
+                                    <Space>
+                                        {index === 0 && <span style={{ fontSize: 20 }}>🥇</span>}
+                                        {index === 1 && <span style={{ fontSize: 20 }}>🥈</span>}
+                                        {index === 2 && <span style={{ fontSize: 20 }}>🥉</span>}
+                                        {index > 2 && <span style={{ color: '#999' }}>{index + 1}</span>}
+                                    </Space>
+                                ),
+                            },
+                            {
+                                title: 'Участник',
+                                dataIndex: 'title',
+                                key: 'title',
+                                render: (title: string, record: LeaderboardItem) => (
+                                    <Space direction="vertical" size={0}>
+                                        <Text strong>{title}</Text>
+                                        {record.author?.name && (
+                                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                                {record.author.name}
+                                            </Text>
+                                        )}
+                                    </Space>
+                                ),
+                            },
+                            {
+                                title: 'Голоса',
+                                dataIndex: 'votes_count',
+                                key: 'votes_count',
+                                width: 100,
+                                sorter: (a: LeaderboardItem, b: LeaderboardItem) => a.votes_count - b.votes_count,
+                                defaultSortOrder: 'descend',
+                                render: (votes: number) => (
+                                    <Tag color="blue">
+                                        {votes} {votes === 1 ? 'голос' : votes < 5 ? 'голоса' : 'голосов'}
+                                    </Tag>
+                                ),
+                            },
+                        ]}
+                    />
+                )}
             </Drawer>
         </>
     );
