@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\QuizEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +23,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['contest_id', 'title', 'description', 'fields_data', 'sort_order', 'show_from', 'show_until'])]
 class QuizEntry extends Model
 {
+    /** @use HasFactory<QuizEntryFactory> */
+    use HasFactory;
+
     protected $casts = [
         'fields_data' => 'array',
         'show_from' => 'datetime',

@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\ContestEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,6 +25,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['contest_id', 'user_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count'])]
 class ContestEntry extends Model
 {
+    /** @use HasFactory<ContestEntryFactory> */
+    use HasFactory;
+
     protected $casts = [
         'fields_data' => 'array',
         'votes_count' => 'integer',
@@ -37,11 +42,19 @@ class ContestEntry extends Model
     }
 
     /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * @return HasMany<ContestVote, $this>
      */
     public function votes(): HasMany
     {
-        return $this->hasMany(ContestVote::class);
+        return $this->hasMany(ContestVote::class, 'entry_id');
     }
 
     /**

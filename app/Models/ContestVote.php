@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\ContestVoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +17,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['contest_id', 'entry_id', 'user_id'])]
 class ContestVote extends Model
 {
+    /** @use HasFactory<ContestVoteFactory> */
+    use HasFactory;
+
     protected $table = 'contest_votes';
 
     /**

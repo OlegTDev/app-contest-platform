@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\QuizAnswerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -17,6 +19,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['quiz_entry_id', 'user_id', 'answer', 'is_correct', 'answered_at'])]
 class QuizAnswer extends Model
 {
+    /** @use HasFactory<QuizAnswerFactory> */
+    use HasFactory;
+
     protected $casts = [
         'is_correct' => 'boolean',
         'answered_at' => 'datetime',

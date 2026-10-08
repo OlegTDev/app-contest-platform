@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable(['contest_id', 'entry_id', 'entry_type', 'file_name', 'file_path', 'file_type', 'file_extension', 'file_size', 'is_main'])]
 class Media extends Model
 {
+    /** @use HasFactory<MediaFactory> */
+    use HasFactory;
+
     protected $casts = [
         'file_size' => 'integer',
         'is_main' => 'boolean',

@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\ContestType;
 use App\Observers\ContestObserver;
+use Database\Factories\ContestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -29,6 +31,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[ObservedBy(ContestObserver::class)]
 class Contest extends Model
 {
+    /** @use HasFactory<ContestFactory> */
+    use HasFactory;
+
     protected $casts = [
         'project_schema' => 'array',
         'type' => ContestType::class,
