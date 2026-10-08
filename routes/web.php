@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\ContestAdminController;
 use App\Http\Controllers\ContestController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\MediaController;
@@ -23,8 +28,8 @@ Route::prefix('contest/{contest}')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
-    Route::resource('contest', ContestController::class);
-    Route::patch('contest/{contest}/status', [ContestController::class, 'updateStatus'])->name('contest.status');
+    Route::resource('contest', ContestAdminController::class);
+    Route::patch('contest/{contest}/status', [ContestAdminController::class, 'updateStatus'])->name('contest.status');
 
     // Media routes (nested under contest)
     Route::prefix('contest/{contest}')->group(function () {
