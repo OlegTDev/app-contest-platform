@@ -222,16 +222,16 @@ final readonly class ContestService
     private function loadContestRelations(Contest $contest, bool $withMedia = true): void
     {
         $contest->load([
-            'quizEntries' => function (Builder $query): void {
-                $query->where(function (Builder $q): void {
+            'quizEntries' => function ($query): void {
+                $query->where(function ($q): void {
                     $q->whereNull('show_from')
                         ->orWhere('show_from', '<=', now());
-                })->where(function (Builder $q): void {
+                })->where(function ($q): void {
                     $q->whereNull('show_until')
                         ->orWhere('show_until', '>=', now());
                 })->orderBy('sort_order');
             },
-            'entries' => function (Builder $query): void {
+            'entries' => function ($query): void {
                 $query->orderBy('id');
             },
         ]);
