@@ -96,12 +96,14 @@ class UserManagementTest extends TestCase
         ])->assertRedirect();
     }
 
-    public function test_command_assigns_role_to_existing_user(): void
+    public function test_command_assigns_role_to_existing_user_by_login(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'login' => 'testuser',
+        ]);
 
         $output = Artisan::call('user:assign-role', [
-            'email' => $user->email,
+            'login' => 'testuser',
             'role' => User::ROLE_ADMIN,
         ]);
 
@@ -111,10 +113,10 @@ class UserManagementTest extends TestCase
         $this->assertEquals(User::ROLE_ADMIN, $user->role);
     }
 
-    public function test_command_fails_for_non_existent_email(): void
+    public function test_command_fails_for_non_existent_login(): void
     {
         $output = Artisan::call('user:assign-role', [
-            'email' => 'nonexistent@example.com',
+            'login' => 'nonexistent',
             'role' => User::ROLE_ADMIN,
         ]);
 
@@ -123,32 +125,26 @@ class UserManagementTest extends TestCase
 
     public function test_command_fails_for_invalid_role(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'login' => 'testuser',
+        ]);
 
         $output = Artisan::call('user:assign-role', [
-            'email' => $user->email,
+            'login' => 'testuser',
             'role' => 'superadmin',
         ]);
 
         $this->assertEquals(1, $output);
     }
 
-    public function test_command_fails_for_invalid_email_format(): void
+    public function test_command_can_assign_moderator_role_by_login(): void
     {
-        $output = Artisan::call('user:assign-role', [
-            'email' => 'not-an-email',
-            'role' => User::ROLE_ADMIN,
+        $user = User::factory()->create([
+            'login' => 'testuser',
         ]);
 
-        $this->assertEquals(1, $output);
-    }
-
-    public function test_command_can_assign_moderator_role(): void
-    {
-        $user = User::factory()->create();
-
         $output = Artisan::call('user:assign-role', [
-            'email' => $user->email,
+            'login' => 'testuser',
             'role' => User::ROLE_MODERATOR,
         ]);
 
@@ -158,12 +154,14 @@ class UserManagementTest extends TestCase
         $this->assertEquals(User::ROLE_MODERATOR, $user->role);
     }
 
-    public function test_command_can_demote_admin_to_regular_user(): void
+    public function test_command_can_demote_admin_to_regular_user_by_login(): void
     {
-        $user = User::factory()->admin()->create();
+        $user = User::factory()->admin()->create([
+            'login' => 'adminuser',
+        ]);
 
         $output = Artisan::call('user:assign-role', [
-            'email' => $user->email,
+            'login' => 'adminuser',
             'role' => User::ROLE_USER,
         ]);
 
