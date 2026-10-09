@@ -40,7 +40,7 @@ class FortifyServiceProvider extends ServiceProvider
             ];
 
             if (Auth::attempt([
-                'email' => $credentials['samaccountname'],
+                'login' => $credentials['samaccountname'],
                 'password' => $credentials['password'],
             ])) {
                 return Auth::user();
