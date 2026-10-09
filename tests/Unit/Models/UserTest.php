@@ -24,7 +24,7 @@ describe('User model', function () {
         $user = new User;
 
         expect($user->getFillable())
-            ->toBe(['name', 'email', 'password', 'guid', 'domain']);
+            ->toBe(['name', 'email', 'login', 'department', 'position', 'city_code', 'phone', 'password', 'guid', 'domain', 'role']);
     });
 
     it('has correct hidden attributes', function () {
