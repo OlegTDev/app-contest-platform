@@ -7,8 +7,6 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
-
     // Contest management (public pages for authenticated users)
     Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
     Route::get('contests/{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
