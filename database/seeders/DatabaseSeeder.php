@@ -21,5 +21,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin',
             'password' => Hash::make('password'),
         ]);
+
+        $this->call(ContestVotingSeeder::class);
     }
 }
