@@ -2,9 +2,15 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    login: string;
+    department: string | null;
+    position: string | null;
+    city_code: string | null;
+    phone: string | null;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
+    role: string;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;

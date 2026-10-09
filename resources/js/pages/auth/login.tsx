@@ -7,7 +7,7 @@ import type { FormProps } from 'antd';
 const { Title, Paragraph } = Typography;
 
 type LoginForm = {
-    email: string;
+    login: string;
     password: string;
     remember: boolean;
 };
@@ -19,7 +19,7 @@ type Props = {
 
 export default function Login({ status, canResetPassword }: Props) {
     const { data, setData, post, processing, errors } = useForm<LoginForm>({
-        email: '',
+        login: '',
         password: '',
         remember: false,
     });
@@ -113,14 +113,14 @@ export default function Login({ status, canResetPassword }: Props) {
                     >
                         <Form.Item
                             label="Учетная запись"
-                            validateStatus={errors.email ? 'error' : ''}
-                            help={errors.email}
+                            validateStatus={errors.login ? 'error' : ''}
+                            help={errors.login}
                         >
                             <Input
                                 prefix={<UserOutlined />}
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                placeholder="samaccountname"
+                                value={data.login}
+                                onChange={(e) => setData('login', e.target.value)}
+                                placeholder="Имя пользователя"
                                 autoComplete="username"
                             />
                         </Form.Item>

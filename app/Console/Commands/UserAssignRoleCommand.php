@@ -6,15 +6,14 @@ namespace App\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Validator;
 
 final class UserAssignRoleCommand extends Command
 {
     protected $signature = 'user:assign-role
-                            {email : The email address of the user}
+                            {login : The login of the user}
                             {role : The role to assign (admin, moderator, user)}';
 
-    protected $description = 'Assign a role to a user by email';
+    protected $description = 'Assign a role to a user by login';
 
     /**
      * Valid role values.
@@ -25,7 +24,7 @@ final class UserAssignRoleCommand extends Command
 
     public function handle(): int
     {
-        $email = $this->argument('email');
+        $login = $this->argument('login');
         $role = $this->argument('role');
 
         // Validate role
@@ -39,23 +38,11 @@ final class UserAssignRoleCommand extends Command
             return Command::FAILURE;
         }
 
-        // Validate email format
-        $validator = Validator::make(
-            ['email' => $email],
-            ['email' => 'required|email']
-        );
-
-        if ($validator->fails()) {
-            $this->error(sprintf('Invalid email format: %s', $email));
-
-            return Command::FAILURE;
-        }
-
         // Find user
-        $user = User::where('email', $email)->first();
+        $user = User::where('login', $login)->first();
 
         if ($user === null) {
-            $this->error(sprintf('User with email "%s" not found.', $email));
+            $this->error(sprintf('User with login "%s" not found.', $login));
 
             return Command::FAILURE;
         }

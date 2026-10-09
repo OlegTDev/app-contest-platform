@@ -34,7 +34,7 @@ export default function Profile({
                 <Heading
                     variant="small"
                     title="Profile"
-                    description="Update your name and email address"
+                    description="Update your name, login and contact information"
                 />
 
                 <Form
@@ -66,6 +66,25 @@ export default function Profile({
                             </div>
 
                             <div className="grid gap-2">
+                                <Label htmlFor="login">Login</Label>
+
+                                <Input
+                                    id="login"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.login}
+                                    name="login"
+                                    required
+                                    autoComplete="username"
+                                    placeholder="Login"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.login}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
 
                                 <Input
@@ -82,6 +101,74 @@ export default function Profile({
                                 <InputError
                                     className="mt-2"
                                     message={errors.email}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="department">Department</Label>
+
+                                <Input
+                                    id="department"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.department ?? ''}
+                                    name="department"
+                                    placeholder="Department"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.department}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="position">Position</Label>
+
+                                <Input
+                                    id="position"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.position ?? ''}
+                                    name="position"
+                                    placeholder="Position"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.position}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="city_code">City Code</Label>
+
+                                <Input
+                                    id="city_code"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.city_code ?? ''}
+                                    name="city_code"
+                                    placeholder="City code"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.city_code}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="phone">Phone</Label>
+
+                                <Input
+                                    id="phone"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.phone ?? ''}
+                                    name="phone"
+                                    placeholder="Phone number"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.phone}
                                 />
                             </div>
 

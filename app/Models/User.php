@@ -22,6 +22,11 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string $login
+ * @property string|null $department
+ * @property string|null $position
+ * @property string|null $city_code
+ * @property string|null $phone
  * @property string $password
  * @property string $role
  * @property string|null $remember_token
@@ -29,7 +34,7 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  * @property Carbon|null $updated_at
  * @property Collection<int, Contest> $contests
  */
-#[Fillable(['name', 'email', 'password', 'guid', 'domain', 'role'])]
+#[Fillable(['name', 'email', 'login', 'department', 'position', 'city_code', 'phone', 'password', 'guid', 'domain', 'role'])]
 #[Hidden(['password'])]
 class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEmail, PasskeyUser
 {

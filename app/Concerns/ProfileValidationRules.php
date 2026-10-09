@@ -17,7 +17,27 @@ trait ProfileValidationRules
     {
         return [
             'name' => $this->nameRules(),
+            'login' => $this->loginRules($userId),
             'email' => $this->emailRules($userId),
+            'department' => ['nullable', 'string', 'max:255'],
+            'position' => ['nullable', 'string', 'max:255'],
+            'city_code' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:50'],
+        ];
+    }
+
+    /**
+     * Get the validation rules used to validate user login.
+     *
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function loginRules(?int $userId = null): array
+    {
+        return [
+            'required',
+            'string',
+            'max:255',
+            'unique:users,login' . ($userId === null ? '' : ",$userId"),
         ];
     }
 
