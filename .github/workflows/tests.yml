@@ -60,6 +60,9 @@ jobs:
           DB_USERNAME: postgres
           DB_PASSWORD: password
 
+      - name: Build frontend assets
+        run: npm run build
+
       - name: Generate application key
         run: php artisan key:generate --ansi
 
