@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\ContestVote;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,10 @@ class VoteController extends Controller
         abort_unless($entry->isVisible(), 403, 'This entry is not currently available.');
 
         $user = $request->user();
+
+        if (!$user instanceof User) {
+            return back()->with('error', 'Необходима авторизация.');
+        }
 
         // Check if user already voted for this entry
         $existing = ContestVote::where('contest_id', $contest->id)
@@ -58,6 +63,10 @@ class VoteController extends Controller
         abort_unless($entry->contest_id === $contest->id, 404);
 
         $user = $request->user();
+
+        if (!$user instanceof User) {
+            return back()->with('error', 'Необходима авторизация.');
+        }
 
         $vote = ContestVote::where('contest_id', $contest->id)
             ->where('entry_id', $entry->id)

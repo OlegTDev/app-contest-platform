@@ -29,12 +29,12 @@ final readonly class ContestItemDTO
      * Map a collection of contests to DTOs.
      *
      * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\Contest> $contests
+     * @param array<int, SelectOptionType> $contestTypes
      *
      * @return \Illuminate\Support\Collection<int, self>
      */
     public static function collection(
         \Illuminate\Support\Collection $contests,
-        /** @var array<int, SelectOptionType> */
         array $contestTypes = [],
     ): \Illuminate\Support\Collection {
         return $contests->map(fn (\App\Models\Contest $contest): self => self::from($contest, $contestTypes));

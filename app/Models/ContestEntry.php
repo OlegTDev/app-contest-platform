@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -16,11 +18,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property string|null $author_name
  * @property string|null $author_department
- * @property array|null $fields_data
+ * @property array<string, mixed>|null $fields_data
  * @property int $votes_count
  * @property int $user_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable(['contest_id', 'user_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count'])]
 class ContestEntry extends Model
@@ -60,7 +62,7 @@ class ContestEntry extends Model
     /**
      * @return MorphMany<Media, $this>
      */
-    public function media(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'entry');
     }

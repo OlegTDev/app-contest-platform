@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Contest;
 use App\Models\ContestEntry;
+use App\Models\Media;
 use App\Models\QuizEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,14 +19,15 @@ class EntryController extends Controller
      */
     public function index(Request $request, Contest $contest): Response
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         if ($contest->type->value === 'voting') {
+            /** @var Collection<int, array<string, mixed>> $entries */
             $entries = $contest->entries()
                 ->with('media')
                 ->orderBy('id')
                 ->get()
-                ->map(fn ($entry) => [
+                ->map(fn (ContestEntry $entry): array => [
                     'id' => $entry->id,
                     'title' => $entry->title,
                     'description' => $entry->description,
@@ -32,7 +35,7 @@ class EntryController extends Controller
                     'author_department' => $entry->author_department,
                     'fields_data' => $entry->fields_data,
                     'votes_count' => $entry->votes_count,
-                    'media' => $entry->media->map(fn ($m) => [
+                    'media' => $entry->media->map(fn (Media $m): array => [
                         'id' => $m->id,
                         'file_name' => $m->file_name,
                         'file_url' => $m->file_url,
@@ -40,16 +43,17 @@ class EntryController extends Controller
                         'file_extension' => $m->file_extension,
                         'file_size' => $m->file_size,
                         'is_main' => $m->is_main,
-                        'created_at' => $m->created_at->format('Y-m-d H:i'),
+                        'created_at' => $m->created_at?->format('Y-m-d H:i'),
                     ]),
-                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
+                    'created_at' => $entry->created_at?->format('Y-m-d H:i'),
                 ]);
         } else {
+            /** @var Collection<int, array<string, mixed>> $entries */
             $entries = $contest->quizEntries()
                 ->with('media')
                 ->orderBy('sort_order')
                 ->get()
-                ->map(fn ($entry) => [
+                ->map(fn (QuizEntry $entry): array => [
                     'id' => $entry->id,
                     'title' => $entry->title,
                     'description' => $entry->description,
@@ -58,7 +62,7 @@ class EntryController extends Controller
                     'show_from' => $entry->show_from?->format('Y-m-d H:i'),
                     'show_until' => $entry->show_until?->format('Y-m-d H:i'),
                     'is_scheduled' => $entry->isScheduled(),
-                    'media' => $entry->media->map(fn ($m) => [
+                    'media' => $entry->media->map(fn (Media $m): array => [
                         'id' => $m->id,
                         'file_name' => $m->file_name,
                         'file_url' => $m->file_url,
@@ -66,9 +70,9 @@ class EntryController extends Controller
                         'file_extension' => $m->file_extension,
                         'file_size' => $m->file_size,
                         'is_main' => $m->is_main,
-                        'created_at' => $m->created_at->format('Y-m-d H:i'),
+                        'created_at' => $m->created_at?->format('Y-m-d H:i'),
                     ]),
-                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
+                    'created_at' => $entry->created_at?->format('Y-m-d H:i'),
                 ]);
         }
 
@@ -87,7 +91,7 @@ class EntryController extends Controller
      */
     public function create(Request $request, Contest $contest): Response
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         return Inertia::render('entries/Create', [
             'contest' => [
@@ -103,7 +107,7 @@ class EntryController extends Controller
      */
     public function store(Request $request, Contest $contest): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         if ($contest->type->value === 'voting') {
             $validated = $request->validate([
@@ -114,7 +118,7 @@ class EntryController extends Controller
                 'fields_data' => ['nullable', 'array'],
             ]);
 
-            $contest->entries()->create([...$validated, 'user_id' => $request->user()->id]);
+            $contest->entries()->create([...$validated, 'user_id' => $this->user()->id]);
         } else {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:255'],
@@ -136,7 +140,7 @@ class EntryController extends Controller
      */
     public function edit(Request $request, Contest $contest, string $entry): Response
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         if ($contest->type->value === 'voting') {
             $entryModel = $contest->entries()->findOrFail($entry);
@@ -183,7 +187,7 @@ class EntryController extends Controller
      */
     public function update(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         if ($contest->type->value === 'voting') {
             $validated = $request->validate([
@@ -216,7 +220,7 @@ class EntryController extends Controller
      */
     public function destroy(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         if ($contest->type->value === 'voting') {
             $contest->entries()->where('id', $entry)->delete();

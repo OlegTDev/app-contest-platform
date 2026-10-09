@@ -21,7 +21,7 @@ class MediaFactory extends Factory
         return [
             'contest_id' => Contest::factory(),
             'file_name' => fake()->word().'.'.fake()->fileExtension(),
-            'file_path' => fake()->filePath('media'),
+            'file_path' => 'media/' . fake()->filePath(),
             'file_type' => fake()->mimeType(),
             'file_extension' => fake()->fileExtension(),
             'file_size' => fake()->numberBetween(1024, 10485760),

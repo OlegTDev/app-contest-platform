@@ -19,7 +19,7 @@ class QuizController extends Controller
      */
     public function index(Request $request, Contest $contest): Response
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        abort_unless($this->user()->id === $contest->user_id, 403);
 
         $entries = $contest->quizEntries()
             ->orderBy('sort_order')
@@ -33,7 +33,7 @@ class QuizController extends Controller
                 'show_from' => $entry->show_from?->format('Y-m-d H:i'),
                 'show_until' => $entry->show_until?->format('Y-m-d H:i'),
                 'is_scheduled' => $entry->isScheduled(),
-                'created_at' => $entry->created_at->format('Y-m-d H:i'),
+                'created_at' => $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : null,
             ]);
 
         return Inertia::render('quizzes/Index', [
@@ -55,7 +55,7 @@ class QuizController extends Controller
         abort_unless($entry->contest_id === $contest->id, 404);
         abort_unless($entry->isVisible(), 403);
 
-        $user = $request->user();
+        $user = $this->user();
 
         $existingAnswer = QuizAnswer::where('quiz_entry_id', $entry->id)
             ->where('user_id', $user->id)
@@ -86,24 +86,27 @@ class QuizController extends Controller
         abort_unless($entry->contest_id === $contest->id, 404);
         abort_unless($entry->isVisible(), 403);
 
-        $user = $request->user();
+        $user = $this->user();
 
+        /** @var array{answer: string} $validated */
         $validated = $request->validate([
             'answer' => ['required', 'string', 'max:255'],
         ]);
 
+        $answer = $validated['answer'];
+
         // Here you would compare the answer with the correct answer
         // For now, we just store it and mark as correct/incorrect based on logic
-        $isCorrect = $this->checkAnswer($entry, $validated['answer']);
+        $isCorrect = $this->checkAnswer($entry, $answer);
 
-        DB::transaction(function () use ($entry, $user, $validated, $isCorrect) {
+        DB::transaction(function () use ($entry, $user, $answer, $isCorrect): void {
             QuizAnswer::updateOrCreate(
                 [
                     'quiz_entry_id' => $entry->id,
                     'user_id' => $user->id,
                 ],
                 [
-                    'answer' => $validated['answer'],
+                    'answer' => $answer,
                     'is_correct' => $isCorrect,
                     'answered_at' => now(),
                 ]
@@ -116,11 +119,11 @@ class QuizController extends Controller
     /**
      * Show quiz result.
      */
-    public function result(Request $request, Contest $contest, QuizEntry $entry): Response
+    public function result(Request $request, Contest $contest, QuizEntry $entry): Response|RedirectResponse
     {
         abort_unless($entry->contest_id === $contest->id, 404);
 
-        $user = $request->user();
+        $user = $this->user();
 
         $answer = QuizAnswer::where('quiz_entry_id', $entry->id)
             ->where('user_id', $user->id)
@@ -162,25 +165,26 @@ class QuizController extends Controller
 
     /**
      * Get leaderboard for quiz entries.
+     *
+     * @return JsonResponse
      */
     public function leaderboard(Request $request, Contest $contest): JsonResponse
     {
         abort_unless($contest->isActive(), 403);
 
-        $leaderboard = QuizAnswer::whereHas('quizEntry', function ($query) use ($contest) {
+        $correctAnswers = QuizAnswer::whereHas('quizEntry', function ($query) use ($contest) {
             $query->where('contest_id', $contest->id);
         })
-            ->with(['user:id,name', 'quizEntry:title'])
             ->where('is_correct', true)
-            ->select('user_id', 'quiz_entry_id')
-            ->groupBy('user_id', 'quiz_entry_id')
-            ->count()
-            ->groupBy('user_id')
-            ->map(fn ($count) => [
-                'user_id' => $count->first()->user_id,
-                'correct_count' => $count->count(),
+            ->select('user_id')
+            ->distinct()
+            ->pluck('user_id');
+
+        $leaderboard = $correctAnswers
+            ->map(fn ($userId) => [
+                'user_id' => $userId,
+                'correct_count' => $correctAnswers->filter(fn ($id) => $id === $userId)->count(),
             ])
-            ->sortByDesc('correct_count')
             ->values();
 
         return response()->json(['leaderboard' => $leaderboard]);

@@ -123,18 +123,4 @@ class ContestAdminController extends Controller
 
         return back()->with('success', 'Contest status updated successfully.');
     }
-
-    /**
-     * Получить текущего авторизованного пользователя.
-     */
-    private function user(): \App\Models\User
-    {
-        $user = request()->user();
-
-        if (! $user instanceof \App\Models\User) {
-            abort(401, 'User not authenticated.');
-        }
-
-        return $user;
-    }
 }

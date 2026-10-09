@@ -16,7 +16,9 @@ class MediaController extends Controller
 {
     public function index(Request $request, Contest $contest): Response
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
 
         $media = $contest->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
             'id' => $m->id,
@@ -26,7 +28,7 @@ class MediaController extends Controller
             'file_extension' => $m->file_extension,
             'file_size' => $m->file_size,
             'is_main' => $m->is_main,
-            'created_at' => $m->created_at->format('Y-m-d H:i'),
+            'created_at' => $m->created_at?->format('Y-m-d H:i') ?? '',
         ]);
 
         return Inertia::render('media/Index', [
@@ -40,8 +42,11 @@ class MediaController extends Controller
 
     public function store(Request $request, Contest $contest): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
 
+        /** @var int $maxSize */
         $maxSize = config('media.max_upload_size');
 
         $request->validate([
@@ -56,7 +61,8 @@ class MediaController extends Controller
 
         foreach ($request->file('files') as $file) {
             $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
+            $extension = $file->getClientOriginalExtension() ?: 'bin';
+            /** @var string $mimeType */
             $mimeType = $file->getMimeType();
 
             $fileType = match (true) {
@@ -87,12 +93,17 @@ class MediaController extends Controller
 
     public function entryIndex(Request $request, Contest $contest, string $entry): Response
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
 
+        /** @var ContestEntry|QuizEntry|null $entryModel */
         $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
             ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
 
-        abort_unless($entryModel, 404);
+        if ($entryModel === null) {
+            abort(404);
+        }
 
         $media = $entryModel->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
             'id' => $m->id,
@@ -102,7 +113,7 @@ class MediaController extends Controller
             'file_extension' => $m->file_extension,
             'file_size' => $m->file_size,
             'is_main' => $m->is_main,
-            'created_at' => $m->created_at->format('Y-m-d H:i'),
+            'created_at' => $m->created_at?->format('Y-m-d H:i') ?? '',
         ]);
 
         return Inertia::render('media/EntryIndex', [
@@ -120,13 +131,19 @@ class MediaController extends Controller
 
     public function entryStore(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
 
+        /** @var ContestEntry|QuizEntry|null $entryModel */
         $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
             ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
 
-        abort_unless($entryModel, 404);
+        if ($entryModel === null) {
+            abort(404);
+        }
 
+        /** @var int $maxSize */
         $maxSize = config('media.max_upload_size');
 
         $request->validate([
@@ -136,7 +153,8 @@ class MediaController extends Controller
 
         foreach ($request->file('files') as $file) {
             $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
+            $extension = $file->getClientOriginalExtension() ?: 'bin';
+            /** @var string $mimeType */
             $mimeType = $file->getMimeType();
 
             $fileType = match (true) {
@@ -167,7 +185,9 @@ class MediaController extends Controller
 
     public function destroy(Request $request, Contest $contest, Media $media): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
@@ -178,13 +198,18 @@ class MediaController extends Controller
 
     public function entryDestroy(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
 
+        /** @var ContestEntry|QuizEntry|null $entryModel */
         $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
             ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
 
-        abort_unless($entryModel, 404);
+        if ($entryModel === null) {
+            abort(404);
+        }
         abort_unless($media->entry_id === $entryModel->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
@@ -195,13 +220,18 @@ class MediaController extends Controller
 
     public function toggleMain(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
-        abort_unless($request->user()->id === $contest->user_id, 403);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        abort_unless($user->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
 
+        /** @var ContestEntry|QuizEntry|null $entryModel */
         $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
             ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
 
-        abort_unless($entryModel, 404);
+        if ($entryModel === null) {
+            abort(404);
+        }
         abort_unless($media->entry_id === $entryModel->id, 404);
 
         // If setting this file as main, unset the previous main file of this entry.

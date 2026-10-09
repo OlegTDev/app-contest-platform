@@ -122,7 +122,7 @@ class Contest extends Model
     /**
      * Check if the given user can edit this contest.
      */
-    public function canEdit($user): bool
+    public function canEdit(User $user): bool
     {
         return $user->exists && $user->id === $this->user_id;
     }

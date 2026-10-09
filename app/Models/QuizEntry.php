@@ -8,16 +8,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $contest_id
  * @property string $title
  * @property string|null $description
- * @property array|null $fields_data
+ * @property array<string, mixed>|null $fields_data
  * @property int $sort_order
- * @property \Illuminate\Carbon|null $show_from
- * @property \Illuminate\Carbon|null $show_until
+ * @property Carbon|null $show_from
+ * @property Carbon|null $show_until
  * @property \Illuminate\Database\Eloquent\Collection<int, QuizAnswer> $answers
  */
 #[Fillable(['contest_id', 'title', 'description', 'fields_data', 'sort_order', 'show_from', 'show_until'])]
@@ -51,7 +53,7 @@ class QuizEntry extends Model
     /**
      * @return MorphMany<Media, $this>
      */
-    public function media(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'entry');
     }
@@ -65,7 +67,7 @@ class QuizEntry extends Model
             return true;
         }
 
-        $now = now();
+        $now = Carbon::now();
 
         if ($now->lt($this->show_from)) {
             return false;

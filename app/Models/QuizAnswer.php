@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  * @property string $answer
  * @property bool $is_correct
- * @property \Illuminate\Carbon|null $answered_at
+ * @property Carbon|null $answered_at
  */
 #[Fillable(['quiz_entry_id', 'user_id', 'answer', 'is_correct', 'answered_at'])]
 class QuizAnswer extends Model

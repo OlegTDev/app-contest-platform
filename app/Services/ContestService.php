@@ -118,11 +118,11 @@ final readonly class ContestService
      *
      * @param array<string, string|null> $filters
      *
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}>
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}>
      */
     public function getAdminContests(array $filters, int $userId): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Contest::with(['quizEntries', 'entries'])
+        $query = Contest::with(['quizEntries', 'entries', 'author'])
             ->orderByDesc('created_at');
 
         if (isset($filters['status'])) {
@@ -137,9 +137,8 @@ final readonly class ContestService
             $query->where('title', 'ilike', '%' . $filters['search'] . '%');
         }
 
-        $paginator = $query->paginate(15);
-
-        $paginator->getCollection()->transform(function (Contest $contest) use ($userId): array {
+        /** @var \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}> $paginator */
+        $paginator = $query->paginate(15)->through(function (Contest $contest) use ($userId): array {
             return [
                 'id' => $contest->id,
                 'title' => $contest->title,
