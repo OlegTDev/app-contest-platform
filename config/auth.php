@@ -44,7 +44,7 @@ return [
         ],
         'ldap' => [
             'driver' => 'session',
-            'provider'=> 'ldap',
+            'provider' => 'ldap',
         ],
     ],
 
@@ -76,7 +76,7 @@ return [
             'model' => LdapRecord\Models\ActiveDirectory\User::class,
             'rules' => [],
             'database' => [
-                'model' => App\Models\User::class,
+                'model' => User::class,
                 'sync_passwords' => false,
                 'password_column' => false,
                 'sync_attributes' => [

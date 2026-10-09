@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Contest;
 use App\Services\ContestService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,7 +31,7 @@ class ContestController extends Controller
     /**
      * Публичная страница конкурса.
      */
-    public function publicShow(Request $request, \App\Models\Contest $contest): Response
+    public function publicShow(Request $request, Contest $contest): Response
     {
         abort_unless($contest->status === 'published', 404);
 

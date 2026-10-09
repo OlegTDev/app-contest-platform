@@ -8,6 +8,7 @@ use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\ContestVote;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class VoteController extends Controller
 
         $user = $request->user();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return back()->with('error', 'Необходима авторизация.');
         }
 
@@ -64,7 +65,7 @@ class VoteController extends Controller
 
         $user = $request->user();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return back()->with('error', 'Необходима авторизация.');
         }
 
@@ -73,7 +74,7 @@ class VoteController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$vote) {
+        if (! $vote) {
             return back()->with('error', 'Вы не голосовали за эту работу.');
         }
 
@@ -88,7 +89,7 @@ class VoteController extends Controller
     /**
      * Get leaderboard for a contest.
      */
-    public function leaderboard(Request $request, Contest $contest): \Illuminate\Http\JsonResponse
+    public function leaderboard(Request $request, Contest $contest): JsonResponse
     {
         abort_unless($contest->isActive(), 403, 'This contest is not currently available.');
 

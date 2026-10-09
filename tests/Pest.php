@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\Contest;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -11,8 +16,8 @@
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature', 'Unit');
 
 /*
@@ -40,12 +45,12 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function fakeUser(array $attributes = []): \App\Models\User
+function fakeUser(array $attributes = []): User
 {
-    return \App\Models\User::factory()->create($attributes);
+    return User::factory()->create($attributes);
 }
 
-function fakeContest(array $attributes = []): \App\Models\Contest
+function fakeContest(array $attributes = []): Contest
 {
-    return \App\Models\Contest::factory()->create($attributes);
+    return Contest::factory()->create($attributes);
 }

@@ -3,6 +3,7 @@
 use App\Models\Contest;
 use App\Models\QuizEntry;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -28,7 +29,7 @@ describe('QuizEntry model', function () {
     });
 
     it('has correct fillable attributes', function () {
-        $entry = new QuizEntry();
+        $entry = new QuizEntry;
 
         expect($entry->getFillable())
             ->toBe(['contest_id', 'title', 'description', 'fields_data', 'sort_order', 'show_from', 'show_until']);
@@ -50,8 +51,8 @@ describe('QuizEntry model', function () {
             'show_until' => $until,
         ]);
 
-        expect($entry->show_from)->toBeInstanceOf(\Carbon\CarbonImmutable::class)
-            ->and($entry->show_until)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+        expect($entry->show_from)->toBeInstanceOf(CarbonImmutable::class)
+            ->and($entry->show_until)->toBeInstanceOf(CarbonImmutable::class);
     });
 
     describe('isVisible()', function () {

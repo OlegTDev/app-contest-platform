@@ -17,4 +17,3 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(RequirePassword::class)
         ->name('security.edit');
 });
-

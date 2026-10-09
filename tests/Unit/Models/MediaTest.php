@@ -33,7 +33,7 @@ describe('Media model', function () {
     });
 
     it('has correct fillable attributes', function () {
-        $media = new Media();
+        $media = new Media;
 
         expect($media->getFillable())
             ->toBe(['contest_id', 'entry_id', 'entry_type', 'file_name', 'file_path', 'file_type', 'file_extension', 'file_size', 'is_main']);

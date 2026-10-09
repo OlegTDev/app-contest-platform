@@ -1,8 +1,9 @@
 <?php
 
+use App\Enums\ContestType;
 use App\Models\Contest;
 use App\Models\User;
-use App\Enums\ContestType;
+use Carbon\CarbonImmutable;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -28,7 +29,7 @@ describe('Contest model', function () {
     });
 
     it('has correct fillable attributes', function () {
-        $contest = new Contest();
+        $contest = new Contest;
 
         expect($contest->getFillable())
             ->toBe(['title', 'type', 'project_schema', 'status', 'description', 'start_at', 'end_at']);
@@ -210,8 +211,8 @@ describe('Contest model', function () {
                 'end_at' => $end,
             ]);
 
-            expect($contest->start_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class)
-                ->and($contest->end_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+            expect($contest->start_at)->toBeInstanceOf(CarbonImmutable::class)
+                ->and($contest->end_at)->toBeInstanceOf(CarbonImmutable::class);
         });
     });
 });

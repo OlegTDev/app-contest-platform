@@ -25,14 +25,14 @@ describe('ContestVote model', function () {
     });
 
     it('has correct fillable attributes', function () {
-        $vote = new ContestVote();
+        $vote = new ContestVote;
 
         expect($vote->getFillable())
             ->toBe(['contest_id', 'entry_id', 'user_id']);
     });
 
     it('uses contest_votes table', function () {
-        $vote = new ContestVote();
+        $vote = new ContestVote;
         expect($vote->getTable())->toBe('contest_votes');
     });
 

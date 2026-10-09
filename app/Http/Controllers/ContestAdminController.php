@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\ContestType;
+use App\Http\Requests\ContestRequest;
 use App\Models\Contest;
 use App\Services\ContestService;
 use Illuminate\Http\RedirectResponse;
@@ -44,14 +46,14 @@ class ContestAdminController extends Controller
     public function create(): Response
     {
         return Inertia::render('contests/create', [
-            'contestTypes' => \App\Enums\ContestType::selectOptions(),
+            'contestTypes' => ContestType::selectOptions(),
         ]);
     }
 
     /**
      * Сохранение нового конкурса.
      */
-    public function store(\App\Http\Requests\ContestRequest $request): RedirectResponse
+    public function store(ContestRequest $request): RedirectResponse
     {
         Contest::create($request->validated());
 
@@ -80,14 +82,14 @@ class ContestAdminController extends Controller
 
         return Inertia::render('contests/edit', [
             'contest' => $this->contestService->getAdminEditData($contest),
-            'contestTypes' => \App\Enums\ContestType::selectOptions(),
+            'contestTypes' => ContestType::selectOptions(),
         ]);
     }
 
     /**
      * Обновление конкурса.
      */
-    public function update(\App\Http\Requests\ContestRequest $request, Contest $contest): RedirectResponse
+    public function update(ContestRequest $request, Contest $contest): RedirectResponse
     {
         abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
 

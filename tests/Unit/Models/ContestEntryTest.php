@@ -2,7 +2,6 @@
 
 use App\Models\Contest;
 use App\Models\ContestEntry;
-use App\Models\ContestVote;
 use App\Models\User;
 
 beforeEach(function () {
@@ -30,7 +29,7 @@ describe('ContestEntry model', function () {
     });
 
     it('has correct fillable attributes', function () {
-        $entry = new ContestEntry();
+        $entry = new ContestEntry;
 
         expect($entry->getFillable())
             ->toBe(['contest_id', 'user_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count']);

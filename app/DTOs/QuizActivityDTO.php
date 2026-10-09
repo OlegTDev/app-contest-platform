@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Models\QuizEntry;
+use Illuminate\Support\Collection;
+
 final readonly class QuizActivityDTO
 {
     public function __construct(
         public int $id,
         public string $title,
-        public string|null $description,
+        public ?string $description,
         public bool $isVisible,
         public string $createdAt,
     ) {}
@@ -17,16 +20,15 @@ final readonly class QuizActivityDTO
     /**
      * Map a collection of quiz entries to DTOs.
      *
-     * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\QuizEntry> $entries
-     *
-     * @return \Illuminate\Support\Collection<int, self>
+     * @param  \Illuminate\Database\Eloquent\Collection<int, QuizEntry>  $entries
+     * @return Collection<int, self>
      */
-    public static function collection(\Illuminate\Support\Collection $entries): \Illuminate\Support\Collection
+    public static function collection(Collection $entries): Collection
     {
-        return $entries->map(fn (\App\Models\QuizEntry $entry): self => self::from($entry));
+        return $entries->map(fn (QuizEntry $entry): self => self::from($entry));
     }
 
-    public static function from(\App\Models\QuizEntry $entry): self
+    public static function from(QuizEntry $entry): self
     {
         return new self(
             id: $entry->id,

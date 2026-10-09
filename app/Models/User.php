@@ -6,7 +6,9 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -24,30 +26,31 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\Contest> $contests
+ * @property Collection<int, Contest> $contests
  */
 #[Fillable(['name', 'email', 'password', 'guid', 'domain'])]
 #[Hidden(['password'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser, LdapAuthenticatable
+class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEmail, PasskeyUser
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
     use AuthenticatesWithLdap;
 
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Contest, $this>
+     * @return HasMany<Contest, $this>
      */
-    public function contests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function contests(): HasMany
     {
         return $this->hasMany(Contest::class);
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\ContestVote, $this>
+     * @return HasMany<ContestVote, $this>
      */
-    public function votes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function votes(): HasMany
     {
-        return $this->hasMany(\App\Models\ContestVote::class, 'user_id');
+        return $this->hasMany(ContestVote::class, 'user_id');
     }
 
     /**

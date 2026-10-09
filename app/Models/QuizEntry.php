@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\QuizEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $sort_order
  * @property Carbon|null $show_from
  * @property Carbon|null $show_until
- * @property \Illuminate\Database\Eloquent\Collection<int, QuizAnswer> $answers
+ * @property Collection<int, QuizAnswer> $answers
  */
 #[Fillable(['contest_id', 'title', 'description', 'fields_data', 'sort_order', 'show_from', 'show_until'])]
 class QuizEntry extends Model
@@ -63,7 +64,7 @@ class QuizEntry extends Model
      */
     public function isVisible(): bool
     {
-        if (!$this->show_from || !$this->show_until) {
+        if (! $this->show_from || ! $this->show_until) {
             return true;
         }
 

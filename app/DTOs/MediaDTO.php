@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Models\Media;
+use Illuminate\Support\Collection;
+
 final readonly class MediaDTO
 {
     public function __construct(
@@ -12,7 +15,7 @@ final readonly class MediaDTO
         public string $fileUrl,
         public string $fileType,
         public string $fileExtension,
-        public int|null $fileSize,
+        public ?int $fileSize,
         public bool $isMain,
         public string $createdAt,
     ) {}
@@ -20,16 +23,15 @@ final readonly class MediaDTO
     /**
      * Map a collection of media to DTOs.
      *
-     * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\Media> $media
-     *
-     * @return \Illuminate\Support\Collection<int, self>
+     * @param  \Illuminate\Database\Eloquent\Collection<int, Media>  $media
+     * @return Collection<int, self>
      */
-    public static function collection(\Illuminate\Support\Collection $media): \Illuminate\Support\Collection
+    public static function collection(Collection $media): Collection
     {
-        return $media->map(fn (\App\Models\Media $m): self => self::from($m));
+        return $media->map(fn (Media $m): self => self::from($m));
     }
 
-    public static function from(\App\Models\Media $media): self
+    public static function from(Media $media): self
     {
         return new self(
             id: $media->id,

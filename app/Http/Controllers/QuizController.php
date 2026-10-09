@@ -129,7 +129,7 @@ class QuizController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$answer) {
+        if (! $answer) {
             return redirect()->route('quizzes.take', [$contest, $entry]);
         }
 
@@ -165,8 +165,6 @@ class QuizController extends Controller
 
     /**
      * Get leaderboard for quiz entries.
-     *
-     * @return JsonResponse
      */
     public function leaderboard(Request $request, Contest $contest): JsonResponse
     {

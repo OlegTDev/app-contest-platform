@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\QuizAnswer;
 use App\Models\QuizEntry;
 use App\Models\User;
-use App\Models\QuizAnswer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

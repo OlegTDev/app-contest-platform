@@ -11,7 +11,7 @@ enum ContestType: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::QUIZ => 'Викторина',
             self::VOTING => 'Голосование',
         };
@@ -22,7 +22,7 @@ enum ContestType: string
      */
     public static function selectOptions(): array
     {
-        return array_map(fn(self $enum) => [
+        return array_map(fn (self $enum) => [
             'label' => $enum->label(),
             'value' => $enum->value,
         ], self::cases());

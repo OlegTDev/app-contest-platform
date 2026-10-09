@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\ContestType;
 use App\Observers\ContestObserver;
+use Carbon\CarbonInterface;
 use Database\Factories\ContestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,12 +21,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $title
  * @property string $status
  * @property string|null $description
- * @property \Carbon\CarbonInterface|null $start_at
- * @property \Carbon\CarbonInterface|null $end_at
+ * @property CarbonInterface|null $start_at
+ * @property CarbonInterface|null $end_at
  * @property mixed $project_schema
- * @property \Illuminate\Database\Eloquent\Collection<int, Project> $projects
- * @property \Illuminate\Database\Eloquent\Collection<int, ContestEntry> $entries
- * @property \Illuminate\Database\Eloquent\Collection<int, QuizEntry> $quizEntries
+ * @property Collection<int, Project> $projects
+ * @property Collection<int, ContestEntry> $entries
+ * @property Collection<int, QuizEntry> $quizEntries
  * @property User|null $author
  */
 #[Fillable(['title', 'type', 'project_schema', 'status', 'description', 'start_at', 'end_at'])]

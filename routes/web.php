@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\ContestAdminController;
-use App\Http\Controllers\ContestController;
-use App\Http\Controllers\EntryController;
-use App\Http\Controllers\MediaController;
-use App\Http\Controllers\QuizController;
-use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {

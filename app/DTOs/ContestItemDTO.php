@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Models\Contest;
+use Illuminate\Support\Collection;
+
 /**
  * @phpstan-type SelectOptionType array{value: string, label: string}
  */
 final readonly class ContestItemDTO
 {
     /**
-     * @param array<int, SelectOptionType> $contestTypes
+     * @param  array<int, SelectOptionType>  $contestTypes
      */
     public function __construct(
         public int $id,
         public string $title,
         public string $type,
-        public string|null $description,
-        public string|null $startAt,
-        public string|null $endAt,
+        public ?string $description,
+        public ?string $startAt,
+        public ?string $endAt,
         public int $quizEntryCount,
         public int $entryCount,
         public string $createdAt,
@@ -28,22 +31,21 @@ final readonly class ContestItemDTO
     /**
      * Map a collection of contests to DTOs.
      *
-     * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\Contest> $contests
-     * @param array<int, SelectOptionType> $contestTypes
-     *
-     * @return \Illuminate\Support\Collection<int, self>
+     * @param  \Illuminate\Database\Eloquent\Collection<int, Contest>  $contests
+     * @param  array<int, SelectOptionType>  $contestTypes
+     * @return Collection<int, self>
      */
     public static function collection(
-        \Illuminate\Support\Collection $contests,
+        Collection $contests,
         array $contestTypes = [],
-    ): \Illuminate\Support\Collection {
-        return $contests->map(fn (\App\Models\Contest $contest): self => self::from($contest, $contestTypes));
+    ): Collection {
+        return $contests->map(fn (Contest $contest): self => self::from($contest, $contestTypes));
     }
 
     /**
-     * @param array<int, SelectOptionType> $contestTypes
+     * @param  array<int, SelectOptionType>  $contestTypes
      */
-    public static function from(\App\Models\Contest $contest, array $contestTypes = []): self
+    public static function from(Contest $contest, array $contestTypes = []): self
     {
         return new self(
             id: $contest->id,

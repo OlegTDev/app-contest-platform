@@ -28,7 +28,7 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->configureViews();
         $this->configureRateLimiting();
-        Fortify::authenticateUsing(function(Request $request) {
+        Fortify::authenticateUsing(function (Request $request) {
             $request->validate([
                 Fortify::username() => 'required|string',
                 'password' => 'required|string',
@@ -48,6 +48,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             if ($this->app->environment('production') && Auth::guard('ldap')->attempt($credentials)) {
                 $user = Auth::guard('ldap')->user();
+
                 return $user;
             }
 

@@ -12,18 +12,18 @@ namespace App\DTOs;
 final readonly class ContestShowDTO
 {
     /**
-     * @param array<QuizActivityType> $quizActivities
-     * @param array<VotingActivityType> $votingActivities
-     * @param array<LeaderboardType> $leaderboard
+     * @param  array<QuizActivityType>  $quizActivities
+     * @param  array<VotingActivityType>  $votingActivities
+     * @param  array<LeaderboardType>  $leaderboard
      */
     public function __construct(
         public int $id,
         public string $title,
         public string $type,
         public string $status,
-        public string|null $description,
-        public string|null $startAt,
-        public string|null $endAt,
+        public ?string $description,
+        public ?string $startAt,
+        public ?string $endAt,
         public bool $isActive,
         public bool $isTimeActive,
         public string $createdAt,

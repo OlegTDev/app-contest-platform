@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\ContestType;
+use App\Models\Contest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,7 +21,7 @@ class ContestRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<property-of<\App\Models\Contest>, ValidationRule|array<mixed>|string>
+     * @return array<property-of<Contest>, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

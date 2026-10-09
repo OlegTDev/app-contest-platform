@@ -6,6 +6,7 @@ use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\Media;
 use App\Models\QuizEntry;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,7 @@ class MediaController extends Controller
 {
     public function index(Request $request, Contest $contest): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
 
@@ -42,7 +43,7 @@ class MediaController extends Controller
 
     public function store(Request $request, Contest $contest): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
 
@@ -51,7 +52,7 @@ class MediaController extends Controller
 
         $request->validate([
             'files' => 'required|array',
-            "files.*" => "file|max:{$maxSize}",
+            'files.*' => "file|max:{$maxSize}",
             'entry_id' => 'nullable|integer',
             'entry_type' => 'nullable|string',
         ]);
@@ -73,8 +74,8 @@ class MediaController extends Controller
                 default => 'document',
             };
 
-            $uniqueName = uniqid() . '.' . $extension;
-            $path = $file->storeAs('media/' . $contest->id, $uniqueName, 'public');
+            $uniqueName = uniqid().'.'.$extension;
+            $path = $file->storeAs('media/'.$contest->id, $uniqueName, 'public');
 
             Media::create([
                 'contest_id' => $contest->id,
@@ -93,7 +94,7 @@ class MediaController extends Controller
 
     public function entryIndex(Request $request, Contest $contest, string $entry): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
 
@@ -131,7 +132,7 @@ class MediaController extends Controller
 
     public function entryStore(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
 
@@ -148,7 +149,7 @@ class MediaController extends Controller
 
         $request->validate([
             'files' => 'required|array',
-            "files.*" => "file|max:{$maxSize}",
+            'files.*' => "file|max:{$maxSize}",
         ]);
 
         foreach ($request->file('files') as $file) {
@@ -165,8 +166,8 @@ class MediaController extends Controller
                 default => 'document',
             };
 
-            $uniqueName = uniqid() . '.' . $extension;
-            $path = $file->storeAs('media/' . $contest->id, $uniqueName, 'public');
+            $uniqueName = uniqid().'.'.$extension;
+            $path = $file->storeAs('media/'.$contest->id, $uniqueName, 'public');
 
             Media::create([
                 'contest_id' => $contest->id,
@@ -185,7 +186,7 @@ class MediaController extends Controller
 
     public function destroy(Request $request, Contest $contest, Media $media): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
@@ -198,7 +199,7 @@ class MediaController extends Controller
 
     public function entryDestroy(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);
@@ -220,7 +221,7 @@ class MediaController extends Controller
 
     public function toggleMain(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         abort_unless($user->id === $contest->user_id, 403);
         abort_unless($media->contest_id === $contest->id, 404);

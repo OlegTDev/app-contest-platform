@@ -29,13 +29,13 @@ describe('QuizAnswer model', function () {
     });
 
     it('uses the quiz_answers table', function () {
-        $answer = new QuizAnswer();
+        $answer = new QuizAnswer;
 
         expect($answer->getTable())->toBe('quiz_answers');
     });
 
     it('has correct fillable attributes', function () {
-        $answer = new QuizAnswer();
+        $answer = new QuizAnswer;
 
         expect($answer->getFillable())
             ->toBe(['quiz_entry_id', 'user_id', 'answer', 'is_correct', 'answered_at']);

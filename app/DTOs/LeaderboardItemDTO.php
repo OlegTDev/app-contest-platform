@@ -4,28 +4,30 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Models\ContestEntry;
+use Illuminate\Support\Collection;
+
 final readonly class LeaderboardItemDTO
 {
     public function __construct(
         public int $id,
         public string $title,
         public int $votesCount,
-        public string|null $authorName,
+        public ?string $authorName,
     ) {}
 
     /**
      * Map a collection of entries to leaderboard DTOs.
      *
-     * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\ContestEntry> $entries
-     *
-     * @return \Illuminate\Support\Collection<int, self>
+     * @param  \Illuminate\Database\Eloquent\Collection<int, ContestEntry>  $entries
+     * @return Collection<int, self>
      */
-    public static function collection(\Illuminate\Support\Collection $entries): \Illuminate\Support\Collection
+    public static function collection(Collection $entries): Collection
     {
-        return $entries->map(fn (\App\Models\ContestEntry $entry): self => self::from($entry));
+        return $entries->map(fn (ContestEntry $entry): self => self::from($entry));
     }
 
-    public static function from(\App\Models\ContestEntry $entry): self
+    public static function from(ContestEntry $entry): self
     {
         return new self(
             id: $entry->id,

@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\Contest;
-use App\Models\ContestVote;
+use App\Models\ContestEntry;
 use App\Models\User;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Fortify\Contracts\PasskeyUser;
+use LdapRecord\Laravel\Auth\LdapAuthenticatable;
 
 describe('User model', function () {
     it('can create a user with all attributes', function () {
@@ -18,14 +21,14 @@ describe('User model', function () {
     });
 
     it('has correct fillable attributes', function () {
-        $user = new User();
+        $user = new User;
 
         expect($user->getFillable())
             ->toBe(['name', 'email', 'password', 'guid', 'domain']);
     });
 
     it('has correct hidden attributes', function () {
-        $user = new User();
+        $user = new User;
 
         expect($user->getHidden())
             ->toBe(['password']);
@@ -50,8 +53,8 @@ describe('User model', function () {
         it('has many votes', function () {
             $user = User::factory()->create();
             $contest = Contest::factory()->create();
-            $firstEntry = \App\Models\ContestEntry::factory()->create(['contest_id' => $contest->id]);
-            $secondEntry = \App\Models\ContestEntry::factory()->create(['contest_id' => $contest->id]);
+            $firstEntry = ContestEntry::factory()->create(['contest_id' => $contest->id]);
+            $secondEntry = ContestEntry::factory()->create(['contest_id' => $contest->id]);
 
             $user->votes()->createMany([
                 ['contest_id' => $contest->id, 'entry_id' => $firstEntry->id],
@@ -65,17 +68,17 @@ describe('User model', function () {
     describe('implements', function () {
         it('implements MustVerifyEmail', function () {
             $user = User::factory()->create();
-            expect($user)->toBeInstanceOf(\Illuminate\Contracts\Auth\MustVerifyEmail::class);
+            expect($user)->toBeInstanceOf(MustVerifyEmail::class);
         });
 
         it('implements PasskeyUser', function () {
             $user = User::factory()->create();
-            expect($user)->toBeInstanceOf(\Laravel\Fortify\Contracts\PasskeyUser::class);
+            expect($user)->toBeInstanceOf(PasskeyUser::class);
         });
 
         it('implements LdapAuthenticatable', function () {
             $user = User::factory()->create();
-            expect($user)->toBeInstanceOf(\LdapRecord\Laravel\Auth\LdapAuthenticatable::class);
+            expect($user)->toBeInstanceOf(LdapAuthenticatable::class);
         });
     });
 

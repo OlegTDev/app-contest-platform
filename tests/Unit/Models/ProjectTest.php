@@ -27,13 +27,13 @@ describe('Project model', function () {
     });
 
     it('uses the projects table', function () {
-        $project = new Project();
+        $project = new Project;
 
         expect($project->getTable())->toBe('projects');
     });
 
     it('has correct fillable attributes', function () {
-        $project = new Project();
+        $project = new Project;
 
         expect($project->getFillable())
             ->toBe(['contest_id', 'user_id', 'title', 'description', 'fields_data']);

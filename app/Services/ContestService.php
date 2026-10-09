@@ -10,6 +10,9 @@ use App\DTOs\LeaderboardItemDTO;
 use App\DTOs\QuizActivityDTO;
 use App\DTOs\VotingActivityDTO;
 use App\Models\Contest;
+use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -41,7 +44,7 @@ final readonly class ContestService
     /**
      * Get contest data for the public show page.
      *
-     * @param array<int, int> $userVoteEntryIds
+     * @param  array<int, int>  $userVoteEntryIds
      */
     public function getPublicShowData(Contest $contest, array $userVoteEntryIds = []): ContestShowDTO
     {
@@ -116,11 +119,10 @@ final readonly class ContestService
     /**
      * Get contests for the admin index page with pagination.
      *
-     * @param array<string, string|null> $filters
-     *
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}>
+     * @param  array<string, string|null>  $filters
+     * @return LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}>
      */
-    public function getAdminContests(array $filters, int $userId): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getAdminContests(array $filters, int $userId): LengthAwarePaginator
     {
         $query = Contest::with(['quizEntries', 'entries', 'author'])
             ->orderByDesc('created_at');
@@ -134,10 +136,10 @@ final readonly class ContestService
         }
 
         if (isset($filters['search'])) {
-            $query->where('title', 'ilike', '%' . $filters['search'] . '%');
+            $query->where('title', 'ilike', '%'.$filters['search'].'%');
         }
 
-        /** @var \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}> $paginator */
+        /** @var LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}> $paginator */
         $paginator = $query->paginate(15)->through(function (Contest $contest) use ($userId): array {
             return [
                 'id' => $contest->id,
@@ -206,10 +208,10 @@ final readonly class ContestService
      *
      * @return array<int, int>
      */
-    public function getUserVoteEntryIds(Contest $contest, \Illuminate\Contracts\Auth\Authenticatable $user): array
+    public function getUserVoteEntryIds(Contest $contest, Authenticatable $user): array
     {
-        /** @var \App\Models\User $authUser */
-        $authUser = $user instanceof \App\Models\User
+        /** @var User $authUser */
+        $authUser = $user instanceof User
             ? $user
             : throw new \InvalidArgumentException('Invalid user type');
 

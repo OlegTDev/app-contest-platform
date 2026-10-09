@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Models\ContestEntry;
+use App\Models\Media;
+use Illuminate\Support\Collection;
+
 /**
  * @phpstan-type MediaItemType array{id: int, file_name: string, file_url: string, file_type: string, file_extension: string, file_size: int|null, is_main: bool, created_at: string}
  */
 final readonly class VotingActivityDTO
 {
     /**
-     * @param array<string, mixed>|null $fieldsData
-     * @param array<MediaItemType> $media
+     * @param  array<string, mixed>|null  $fieldsData
+     * @param  array<MediaItemType>  $media
      */
     public function __construct(
         public int $id,
         public string $title,
-        public string|null $description,
-        public string|null $authorName,
-        public string|null $authorDepartment,
+        public ?string $description,
+        public ?string $authorName,
+        public ?string $authorDepartment,
         public int $votesCount,
         public bool $isVoted,
-        public array|null $fieldsData,
+        public ?array $fieldsData,
         /** @var array<MediaItemType> */
         public array $media,
         public string $createdAt,
@@ -30,24 +34,23 @@ final readonly class VotingActivityDTO
     /**
      * Map a collection of contest entries to DTOs.
      *
-     * @param \Illuminate\Database\Eloquent\Collection<int, \App\Models\ContestEntry> $entries
-     * @param array<int, int> $userVoteEntryIds
-     *
-     * @return \Illuminate\Support\Collection<int, self>
+     * @param  \Illuminate\Database\Eloquent\Collection<int, ContestEntry>  $entries
+     * @param  array<int, int>  $userVoteEntryIds
+     * @return Collection<int, self>
      */
     public static function collection(
-        \Illuminate\Support\Collection $entries,
+        Collection $entries,
         array $userVoteEntryIds = [],
-    ): \Illuminate\Support\Collection {
-        return $entries->map(fn (\App\Models\ContestEntry $entry): self => self::from($entry, $userVoteEntryIds));
+    ): Collection {
+        return $entries->map(fn (ContestEntry $entry): self => self::from($entry, $userVoteEntryIds));
     }
 
     /**
-     * @param array<int, int> $userVoteEntryIds
+     * @param  array<int, int>  $userVoteEntryIds
      */
-    public static function from(\App\Models\ContestEntry $entry, array $userVoteEntryIds = []): self
+    public static function from(ContestEntry $entry, array $userVoteEntryIds = []): self
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Media> $media */
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Media> $media */
         $media = $entry->media;
 
         return new self(

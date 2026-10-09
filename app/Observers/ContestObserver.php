@@ -7,7 +7,6 @@ use App\Models\User;
 
 class ContestObserver
 {
-
     public function creating(Contest $contest): void
     {
         $user = auth()->user();
@@ -16,5 +15,4 @@ class ContestObserver
             $contest->user_id = $user->id;
         }
     }
-
 }
