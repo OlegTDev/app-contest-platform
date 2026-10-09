@@ -11,6 +11,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
     Route::get('contests/{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
 
+    // Admin user management
+    Route::prefix('admin/users')->middleware(['auth', 'admin'])->group(function () {
+        Route::get('/', [Admin\UserController::class, 'index'])->name('admin.users.index');
+        Route::patch('/{user}/role', [Admin\UserController::class, 'updateRole'])->name('admin.users.update-role');
+    });
+
     // Admin contest management
     Route::prefix('admin/contests')->group(function () {
         Route::get('/', [ContestAdminController::class, 'index'])->name('admin.contests.index');

@@ -23,12 +23,13 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  * @property string $name
  * @property string $email
  * @property string $password
+ * @property string $role
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Collection<int, Contest> $contests
  */
-#[Fillable(['name', 'email', 'password', 'guid', 'domain'])]
+#[Fillable(['name', 'email', 'password', 'guid', 'domain', 'role'])]
 #[Hidden(['password'])]
 class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEmail, PasskeyUser
 {
@@ -53,6 +54,11 @@ class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEma
         return $this->hasMany(ContestVote::class, 'user_id');
     }
 
+    // Role constants
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_MODERATOR = 'moderator';
+    public const ROLE_USER = 'user';
+
     /**
      * Get the attributes that should be cast.
      *
@@ -63,5 +69,21 @@ class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEma
         return [
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Check if the user has the admin role.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    /**
+     * Check if the user has the moderator role.
+     */
+    public function isModerator(): bool
+    {
+        return $this->role === self::ROLE_MODERATOR;
     }
 }
