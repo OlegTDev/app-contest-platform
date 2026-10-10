@@ -66,9 +66,7 @@ type LeaderboardItem = {
     id: number;
     title: string;
     votes_count: number;
-    author: {
-        name: string;
-    } | null;
+    author_name: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -699,9 +697,9 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 render: (title: string, record: LeaderboardItem) => (
                                     <Space direction="vertical" size={0}>
                                         <Text strong>{title}</Text>
-                                        {record.author?.name && (
+                                        {record.author_name && (
                                             <Text type="secondary" style={{ fontSize: 12 }}>
-                                                {record.author.name}
+                                                {record.author_name}
                                             </Text>
                                         )}
                                     </Space>

@@ -10,6 +10,8 @@ use Illuminate\Support\Collection;
 
 /**
  * @phpstan-type SelectOptionType array{value: string, label: string}
+ *
+ * @implements Arrayable<string, mixed>
  */
 final readonly class ContestItemDTO implements Arrayable
 {

@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Models\User;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 
-final readonly class UserDTO
+/**
+ * @implements Arrayable<string, mixed>
+ */
+final readonly class UserDTO implements Arrayable
 {
     /**
      * @param  list<array{value: string, label: string}>  $availableRoles
@@ -58,5 +62,27 @@ final readonly class UserDTO
             createdAt: $user->created_at?->format('Y-m-d H:i') ?? '',
             availableRoles: $availableRoles,
         );
+    }
+
+    /**
+     * Convert DTO to array with snake_case keys for frontend compatibility.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'login' => $this->login,
+            'department' => $this->department,
+            'position' => $this->position,
+            'city_code' => $this->cityCode,
+            'phone' => $this->phone,
+            'role' => $this->role,
+            'created_at' => $this->createdAt,
+            'available_roles' => $this->availableRoles,
+        ];
     }
 }

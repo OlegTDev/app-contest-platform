@@ -6,16 +6,17 @@ namespace App\DTOs;
 
 use App\Models\ContestEntry;
 use App\Models\Media;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 
 /**
- * @phpstan-type MediaItemType array{id: int, file_name: string, file_url: string, file_type: string, file_extension: string, file_size: int|null, is_main: bool, created_at: string}
+ * @implements Arrayable<string, mixed>
  */
-final readonly class VotingActivityDTO
+final readonly class VotingActivityDTO implements Arrayable
 {
     /**
      * @param  array<string, mixed>|null  $fieldsData
-     * @param  array<MediaItemType>  $media
+     * @param  array<int, MediaDTO>  $media
      */
     public function __construct(
         public int $id,
@@ -26,7 +27,7 @@ final readonly class VotingActivityDTO
         public int $votesCount,
         public bool $isVoted,
         public ?array $fieldsData,
-        /** @var array<MediaItemType> */
+        /** @var array<int, MediaDTO> */
         public array $media,
         public string $createdAt,
         public string $type = 'voting',
@@ -63,9 +64,31 @@ final readonly class VotingActivityDTO
             votesCount: $entry->votes_count,
             isVoted: in_array($entry->id, $userVoteEntryIds, strict: true),
             fieldsData: $entry->fields_data !== null ? (array) $entry->fields_data : null,
-            media: MediaDTO::collection($media)->toArray(),
+            media: MediaDTO::collection($media)->all(),
             createdAt: $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : '',
             type: 'voting',
         );
+    }
+
+    /**
+     * Convert DTO to array with snake_case keys for frontend compatibility.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'author_name' => $this->authorName,
+            'author_department' => $this->authorDepartment,
+            'votes_count' => $this->votesCount,
+            'is_voted' => $this->isVoted,
+            'fields_data' => $this->fieldsData,
+            'media' => array_map(fn (MediaDTO $m): array => $m->toArray(), $this->media),
+            'created_at' => $this->createdAt,
+            'type' => $this->type,
+        ];
     }
 }

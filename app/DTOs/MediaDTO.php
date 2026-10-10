@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Models\Media;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 
-final readonly class MediaDTO
+/**
+ * @implements Arrayable<string, mixed>
+ */
+final readonly class MediaDTO implements Arrayable
 {
     public function __construct(
         public int $id,
@@ -43,5 +47,24 @@ final readonly class MediaDTO
             isMain: $media->is_main,
             createdAt: $media->created_at !== null ? $media->created_at->format('Y-m-d H:i') : '',
         );
+    }
+
+    /**
+     * Convert DTO to array with snake_case keys for frontend compatibility.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'file_name' => $this->fileName,
+            'file_url' => $this->fileUrl,
+            'file_type' => $this->fileType,
+            'file_extension' => $this->fileExtension,
+            'file_size' => $this->fileSize,
+            'is_main' => $this->isMain,
+            'created_at' => $this->createdAt,
+        ];
     }
 }
