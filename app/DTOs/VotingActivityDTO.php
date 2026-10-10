@@ -29,6 +29,7 @@ final readonly class VotingActivityDTO
         /** @var array<MediaItemType> */
         public array $media,
         public string $createdAt,
+        public string $type = 'voting',
     ) {}
 
     /**
@@ -64,6 +65,7 @@ final readonly class VotingActivityDTO
             fieldsData: $entry->fields_data !== null ? (array) $entry->fields_data : null,
             media: MediaDTO::collection($media)->toArray(),
             createdAt: $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : '',
+            type: 'voting',
         );
     }
 }

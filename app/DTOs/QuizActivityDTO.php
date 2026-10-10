@@ -15,6 +15,7 @@ final readonly class QuizActivityDTO
         public ?string $description,
         public bool $isVisible,
         public string $createdAt,
+        public string $type = 'quiz',
     ) {}
 
     /**
@@ -36,6 +37,7 @@ final readonly class QuizActivityDTO
             description: $entry->description,
             isVisible: $entry->isVisible(),
             createdAt: $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : '',
+            type: 'quiz',
         );
     }
 }
