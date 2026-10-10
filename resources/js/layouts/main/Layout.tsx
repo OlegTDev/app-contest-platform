@@ -1,4 +1,4 @@
-import { Button, Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, type MenuProps, theme } from 'antd';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -29,10 +29,12 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
   useEffect(() => {
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
   }, [collapsed]);
-  const { url } = usePage();
+  const { url, props } = usePage();
   const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
-  const menuItems = [
+  const is_admin = props.auth?.user?.role === 'admin';
+
+  const menuItems: MenuProps['items'] = [
     {
       key: '/',
       icon: <HomeOutlined />,
@@ -43,6 +45,15 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
       icon: <TrophyOutlined />,
       label: <Link href="/admin/contests">Управление</Link>,
     },
+    ...(is_admin
+      ? [
+          {
+            key: '/admin/users',
+            icon: <TeamOutlined />,
+            label: <Link href="/admin/users">Пользователи</Link>,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -77,7 +88,11 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={[url.startsWith('/admin/contests') ? '/admin/contests' : '/']}
+          defaultSelectedKeys={[
+            url.startsWith('/admin/contests') ? '/admin/contests' :
+            url.startsWith('/admin/users') ? '/admin/users' :
+            '/'
+          ]}
           items={menuItems}
         />
       </Sider>
@@ -110,7 +125,8 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
           />
           <div style={{ color: '#666', fontSize: 14 }}>
             {url === '/' ? 'Конкурсы' :
-             url === '/admin/contests' ? 'Управление' :
+              url === '/admin/users' ? 'Пользователи' :
+              url === '/admin/contests' ? 'Управление' :
              url === '/admin/contests/create' ? 'Создать конкурс' :
              url.replace(/^\//, '').replace(/\//g, ' / ')}
           </div>
