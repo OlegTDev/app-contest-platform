@@ -26,7 +26,7 @@ final readonly class ModeratorMiddleware
         /** @var User $user */
         $user = Auth::user();
 
-        if (! $user->isModerator()) {
+        if (! $user->isModerator() && ! $user->isAdmin()) {
             abort(403, 'Unauthorized action.');
         }
 
