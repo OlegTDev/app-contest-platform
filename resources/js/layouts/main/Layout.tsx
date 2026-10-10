@@ -41,7 +41,7 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
       icon: <HomeOutlined />,
       label: <Link href="/">Главная</Link>,
     },
-    ...(canManageContests
+    ...(canManageContests || isAdmin
       ? [
           {
             key: '/admin/contests',

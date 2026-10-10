@@ -61,7 +61,9 @@ class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEma
 
     // Role constants
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_MODERATOR = 'moderator';
+
     public const ROLE_USER = 'user';
 
     /**

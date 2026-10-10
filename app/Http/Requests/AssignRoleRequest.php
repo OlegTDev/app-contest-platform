@@ -14,7 +14,7 @@ class AssignRoleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         $authUser = $this->user();
 
         return $authUser->isAdmin();
@@ -31,7 +31,7 @@ class AssignRoleRequest extends FormRequest
             'role' => [
                 'required',
                 'string',
-                'in:' . implode(',', [User::ROLE_ADMIN, User::ROLE_MODERATOR, User::ROLE_USER]),
+                'in:'.implode(',', [User::ROLE_ADMIN, User::ROLE_MODERATOR, User::ROLE_USER]),
             ],
         ];
     }

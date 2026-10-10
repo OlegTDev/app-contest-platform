@@ -24,7 +24,6 @@ final readonly class UserService
     /**
      * Get paginated users for the admin index page.
      *
-     * @param  int  $perPage
      * @return LengthAwarePaginator<int, UserDTO>
      */
     public function getPaginatedUsers(int $perPage = 15): LengthAwarePaginator

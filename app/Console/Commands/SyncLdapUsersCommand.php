@@ -39,7 +39,7 @@ final class SyncLdapUsersCommand extends Command
     /**
      * Safely extract a nullable string attribute from LDAP user.
      */
-    private function attrNullable(LdapUser $ldapUser, string $key): string|null
+    private function attrNullable(LdapUser $ldapUser, string $key): ?string
     {
         $value = $ldapUser->getFirstAttribute($key);
 
@@ -75,7 +75,7 @@ final class SyncLdapUsersCommand extends Command
         $this->info('Searching LDAP directory...');
 
         /** @var LdapUser $ldapUserModel */
-        $ldapUserModel = new LdapUser();
+        $ldapUserModel = new LdapUser;
         $query = $ldapUserModel->newQuery();
 
         try {
@@ -116,6 +116,7 @@ final class SyncLdapUsersCommand extends Command
             if ($samAccountName === '') {
                 $this->warn(sprintf('Skipping user without samaccountname: %s', $cn ?: 'unknown'));
                 $skipped++;
+
                 continue;
             }
 
@@ -133,6 +134,7 @@ final class SyncLdapUsersCommand extends Command
                         'CREATE', $samAccountName, $cn ?: '', $department ?? '', $title ?? ''
                     ));
                     $created++;
+
                     continue;
                 }
 
@@ -159,6 +161,7 @@ final class SyncLdapUsersCommand extends Command
                     ));
                     $errors++;
                 }
+
                 continue;
             }
 
@@ -204,6 +207,7 @@ final class SyncLdapUsersCommand extends Command
                         'UPDATE', $user->login, $user->name, $department ?? '', $title ?? ''
                     ));
                     $updated++;
+
                     continue;
                 }
 

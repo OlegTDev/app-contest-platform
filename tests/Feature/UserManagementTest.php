@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
@@ -12,7 +12,9 @@ class UserManagementTest extends TestCase
     use RefreshDatabase;
 
     private User $adminUser;
+
     private User $moderatorUser;
+
     private User $regularUser;
 
     protected function setUp(): void

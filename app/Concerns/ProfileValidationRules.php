@@ -37,7 +37,7 @@ trait ProfileValidationRules
             'required',
             'string',
             'max:255',
-            'unique:users,login' . ($userId === null ? '' : ",$userId"),
+            'unique:users,login'.($userId === null ? '' : ",$userId"),
         ];
     }
 

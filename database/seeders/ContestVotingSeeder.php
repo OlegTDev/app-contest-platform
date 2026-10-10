@@ -7,6 +7,7 @@ use App\Models\ContestEntry;
 use App\Models\ContestVote;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ContestVotingSeeder extends Seeder
@@ -121,15 +122,15 @@ class ContestVotingSeeder extends Seeder
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, User>
+     * @return Collection<int, User>
      */
-    private function createUsers(int $count): \Illuminate\Support\Collection
+    private function createUsers(int $count): Collection
     {
         return User::factory()->count($count)->create()->map(function (User $user, int $index): User {
             $firstName = self::RUSSIAN_FIRST_NAMES[$index % count(self::RUSSIAN_FIRST_NAMES)];
             $lastName = self::RUSSIAN_LAST_NAMES[$index % count(self::RUSSIAN_LAST_NAMES)];
             $user->name = "$firstName $lastName";
-            $user->email = strtolower($firstName) . '.' . strtolower($lastName) . '@company.ru';
+            $user->email = strtolower($firstName).'.'.strtolower($lastName).'@company.ru';
             $user->save();
 
             return $user;
@@ -137,10 +138,10 @@ class ContestVotingSeeder extends Seeder
     }
 
     /**
-     * @param \Illuminate\Support\Collection<int, User> $users
-     * @return \Illuminate\Support\Collection<int, Contest>
+     * @param  Collection<int, User>  $users
+     * @return Collection<int, Contest>
      */
-    private function createContests(\Illuminate\Support\Collection $users, int $count): \Illuminate\Support\Collection
+    private function createContests(Collection $users, int $count): Collection
     {
         $contests = collect();
 
@@ -163,11 +164,9 @@ class ContestVotingSeeder extends Seeder
     }
 
     /**
-     * @param Contest $contest
-     * @param \Illuminate\Support\Collection<int, User> $users
-     * @return void
+     * @param  Collection<int, User>  $users
      */
-    private function createEntriesAndVotes(Contest $contest, \Illuminate\Support\Collection $users, int $entriesCount, int $maxVotes): void
+    private function createEntriesAndVotes(Contest $contest, Collection $users, int $entriesCount, int $maxVotes): void
     {
         $entryIds = [];
         $userIds = $users->pluck('id')->toArray();
