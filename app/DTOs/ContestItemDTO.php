@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Models\Contest;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 
 /**
  * @phpstan-type SelectOptionType array{value: string, label: string}
  */
-final readonly class ContestItemDTO
+final readonly class ContestItemDTO implements Arrayable
 {
     /**
      * @param  array<int, SelectOptionType>  $contestTypes
@@ -59,5 +60,26 @@ final readonly class ContestItemDTO
             createdAt: $contest->created_at->format('Y-m-d H:i'),
             contestTypes: $contestTypes,
         );
+    }
+
+    /**
+     * Convert DTO to array with snake_case keys for frontend compatibility.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'type' => $this->type,
+            'description' => $this->description,
+            'start_at' => $this->startAt,
+            'end_at' => $this->endAt,
+            'quiz_entry_count' => $this->quizEntryCount,
+            'entry_count' => $this->entryCount,
+            'created_at' => $this->createdAt,
+            'contest_types' => $this->contestTypes,
+        ];
     }
 }
