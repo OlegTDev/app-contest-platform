@@ -17,8 +17,8 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{user}/role', [Admin\UserController::class, 'updateRole'])->name('admin.users.update-role');
     });
 
-    // Admin contest management
-    Route::prefix('admin/contests')->group(function () {
+    // Admin contest management (moderators only)
+    Route::prefix('admin/contests')->middleware(['moderator'])->group(function () {
         Route::get('/', [ContestAdminController::class, 'index'])->name('admin.contests.index');
         Route::get('/create', [ContestAdminController::class, 'create'])->name('admin.contests.create');
         Route::post('/', [ContestAdminController::class, 'store'])->name('admin.contests.store');
@@ -27,7 +27,13 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{contest}', [ContestAdminController::class, 'update'])->name('admin.contests.update');
         Route::delete('/{contest}', [ContestAdminController::class, 'destroy'])->name('admin.contests.destroy');
         Route::patch('/{contest}/status', [ContestAdminController::class, 'updateStatus'])->name('admin.contests.status');
+    });
 
+    // Contest activity management and participation (kept under the legacy
+    // "admin/contests" prefix: owners manage entries/media/quizzes here, while
+    // participants use it for voting and quiz runs; public duplicates live
+    // under the "contest/{contest}" prefix).
+    Route::prefix('admin/contests')->group(function () {
         // Entry management (general routes first, then parameterized)
         Route::get('/{contest}/entries', [EntryController::class, 'index'])->name('admin.entries.index');
         Route::get('/{contest}/entries/create', [EntryController::class, 'create'])->name('admin.entries.create');

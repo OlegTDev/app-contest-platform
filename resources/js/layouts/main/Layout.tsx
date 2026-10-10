@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { useAuth } from '@/hooks/use-auth';
 
 const { Header, Sider, Content } = Layout;
 
@@ -29,10 +30,10 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
   useEffect(() => {
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
   }, [collapsed]);
-  const { url, props } = usePage();
+  const { url } = usePage();
   const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
-  const is_admin = props.auth?.user?.role === 'admin';
+  const { isAdmin, canManageContests } = useAuth();
 
   const menuItems: MenuProps['items'] = [
     {
@@ -40,12 +41,16 @@ export default function MainLayout({ children }: LayoutProps): React.JSX.Element
       icon: <HomeOutlined />,
       label: <Link href="/">Главная</Link>,
     },
-    {
-      key: '/admin/contests',
-      icon: <TrophyOutlined />,
-      label: <Link href="/admin/contests">Управление</Link>,
-    },
-    ...(is_admin
+    ...(canManageContests
+      ? [
+          {
+            key: '/admin/contests',
+            icon: <TrophyOutlined />,
+            label: <Link href="/admin/contests">Управление</Link>,
+          },
+        ]
+      : []),
+    ...(isAdmin
       ? [
           {
             key: '/admin/users',

@@ -121,7 +121,6 @@ class ContestVotingSeeder extends Seeder
     }
 
     /**
-     * @param \Illuminate\Support\Collection<int, User> $users
      * @return \Illuminate\Support\Collection<int, User>
      */
     private function createUsers(int $count): \Illuminate\Support\Collection
