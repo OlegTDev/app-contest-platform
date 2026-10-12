@@ -64,7 +64,7 @@ class Contest extends Model
      */
     public function entries(): HasMany
     {
-        return $this->hasMany(ContestEntry::class);
+        return $this->hasMany(ContestEntry::class)->orderBy('id');
     }
 
     /**
