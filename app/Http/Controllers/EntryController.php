@@ -19,7 +19,7 @@ class EntryController extends Controller
      */
     public function index(Request $request, Contest $contest): Response
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         if ($contest->type->value === 'voting') {
             /** @var Collection<int, array<string, mixed>> $entries */
@@ -91,7 +91,7 @@ class EntryController extends Controller
      */
     public function create(Request $request, Contest $contest): Response
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         return Inertia::render('entries/Create', [
             'contest' => [
@@ -107,7 +107,7 @@ class EntryController extends Controller
      */
     public function store(Request $request, Contest $contest): RedirectResponse
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         if ($contest->type->value === 'voting') {
             $validated = $request->validate([
@@ -140,7 +140,7 @@ class EntryController extends Controller
      */
     public function edit(Request $request, Contest $contest, string $entry): Response
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         if ($contest->type->value === 'voting') {
             $entryModel = $contest->entries()->findOrFail($entry);
@@ -187,7 +187,7 @@ class EntryController extends Controller
      */
     public function update(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         if ($contest->type->value === 'voting') {
             $validated = $request->validate([
@@ -220,7 +220,7 @@ class EntryController extends Controller
      */
     public function destroy(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         if ($contest->type->value === 'voting') {
             $contest->entries()->where('id', $entry)->delete();

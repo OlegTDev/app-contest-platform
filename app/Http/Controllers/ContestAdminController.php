@@ -78,7 +78,7 @@ class ContestAdminController extends Controller
      */
     public function edit(Contest $contest): Response
     {
-        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
+        $this->canManageContest($contest);
 
         return Inertia::render('contests/edit', [
             'contest' => $this->contestService->getAdminEditData($contest),
@@ -91,7 +91,7 @@ class ContestAdminController extends Controller
      */
     public function update(ContestRequest $request, Contest $contest): RedirectResponse
     {
-        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
+        $this->canManageContest($contest);
 
         $contest->update($request->validated());
 
@@ -103,7 +103,7 @@ class ContestAdminController extends Controller
      */
     public function destroy(Contest $contest): RedirectResponse
     {
-        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to delete this contest.');
+        $this->canManageContest($contest);
 
         $contest->delete();
 
@@ -115,7 +115,7 @@ class ContestAdminController extends Controller
      */
     public function updateStatus(Request $request, Contest $contest): RedirectResponse
     {
-        abort_unless($this->user()->id === $contest->user_id, 403, 'You do not have permission to edit this contest.');
+        $this->canManageContest($contest);
 
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:draft,published,paused,closed'],

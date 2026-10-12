@@ -6,7 +6,6 @@ use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\Media;
 use App\Models\QuizEntry;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,9 +16,7 @@ class MediaController extends Controller
 {
     public function index(Request $request, Contest $contest): Response
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         $media = $contest->media()->orderByDesc('created_at')->get()->map(fn ($m) => [
             'id' => $m->id,
@@ -43,9 +40,7 @@ class MediaController extends Controller
 
     public function store(Request $request, Contest $contest): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         /** @var int $maxSize */
         $maxSize = config('media.max_upload_size');
@@ -94,9 +89,7 @@ class MediaController extends Controller
 
     public function entryIndex(Request $request, Contest $contest, string $entry): Response
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         /** @var ContestEntry|QuizEntry|null $entryModel */
         $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
@@ -132,9 +125,7 @@ class MediaController extends Controller
 
     public function entryStore(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         /** @var ContestEntry|QuizEntry|null $entryModel */
         $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
@@ -186,9 +177,7 @@ class MediaController extends Controller
 
     public function destroy(Request $request, Contest $contest, Media $media): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
         abort_unless($media->contest_id === $contest->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
@@ -199,9 +188,7 @@ class MediaController extends Controller
 
     public function entryDestroy(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
         abort_unless($media->contest_id === $contest->id, 404);
 
         /** @var ContestEntry|QuizEntry|null $entryModel */
@@ -221,9 +208,7 @@ class MediaController extends Controller
 
     public function toggleMain(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
         abort_unless($media->contest_id === $contest->id, 404);
 
         /** @var ContestEntry|QuizEntry|null $entryModel */

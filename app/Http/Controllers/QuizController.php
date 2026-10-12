@@ -19,7 +19,7 @@ class QuizController extends Controller
      */
     public function index(Request $request, Contest $contest): Response
     {
-        abort_unless($this->user()->id === $contest->user_id, 403);
+        $this->canManageContest($contest);
 
         $entries = $contest->quizEntries()
             ->orderBy('sort_order')
