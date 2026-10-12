@@ -461,20 +461,6 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                                         </p>
                                                                     </div>
                                                                 )}
-                                                                <Button
-                                                                    type={activity.is_voted ? 'primary' : 'default'}
-                                                                    danger={activity.is_voted}
-                                                                    size="small"
-                                                                    icon={activity.is_voted ? <HeartFilled /> : <HeartOutlined />}
-                                                                    style={{ position: 'absolute', bottom: 8, right: 8 }}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        e.stopPropagation();
-                                                                        handleVote(activity);
-                                                                    }}
-                                                                >
-                                                                    {activity.is_voted ? 'Убрать голос' : 'Проголосовать'}
-                                                                </Button>
                                                             </div>
                                                         ) : (
                                                             <div style={{ height: 200, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
@@ -504,16 +490,23 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                                 📎 {activity.media.length} файл(ов)
                                                             </Tag>
                                                         )}
-                                                        <Space style={{ marginTop: 'auto' }}>
-                                                            <TrophyOutlined style={{ color: "#faad14" }} />
-                                                            <Tag color="blue">
-                                                                {activity.votes_count}{" "}
-                                                                {activity.votes_count === 1
-                                                                    ? "голос"
-                                                                    : activity.votes_count < 5
-                                                                        ? "голоса"
-                                                                        : "голосов"}
-                                                            </Tag>
+                                                        <Space style={{ marginTop: 'auto', width: '100%', justifyContent: 'space-between' }}>
+                                                            <Space>
+                                                                <TrophyOutlined style={{ color: "#faad14" }} />
+                                                                <Tag color="blue">
+                                                                    {activity.votes_count}{" "}
+                                                                    {activity.votes_count === 1
+                                                                        ? "голос"
+                                                                        : activity.votes_count < 5
+                                                                            ? "голоса"
+                                                                            : "голосов"}
+                                                                </Tag>
+                                                            </Space>
+                                                            {contest.is_active && activity.is_voted && (
+                                                                <Tag variant="outlined" color="volcano" icon={<HeartFilled />}>
+                                                                    Вы проголосовали
+                                                                </Tag>
+                                                            )}
                                                         </Space>
                                                     </Space>
                                                 </Card>
