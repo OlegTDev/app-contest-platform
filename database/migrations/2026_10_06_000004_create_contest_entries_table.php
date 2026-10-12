@@ -19,6 +19,8 @@ return new class extends Migration
             $table->dateTime('show_from')->nullable();
             $table->dateTime('show_until')->nullable();
             $table->integer('votes_count')->default(0);
+            $table->string('author_name')->nullable()->after('description');
+            $table->string('author_department')->nullable()->after('author_name');
             $table->timestamps();
         });
     }

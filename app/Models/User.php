@@ -12,9 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Laravel\Fortify\Contracts\PasskeyUser;
-use Laravel\Fortify\PasskeyAuthenticatable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
 use LdapRecord\Laravel\Auth\AuthenticatesWithLdap;
 use LdapRecord\Laravel\Auth\LdapAuthenticatable;
 
@@ -36,12 +33,12 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  */
 #[Fillable(['name', 'email', 'login', 'department', 'position', 'city_code', 'phone', 'password', 'guid', 'domain', 'role'])]
 #[Hidden(['password'])]
-class User extends Authenticatable implements LdapAuthenticatable, MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements LdapAuthenticatable
 {
     use AuthenticatesWithLdap;
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable;
 
     /**
      * @return HasMany<Contest, $this>

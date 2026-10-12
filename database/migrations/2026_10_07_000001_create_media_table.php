@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('file_extension')->nullable();
             $table->unsignedBigInteger('file_size')->nullable();
             $table->timestamps();
+            $table->unsignedBigInteger('entry_id')->nullable()->after('contest_id');
+            $table->string('entry_type')->default('Contest')->after('entry_id');
+            $table->index(['entry_type', 'entry_id']);
+            $table->boolean('is_main')->default(false)->after('file_size');
         });
     }
 

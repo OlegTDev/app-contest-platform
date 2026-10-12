@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('title');
             $table->string('type', 50)->index();
             $table->jsonb('project_schema')->nullable();
+            $table->string('status')->default('draft')->after('title');
+            $table->text('description')->nullable()->after('status');
+            $table->dateTime('start_at')->nullable()->after('description');
+            $table->dateTime('end_at')->nullable()->after('start_at');
             $table->timestamps();
         });
     }
