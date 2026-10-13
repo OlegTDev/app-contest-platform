@@ -60,6 +60,8 @@ services:
             - ${POSTGRES_PORT}:5432
         volumes:
             - postgres_data_app_contest:/var/lib/postgresql
+        networks:
+            - app-network
 
 volumes:
     postgres_data_app_contest:
