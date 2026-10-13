@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/auth/callback', [AuthController::class, 'callback'])->name('auth.callback');
+
 Route::middleware(['auth'])->group(function () {
     // Contest management (public pages for authenticated users)
     Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');

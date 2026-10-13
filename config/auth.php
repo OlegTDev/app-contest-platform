@@ -85,7 +85,7 @@ return [
                     'name' => 'cn',
                     'department' => 'department',
                     'position' => 'title',
-                    'city_code' => 'l',
+                    'city_code' => 'postalCode',
                     'phone' => 'telephonenumber',
                 ],
             ],
@@ -137,5 +137,12 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    'windows' => [
+        'authServerUrl' => env('WINDOWS_AUTH_SERVER_URL'),
+        'pingUrl' => env('WINDOWS_AUTH_SERVER_PING_URL'),
+        'pingTimeout' => env('WINDOWS_AUTH_SERVER_PING_TIMEOUT', 1),
+    ],
+    'jwt_secret' => env('JWT_SECRET'),
 
 ];

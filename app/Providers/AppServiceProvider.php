@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\JwtService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(JwtService::class, static function() {
+            $secretKey = config('auth.jwt_secret');
+            if (!$secretKey) {
+                abort(503, 'Не указан ключ шифрования JWT');
+            }
+            return new JwtService($secretKey);
+        });
     }
 
     /**
