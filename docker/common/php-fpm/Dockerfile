@@ -1,4 +1,6 @@
-FROM php:8.5-fpm-alpine AS base
+ARG PHP_FPM_VERSION=8.3
+
+FROM php:${PHP_FPM_VERSION}-fpm-alpine AS base
 
 RUN apk add --no-cache \
         libpng \

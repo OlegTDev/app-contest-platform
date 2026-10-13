@@ -1,4 +1,6 @@
-FROM php:8.5-cli-alpine AS base
+ARG PHP_CLI_VERSION=8.3
+
+FROM php:${PHP_CLI_VERSION}-cli-alpine AS base
 
 # 1. Сюда добавлены bash, git, openssh-client, а также nodejs и npm!
 RUN apk add --no-cache \
