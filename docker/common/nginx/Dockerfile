@@ -1,0 +1,3 @@
+ARG NGINX_VERSION=1.29.8
+
+FROM nginx:${NGINX_VERSION}-alpine
