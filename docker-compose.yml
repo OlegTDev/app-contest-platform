@@ -1,11 +1,11 @@
 services:
     nginx:
-        image: nginx:1.29.8-alpine
+        image: nginx:${NGINX_VERSION}-alpine
         volumes:
             - ./:/app
             - ./docker/dev/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
         ports:
-            - 8081:80
+            - ${NGINX_PORT}:80
         depends_on:
             - php-fpm
 
@@ -13,8 +13,8 @@ services:
         build:
             dockerfile: ./docker/common/php-fpm/Dockerfile
             target: dev
-        environment:
-            APP_URL: ${APP_URL:-http://localhost:8081}
+            args:
+                - PHP_FPM_VERSION=${PHP_FPM_VERSION}
         volumes:
             - ./:/app
         depends_on:
@@ -24,25 +24,22 @@ services:
         build:
             dockerfile: ./docker/common/php-cli/Dockerfile
             target: dev
-        environment:
-            APP_URL: ${APP_URL:-http://localhost:8081}
+            args:
+                - PHP_CLI_VERSION=${PHP_CLI_VERSION}
         volumes:
             - ./:/app
         depends_on:
             postgres:
                 condition: service_started
-        # stdin_open: true
-        # tty: true
-        # command: tail -f /dev/null
 
     postgres:
-        image: postgres:18-alpine
+        image: postgres:${POSTGRES_VERSION}-alpine
         environment:
             POSTGRES_DB: ${DB_DATABASE}
             POSTGRES_USER: ${DB_USERNAME}
             POSTGRES_PASSWORD: ${DB_PASSWORD}
         ports:
-            - 5433:5432
+            - ${POSTGRES_PORT}:5432
         volumes:
             - postgres_data_app_staff:/var/lib/postgresql
 
