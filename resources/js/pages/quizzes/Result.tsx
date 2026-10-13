@@ -112,7 +112,7 @@ export default function QuizResult({ quiz, contest, result }: QuizResultProps): 
       <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div>
-            <Link href={`/admin/contests/${admin/contests.id}`}>
+            <Link href={`/admin/contests/${contest.id}/quizzes/${quiz.id}`}>
               <Button type="text" style={{ float: "left", marginRight: 12 }}>
                 ← Назад
               </Button>
@@ -152,13 +152,7 @@ export default function QuizResult({ quiz, contest, result }: QuizResultProps): 
             />
           </Card>
 
-          <Card>
-            <Space>
-<Link href={`/admin/contests/${contest.id}`}>
-                <Button>К конкурсу</Button>
-              </Link>
-            </Space>
-          </Card>
+
         </Space>
       </div>
     </>
