@@ -1,0 +1,69 @@
+services:
+    nginx:
+        build:
+            context: ./
+            dockerfile: docker/prod/nginx/Dockerfile
+            args:
+                - REGISTRY=${REGISTRY}
+                - VERSION_TAG=${VERSION_TAG}
+        restart: unless-stopped
+        volumes:
+            - ./:/app
+            - ./docker/prod/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            - php-fpm
+        networks:
+            - app-network
+            - web_network
+
+    php-fpm:
+        build:
+            context: ./
+            dockerfile: docker/prod/php-fpm/Dockerfile
+            args:
+                - REGISTRY=${REGISTRY}
+                - VERSION_TAG=${VERSION_TAG}
+        restart: unless-stopped
+        volumes:
+            - ./:/app
+        depends_on:
+            - postgres
+        networks:
+            - app-network
+
+    php-cli:
+        build:
+            context: ./
+            dockerfile: docker/prod/php-cli/Dockerfile
+            args:
+                - REGISTRY=${REGISTRY}
+                - VERSION_TAG=${VERSION_TAG}
+        volumes:
+            - ./:/app
+        depends_on:
+            postgres:
+                condition: service_started
+        networks:
+            - app-network
+
+    postgres:
+        image: ${REGISTRY}/postgres:${VERSION_TAG}
+        restart: unless-stopped
+        shm_size: 128mb
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        ports:
+            - ${POSTGRES_PORT}:5432
+        volumes:
+            - postgres_data_app_staff:/var/lib/postgresql
+
+volumes:
+    postgres_data_app_staff:
+
+networks:
+  app-network:
+    driver: bridge
+  web_network:
+    external: true
