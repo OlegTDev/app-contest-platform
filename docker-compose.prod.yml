@@ -13,6 +13,8 @@ services:
         networks:
             - app-network
             - web_network
+        volumes:
+            - storage_public_data:/app/public/storage:ro
 
     php-fpm:
         build:
