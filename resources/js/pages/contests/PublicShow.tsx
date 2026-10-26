@@ -5,7 +5,6 @@ import dayjs from "dayjs";
 import { useState } from 'react';
 import { vote } from "@/routes/entries";
 import { destroy as voteDestroy } from "@/routes/entries/vote";
-import { view as markViewed } from "@/routes/contests";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -173,7 +172,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
 
         // Mark as viewed
         if (!entry.is_viewed) {
-            router.post(markViewed({ contest: contest.id, entry: entry.id }).url, {}, {
+            router.post(`/contests/${contest.id}/entries/${entry.id}/view`, {}, {
                 preserveScroll: true,
                 preserveState: true,
             });
