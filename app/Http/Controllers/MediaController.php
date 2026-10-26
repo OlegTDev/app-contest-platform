@@ -9,7 +9,6 @@ use App\Models\QuizEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -253,20 +252,67 @@ class MediaController extends Controller
     }
 
     /**
-     * Generate a thumbnail for an uploaded image.
+     * Generate a thumbnail for an uploaded image using native GD.
      */
     private function generateThumbnail(\Illuminate\Http\UploadedFile $file, string $originalPath, int $contestId): ?string
     {
-        $manager = ImageManager::gd();
-        $image = $manager->read($file->getPathname());
+        $source = $file->getRealPath();
+        $meta = getimagesize($source);
 
-        $image->coverDown(400, 400);
+        if ($meta === false) {
+            return null;
+        }
 
-        $thumbnailName = pathinfo($originalPath, PATHINFO_FILENAME).'_thumb.'.pathinfo($originalPath, PATHINFO_EXTENSION);
-        $thumbnailPath = 'media/'.$contestId.'/thumbs/'.$thumbnailName;
+        $width = $meta[0];
+        $height = $meta[1];
+        $type = $meta[2];
 
-        Storage::disk('public')->put($thumbnailPath, $image->toJpg(80));
+        $sourceImage = match ($type) {
+            IMAGETYPE_JPEG => imagecreatefromjpeg($source),
+            IMAGETYPE_PNG => imagecreatefrompng($source),
+            IMAGETYPE_WEBP => imagecreatefromwebp($source),
+            IMAGETYPE_GIF => imagecreatefromgif($source),
+            default => null,
+        };
 
-        return $thumbnailPath;
+        if ($sourceImage === false) {
+            return null;
+        }
+
+        $targetSize = 400;
+        $newWidth = min($width, $targetSize);
+        $newHeight = min($height, $targetSize);
+
+        $thumb = imagecreatetruecolor($newWidth, $newHeight);
+
+        match ($type) {
+            IMAGETYPE_PNG => {
+                imagealphablending($thumb, false);
+                imagesavealpha($thumb, true);
+                $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
+                imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
+            },
+            IMAGETYPE_WEBP, IMAGETYPE_JPEG => {
+                $white = imagecolorallocate($thumb, 255, 255, 255);
+                imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $white);
+            },
+            default => null,
+        };
+
+        imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        imagedestroy($sourceImage);
+
+        $thumbName = pathinfo($originalPath, PATHINFO_FILENAME).'_thumb.jpg';
+        $thumbPath = 'media/'.$contestId.'/thumbs/'.$thumbName;
+
+        $thumbDir = dirname(Storage::disk('public')->path($thumbPath));
+        if (! is_dir($thumbDir)) {
+            mkdir($thumbDir, 0755, true);
+        }
+
+        imagejpeg($thumb, Storage::disk('public')->path($thumbPath), 85);
+        imagedestroy($thumb);
+
+        return $thumbPath;
     }
 }
