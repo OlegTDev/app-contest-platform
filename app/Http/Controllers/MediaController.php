@@ -280,8 +280,15 @@ class MediaController extends Controller
         }
 
         $targetSize = 400;
-        $newWidth = min($width, $targetSize);
-        $newHeight = min($height, $targetSize);
+
+        // Preserve aspect ratio: fit within 400x400 box
+        if ($width > $height) {
+            $newWidth = min($width, $targetSize);
+            $newHeight = (int) round($height * ($newWidth / $width));
+        } else {
+            $newHeight = min($height, $targetSize);
+            $newWidth = (int) round($width * ($newHeight / $height));
+        }
 
         $thumb = imagecreatetruecolor($newWidth, $newHeight);
 
