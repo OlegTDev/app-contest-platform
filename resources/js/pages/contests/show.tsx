@@ -38,7 +38,7 @@ type ContestItem = {
   start_at: string | null;
   end_at: string | null;
   is_active: boolean;
-  is_owner: boolean;
+  can_manage: boolean;
   activities: ActivityItem[];
   created_at: string;
 };
@@ -105,7 +105,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 Тип: {getTypeLabel(contest.type)} | Создан: {dayjs(contest.created_at).format("DD.MM.YYYY HH:mm")}
               </Paragraph>
             </Space>
-            {contest.is_owner && (
+            {contest.can_manage && (
               <Space>
                 <Link href={`/admin/contests/${contest.id}/media`}>
                   <Button icon={<PaperClipOutlined />}>Медиа</Button>
@@ -151,7 +151,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 </Space>
               }
               extra={
-                contest.is_owner ? (
+                contest.can_manage ? (
                   <Link href={`/admin/contests/${contest.id}/entries/create`}>
                     <Button type="primary" icon={<PlusOutlined />}>
                       Добавить вопрос
@@ -182,7 +182,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                               <Tag color="blue">Таймер</Tag>
                             )}
                           </Space>
-                          {!contest.is_owner && contest.is_active && (
+                          {!contest.can_manage && contest.is_active && (
                             <Text type="secondary" style={{ fontSize: 12 }}>
                               {dayjs(activity.created_at).format("DD.MM.YYYY")}
                             </Text>
@@ -206,18 +206,19 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 </Space>
               }
               extra={
-                <Space>
-                  <Link href={`/admin/contests/${contest.id}/entries`}>
-                    <Button icon={<SettingOutlined />}>Управление</Button>
-                  </Link>
-                  <Link href={`/admin/contests/${contest.id}/entries/create`}>
-                    <Button type="primary" icon={<PlusOutlined />}>
-                      Добавить работу
-                    </Button>
-                  </Link>
-                </Space>
-              }
-            >
+                contest.can_manage ? (
+                  <Space>
+                    <Link href={`/admin/contests/${contest.id}/entries`}>
+                      <Button icon={<SettingOutlined />}>Управление</Button>
+                    </Link>
+                    <Link href={`/admin/contests/${contest.id}/entries/create`}>
+                      <Button type="primary" icon={<PlusOutlined />}>
+                        Добавить работу
+                      </Button>
+                    </Link>
+                  </Space>
+                ) : null
+              }>
               {contest.activities.length === 0 ? (
                 <Empty description="Работ пока нет" />
               ) : (

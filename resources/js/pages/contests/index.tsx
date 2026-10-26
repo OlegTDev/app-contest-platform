@@ -21,7 +21,7 @@ type ContestItem = {
     id: number;
     name: string;
   };
-  is_owner: boolean;
+  can_manage: boolean;
   created_at: string;
 };
 
@@ -153,7 +153,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
           <Link href={show({ contest: record.id }).url}>
             <Button size="small">Открыть</Button>
           </Link>
-          {record.is_owner && (
+          {record.can_manage && (
             <>
               <Link href={edit({ contest: record.id }).url}>
                 <Button size="small" type="primary">

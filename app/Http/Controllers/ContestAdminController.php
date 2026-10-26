@@ -65,11 +65,10 @@ class ContestAdminController extends Controller
      */
     public function show(Contest $contest): Response
     {
-        $data = $this->contestService->getAdminShowData($contest);
+        $data = $this->contestService->getAdminShowData($contest, $this->user()->id);
 
         return Inertia::render('contests/show', [
             'contest' => $data,
-            'is_owner' => $this->user()->id === $contest->user_id,
         ]);
     }
 

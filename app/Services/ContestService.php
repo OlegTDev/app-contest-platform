@@ -74,9 +74,10 @@ final readonly class ContestService
     /**
      * Get contest data for the admin show page.
      *
+     * @param  int  $userId
      * @return array<string, mixed>
      */
-    public function getAdminShowData(Contest $contest): array
+    public function getAdminShowData(Contest $contest, int $userId): array
     {
         $this->loadContestRelations($contest, withMedia: false);
 
@@ -111,6 +112,7 @@ final readonly class ContestService
             'start_at' => $contest->start_at?->format('Y-m-d H:i'),
             'end_at' => $contest->end_at?->format('Y-m-d H:i'),
             'is_active' => $contest->isActive(),
+            'can_manage' => $this->userCanManage($userId),
             'activities' => $activities,
             'created_at' => $contest->created_at->format('Y-m-d H:i'),
         ];
@@ -120,7 +122,7 @@ final readonly class ContestService
      * Get contests for the admin index page with pagination.
      *
      * @param  array<string, string|null>  $filters
-     * @return LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}>
+     * @return LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, can_manage: bool, created_at: string}>
      */
     public function getAdminContests(array $filters, int $userId): LengthAwarePaginator
     {
@@ -139,7 +141,7 @@ final readonly class ContestService
             $query->where('title', 'ilike', '%'.$filters['search'].'%');
         }
 
-        /** @var LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, is_owner: bool, created_at: string}> $paginator */
+        /** @var LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, can_manage: bool, created_at: string}> $paginator */
         $paginator = $query->paginate(15)->through(function (Contest $contest) use ($userId): array {
             return [
                 'id' => $contest->id,
@@ -156,7 +158,7 @@ final readonly class ContestService
                     'id' => $contest->user_id,
                     'name' => $contest->author !== null ? $contest->author->name : 'Unknown',
                 ],
-                'is_owner' => $contest->user_id === $userId,
+                'can_manage' => $this->userCanManage($userId),
                 'created_at' => $contest->created_at->format('Y-m-d H:i'),
             ];
         });
@@ -265,5 +267,19 @@ final readonly class ContestService
         }
 
         return true;
+    }
+
+    /**
+     * Check if a user can manage any contest (admin/moderator).
+     */
+    private function userCanManage(int $userId): bool
+    {
+        $user = User::find($userId);
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isAdmin() || $user->isModerator();
     }
 }
