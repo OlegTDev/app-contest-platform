@@ -732,8 +732,6 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 dataIndex: 'votes_count',
                                 key: 'votes_count',
                                 width: 100,
-                                sorter: (a: LeaderboardItem, b: LeaderboardItem) => a.votes_count - b.votes_count,
-                                defaultSortOrder: 'descend',
                                 render: (votes: number) => (
                                     <Tag color="blue">
                                         {votes} {votes === 1 ? 'голос' : votes < 5 ? 'голоса' : 'голосов'}
