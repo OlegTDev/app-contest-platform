@@ -285,19 +285,15 @@ class MediaController extends Controller
 
         $thumb = imagecreatetruecolor($newWidth, $newHeight);
 
-        match ($type) {
-            IMAGETYPE_PNG => {
-                imagealphablending($thumb, false);
-                imagesavealpha($thumb, true);
-                $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
-                imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
-            },
-            IMAGETYPE_WEBP, IMAGETYPE_JPEG => {
-                $white = imagecolorallocate($thumb, 255, 255, 255);
-                imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $white);
-            },
-            default => null,
-        };
+        if ($type === IMAGETYPE_PNG) {
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+            $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
+            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
+        } elseif ($type === IMAGETYPE_JPEG || $type === IMAGETYPE_WEBP) {
+            $white = imagecolorallocate($thumb, 255, 255, 255);
+            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $white);
+        }
 
         imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
         imagedestroy($sourceImage);
