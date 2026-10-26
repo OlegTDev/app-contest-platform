@@ -1,6 +1,6 @@
 import { Head, Link, router } from "@inertiajs/react";
 import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, Divider, Table, message } from "antd";
-import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, PaperClipOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, PaperClipOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled, UserOutlined, ApartmentOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState } from 'react';
 import { vote } from "@/routes/entries";
@@ -567,7 +567,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                 placement="right"
                 onClose={() => setMediaDrawerOpen(false)}
                 open={mediaDrawerOpen}
-                width={500}
+                width={750}
             >
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     {/* Vote Section */}
@@ -601,6 +601,33 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                         </Card>
                     )}
 
+                    {/* Author info */}
+                    {(activeEntry?.author_name || activeEntry?.author_department) && (
+                        <Card size="small">
+                            <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                                {activeEntry.author_name && (
+                                    <Space>
+                                        <UserOutlined />
+                                        <Text>{activeEntry.author_name}</Text>
+                                    </Space>
+                                )}
+                                {activeEntry.author_department && (
+                                    <Space>
+                                        <ApartmentOutlined />
+                                        <Text type="secondary">{activeEntry.author_department}</Text>
+                                    </Space>
+                                )}
+                            </Space>
+                        </Card>
+                    )}
+
+                    {/* Description */}
+                    {activeEntry?.description && (
+                        <Card size="small" title="Описание">
+                            <Paragraph>{activeEntry.description}</Paragraph>
+                        </Card>
+                    )}
+
                     {/* Existing Files — gallery */}
                     <Card size="small" title="Медиа">
                         {activeEntry?.media && activeEntry.media.length > 0 ? (
@@ -612,20 +639,20 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                             {activeEntry.media
                                                 .filter((f) => f.file_type === 'image')
                                                 .map((file) => (
-                                                    <Col span={8} key={file.id}>
-                                                        <Image
-                                                            src={file.file_url}
-                                                            alt={file.file_name}
-                                                            width="100%"
-                                                            height={80}
-                                                            style={{
-                                                                objectFit: 'cover',
-                                                                borderRadius: 6,
-                                                                border: '1px solid #f0f0f0',
-                                                            }}
-                                                            preview={{ mask: null }}
-                                                        />
-                                                    </Col>
+                                                     <Col span={8} key={file.id}>
+                                                         <Image
+                                                             src={file.file_url}
+                                                             alt={file.file_name}
+                                                             width="100%"
+                                                             height={120}
+                                                             style={{
+                                                                 objectFit: 'cover',
+                                                                 borderRadius: 6,
+                                                                 border: '1px solid #f0f0f0',
+                                                             }}
+                                                             preview={{ mask: null }}
+                                                         />
+                                                     </Col>
                                                 ))}
                                         </Row>
                                     </Image.PreviewGroup>
