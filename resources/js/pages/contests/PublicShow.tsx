@@ -540,12 +540,12 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                                      Вы проголосовали
                                                                  </Tag>
                                                              )}
-                                                             {activity.is_viewed && (
-                                                                 <Tag variant="outlined" color="default" icon={<EyeOutlined />}>
-                                                                     Просмотрено
-                                                                 </Tag>
-                                                             )}
                                                         </Space>
+                                                        {activity.is_viewed && (
+                                                            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                                                                <EyeOutlined /> Просмотрено
+                                                            </Text>
+                                                        )}
                                                     </Space>
                                                 </Card>
                                             </Col>
