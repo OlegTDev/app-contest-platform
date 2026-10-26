@@ -24,6 +24,8 @@ type EntryItem = {
     id: number;
     title: string;
     description: string | null;
+    author_name: string | null;
+    author_department: string | null;
     fields_data: Record<string, unknown> | null;
     sort_order: number;
     show_from: string | null;
@@ -38,13 +40,11 @@ type EditEntryProps = {
 export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX.Element {
     const { flash } = usePage<{ flash?: { success?: string; error?: string } }>().props;
 
-    const fieldsData = (entry.fields_data as Record<string, unknown>) || {};
-
     const { data, setData, patch, processing, errors } = useForm<EditEntryForm>({
         title: entry.title,
         description: entry.description || "",
-        author_name: (fieldsData.author_name as string) || "",
-        author_department: (fieldsData.author_department as string) || "",
+        author_name: (entry.author_name as string) || "",
+        author_department: (entry.author_department as string) || "",
         show_from: entry.show_from || "",
         show_until: entry.show_until || "",
     });
@@ -56,10 +56,8 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
             data: {
                 title: data.title,
                 description: data.description || null,
-                fields_data: {
-                    author_name: data.author_name,
-                    author_department: data.author_department,
-                },
+                author_name: data.author_name || null,
+                author_department: data.author_department || null,
                 show_from: data.show_from ? dayjs(data.show_from).format("YYYY-MM-DD HH:mm:ss") : null,
                 show_until: data.show_until ? dayjs(data.show_until).format("YYYY-MM-DD HH:mm:ss") : null,
             },

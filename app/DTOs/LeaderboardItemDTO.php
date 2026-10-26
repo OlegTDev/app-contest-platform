@@ -18,6 +18,7 @@ final readonly class LeaderboardItemDTO implements Arrayable
         public string $title,
         public int $votesCount,
         public ?string $authorName,
+        public ?string $authorDepartment = null,
     ) {}
 
     /**
@@ -38,6 +39,7 @@ final readonly class LeaderboardItemDTO implements Arrayable
             title: $entry->title,
             votesCount: $entry->votes_count,
             authorName: $entry->author_name,
+            authorDepartment: $entry->author_department,
         );
     }
 
@@ -53,6 +55,7 @@ final readonly class LeaderboardItemDTO implements Arrayable
             'title' => $this->title,
             'votes_count' => $this->votesCount,
             'author_name' => $this->authorName,
+            'author_department' => $this->authorDepartment,
         ];
     }
 }

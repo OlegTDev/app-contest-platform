@@ -67,6 +67,7 @@ type LeaderboardItem = {
     title: string;
     votes_count: number;
     author_name: string | null;
+    author_department: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -483,7 +484,29 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                             </Paragraph>
                                                         )}
                                                         {activity.author_name && (
-                                                            <Tag style={{ marginBottom: 8 }}>{activity.author_name}</Tag>
+                                                            <Tag
+                                                                variant="filled"
+                                                                style={{
+                                                                    marginBottom: 4,
+                                                                    whiteSpace: 'normal',
+                                                                    wordBreak: 'break-word',
+                                                                    width: '100%',
+                                                                }}
+                                                            >
+                                                                {activity.author_name}
+                                                            </Tag>
+                                                        )}
+                                                        {activity.author_department && (
+                                                            <Tag
+                                                                variant="filled"
+                                                                style={{
+                                                                    whiteSpace: 'normal',
+                                                                    wordBreak: 'break-word',
+                                                                    width: '100%',
+                                                                }}
+                                                            >
+                                                                {activity.author_department}
+                                                            </Tag>
                                                         )}
                                                         {hasMedia && (
                                                             <Tag color="blue" style={{ marginBottom: 8 }}>
@@ -687,12 +710,18 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 title: 'Участник',
                                 dataIndex: 'title',
                                 key: 'title',
+                                width: 250,
                                 render: (title: string, record: LeaderboardItem) => (
                                     <Space direction="vertical" size={0}>
-                                        <Text strong>{title}</Text>
+                                        <Text strong style={{ wordBreak: 'break-word' }}>{title}</Text>
                                         {record.author_name && (
-                                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                            <Text type="secondary" style={{ fontSize: 12, wordBreak: 'break-word', display: 'block' }}>
                                                 {record.author_name}
+                                            </Text>
+                                        )}
+                                        {record.author_department && (
+                                            <Text type="secondary" style={{ fontSize: 12, wordBreak: 'break-word', display: 'block' }}>
+                                                {record.author_department}
                                             </Text>
                                         )}
                                     </Space>

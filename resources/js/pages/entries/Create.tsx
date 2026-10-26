@@ -44,10 +44,8 @@ export default function CreateEntry({ contest }: CreateEntryProps): React.JSX.El
             data: {
                 title: data.title,
                 description: data.description || null,
-                fields_data: {
-                    author_name: data.author_name,
-                    author_department: data.author_department,
-                },
+                author_name: data.author_name || null,
+                author_department: data.author_department || null,
                 show_from: data.show_from ? dayjs(data.show_from).format("YYYY-MM-DD HH:mm:ss") : null,
                 show_until: data.show_until ? dayjs(data.show_until).format("YYYY-MM-DD HH:mm:ss") : null,
             },
