@@ -279,9 +279,9 @@ class MediaController extends Controller
             return null;
         }
 
-        $targetSize = 400;
+        $targetSize = 500;
 
-        // Preserve aspect ratio: fit within 400x400 box
+        // Preserve aspect ratio: fit within 500x500 box
         if ($width > $height) {
             $newWidth = min($width, $targetSize);
             $newHeight = (int) round($height * ($newWidth / $width));
@@ -291,10 +291,10 @@ class MediaController extends Controller
         }
 
         $thumb = imagecreatetruecolor($newWidth, $newHeight);
+        imagealphablending($thumb, true);
+        imagesavealpha($thumb, true);
 
         if ($type === IMAGETYPE_PNG) {
-            imagealphablending($thumb, false);
-            imagesavealpha($thumb, true);
             $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
             imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
         } elseif ($type === IMAGETYPE_JPEG || $type === IMAGETYPE_WEBP) {
@@ -302,7 +302,12 @@ class MediaController extends Controller
             imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $white);
         }
 
-        imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        // Two-pass resize for better quality
+        $intermediate = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled($intermediate, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        imagecopyresampled($thumb, $intermediate, 0, 0, 0, 0, $newWidth, $newHeight, $newWidth, $newHeight);
+        imagedestroy($intermediate);
+
         imagedestroy($sourceImage);
 
         $thumbName = pathinfo($originalPath, PATHINFO_FILENAME).'_thumb.jpg';
@@ -313,7 +318,7 @@ class MediaController extends Controller
             mkdir($thumbDir, 0755, true);
         }
 
-        imagejpeg($thumb, Storage::disk('public')->path($thumbPath), 85);
+        imagejpeg($thumb, Storage::disk('public')->path($thumbPath), 95);
         imagedestroy($thumb);
 
         return $thumbPath;
