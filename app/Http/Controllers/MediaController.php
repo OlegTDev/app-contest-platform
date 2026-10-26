@@ -9,6 +9,7 @@ use App\Models\QuizEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -72,12 +73,18 @@ class MediaController extends Controller
             $uniqueName = uniqid().'.'.$extension;
             $path = $file->storeAs('media/'.$contest->id, $uniqueName, 'public');
 
+            $thumbnailPath = null;
+            if ($fileType === 'image') {
+                $thumbnailPath = $this->generateThumbnail($file, $path, $contest->id);
+            }
+
             Media::create([
                 'contest_id' => $contest->id,
                 'entry_id' => $entryId,
                 'entry_type' => $entryType ?: 'Contest',
                 'file_name' => $originalName,
                 'file_path' => $path,
+                'thumbnail_path' => $thumbnailPath,
                 'file_type' => $fileType,
                 'file_extension' => $extension,
                 'file_size' => $file->getSize(),
@@ -160,12 +167,18 @@ class MediaController extends Controller
             $uniqueName = uniqid().'.'.$extension;
             $path = $file->storeAs('media/'.$contest->id, $uniqueName, 'public');
 
+            $thumbnailPath = null;
+            if ($fileType === 'image') {
+                $thumbnailPath = $this->generateThumbnail($file, $path, $contest->id);
+            }
+
             Media::create([
                 'contest_id' => $contest->id,
                 'entry_id' => $entryModel->id,
                 'entry_type' => get_class($entryModel),
                 'file_name' => $originalName,
                 'file_path' => $path,
+                'thumbnail_path' => $thumbnailPath,
                 'file_type' => $fileType,
                 'file_extension' => $extension,
                 'file_size' => $file->getSize(),
@@ -181,6 +194,9 @@ class MediaController extends Controller
         abort_unless($media->contest_id === $contest->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
+        if ($media->thumbnail_path) {
+            Storage::disk('public')->delete($media->thumbnail_path);
+        }
         $media->delete();
 
         return back()->with('success', 'Media deleted successfully.');
@@ -201,6 +217,9 @@ class MediaController extends Controller
         abort_unless($media->entry_id === $entryModel->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
+        if ($media->thumbnail_path) {
+            Storage::disk('public')->delete($media->thumbnail_path);
+        }
         $media->delete();
 
         return back()->with('success', 'Media deleted successfully.');
@@ -231,5 +250,23 @@ class MediaController extends Controller
         $media->update(['is_main' => ! $media->is_main]);
 
         return back()->with('success', $media->is_main ? 'Файл сделан главным.' : 'Файл больше не главный.');
+    }
+
+    /**
+     * Generate a thumbnail for an uploaded image.
+     */
+    private function generateThumbnail(\Illuminate\Http\UploadedFile $file, string $originalPath, int $contestId): ?string
+    {
+        $manager = ImageManager::gd();
+        $image = $manager->read($file->getPathname());
+
+        $image->coverDown(400, 400);
+
+        $thumbnailName = pathinfo($originalPath, PATHINFO_FILENAME).'_thumb.'.pathinfo($originalPath, PATHINFO_EXTENSION);
+        $thumbnailPath = 'media/'.$contestId.'/thumbs/'.$thumbnailName;
+
+        Storage::disk('public')->put($thumbnailPath, $image->toJpg(80));
+
+        return $thumbnailPath;
     }
 }

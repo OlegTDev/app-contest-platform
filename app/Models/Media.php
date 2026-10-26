@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $entry_type
  * @property string $file_name
  * @property string $file_path
+ * @property string|null $thumbnail_path
  * @property string $file_type
  * @property string $file_extension
  * @property int $file_size
@@ -25,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read string $file_url
  */
-#[Fillable(['contest_id', 'entry_id', 'entry_type', 'file_name', 'file_path', 'file_type', 'file_extension', 'file_size', 'is_main'])]
+#[Fillable(['contest_id', 'entry_id', 'entry_type', 'file_name', 'file_path', 'thumbnail_path', 'file_type', 'file_extension', 'file_size', 'is_main'])]
 class Media extends Model
 {
     /** @use HasFactory<MediaFactory> */
@@ -55,5 +56,10 @@ class Media extends Model
     public function getFileUrlAttribute(): string
     {
         return asset('storage/'.$this->file_path);
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail_path ? asset('storage/'.$this->thumbnail_path) : null;
     }
 }

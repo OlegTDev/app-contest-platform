@@ -12,6 +12,7 @@ type MediaItem = {
     id: number;
     file_name: string;
     file_url: string;
+    thumbnail_url: string | null;
     file_type: string;
     file_extension: string;
     file_size: number | null;
@@ -450,7 +451,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                             <div style={{ height: 200, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                                                                 {mainMedia.file_type === 'image' ? (
                                                                     <img
-                                                                        src={mainMedia.file_url}
+                                                                        src={mainMedia.thumbnail_url ?? mainMedia.file_url}
                                                                         alt={activity.title}
                                                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                                     />
