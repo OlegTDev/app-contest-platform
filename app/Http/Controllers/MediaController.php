@@ -279,14 +279,16 @@ class MediaController extends Controller
             return null;
         }
 
-        $targetSize = 500;
+        $maxSize = (int) config('media.thumbnail.max_size', 600);
+        $quality = (int) config('media.thumbnail.quality', 95);
+        $twoPass = (bool) config('media.thumbnail.two_pass', true);
 
-        // Preserve aspect ratio: fit within 500x500 box
+        // Preserve aspect ratio: fit within max_size box
         if ($width > $height) {
-            $newWidth = min($width, $targetSize);
+            $newWidth = min($width, $maxSize);
             $newHeight = (int) round($height * ($newWidth / $width));
         } else {
-            $newHeight = min($height, $targetSize);
+            $newHeight = min($height, $maxSize);
             $newWidth = (int) round($width * ($newHeight / $height));
         }
 
@@ -302,11 +304,15 @@ class MediaController extends Controller
             imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $white);
         }
 
-        // Two-pass resize for better quality
-        $intermediate = imagecreatetruecolor($newWidth, $newHeight);
-        imagecopyresampled($intermediate, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-        imagecopyresampled($thumb, $intermediate, 0, 0, 0, 0, $newWidth, $newHeight, $newWidth, $newHeight);
-        imagedestroy($intermediate);
+        if ($twoPass) {
+            // Two-pass resize for better quality
+            $intermediate = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($intermediate, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagecopyresampled($thumb, $intermediate, 0, 0, 0, 0, $newWidth, $newHeight, $newWidth, $newHeight);
+            imagedestroy($intermediate);
+        } else {
+            imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        }
 
         imagedestroy($sourceImage);
 
@@ -318,7 +324,7 @@ class MediaController extends Controller
             mkdir($thumbDir, 0755, true);
         }
 
-        imagejpeg($thumb, Storage::disk('public')->path($thumbPath), 95);
+        imagejpeg($thumb, Storage::disk('public')->path($thumbPath), $quality);
         imagedestroy($thumb);
 
         return $thumbPath;

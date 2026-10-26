@@ -30,4 +30,33 @@ return [
         'zip', 'rar',                          // archives
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Thumbnail Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for auto-generated image thumbnails.
+    |
+    */
+
+    'thumbnail' => [
+        /*
+        | Maximum thumbnail dimension in pixels (square box).
+        | Images are proportionally fitted within this size.
+        */
+        'max_size' => (int) env('THUMBNAIL_MAX_SIZE', 600),
+
+        /*
+        | JPEG quality: 1 (worst) to 100 (best).
+        | Recommended: 85-95. Higher = better quality, larger file.
+        */
+        'quality' => (int) env('THUMBNAIL_QUALITY', 95),
+
+        /*
+        | Use two-pass resize for smoother downscaling.
+        | True gives noticeably better quality for large images.
+        */
+        'two_pass' => (bool) env('THUMBNAIL_TWO_PASS', true),
+    ],
+
 ];
