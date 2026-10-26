@@ -25,7 +25,6 @@ services:
                 - VERSION_TAG=${PHP_FPM_TAG}
         restart: unless-stopped
         volumes:
-            - assets_data:/app/public
             - storage_public_data:/app/storage/app/public
             - laravel_logs:/app/storage/logs
             - laravel_framework:/app/storage/framework
@@ -67,7 +66,6 @@ services:
 
 volumes:
     postgres_data_app_contest:
-    assets_data:
     storage_public_data:
     laravel_logs:
     laravel_framework:
