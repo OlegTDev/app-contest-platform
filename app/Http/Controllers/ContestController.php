@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contest;
 use App\Services\ContestService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -40,11 +41,29 @@ class ContestController extends Controller
             ? $this->contestService->getUserVoteEntryIds($contest, $user)
             : [];
 
-        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds);
+        $viewedEntryIds = $user !== null
+            ? $this->contestService->getViewedEntryIds($contest, $user)
+            : [];
+
+        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds);
 
         return Inertia::render('contests/PublicShow', [
             'contest' => $data->toArray(),
             'leaderboard' => $this->contestService->getLeaderboard($contest),
         ]);
+    }
+
+    /**
+     * Mark an entry as viewed.
+     */
+    public function markAsViewed(Request $request, Contest $contest, int $entryId): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user !== null) {
+            $this->contestService->markEntryAsViewed($contest, $user, $entryId);
+        }
+
+        return back();
     }
 }

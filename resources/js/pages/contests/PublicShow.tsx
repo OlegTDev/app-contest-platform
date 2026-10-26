@@ -1,10 +1,11 @@
 import { Head, Link, router } from "@inertiajs/react";
 import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions, Result, Modal, Image, Row, Col, Drawer, Divider, Table, message } from "antd";
-import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, PaperClipOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled, UserOutlined, ApartmentOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, QuestionCircleOutlined, ThunderboltOutlined, TrophyOutlined, PaperClipOutlined, DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined, VideoCameraOutlined, HeartOutlined, HeartFilled, UserOutlined, ApartmentOutlined, EyeOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState } from 'react';
 import { vote } from "@/routes/entries";
 import { destroy as voteDestroy } from "@/routes/entries/vote";
+import { view as markViewed } from "@/routes/contests";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -38,6 +39,7 @@ type VotingActivity = {
     author_department: string | null;
     votes_count: number;
     is_voted: boolean;
+    is_viewed: boolean;
     media: MediaItem[];
     created_at: string;
 };
@@ -168,6 +170,14 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
     const handleOpenMedia = (entry: VotingActivity) => {
         setSelectedEntry(entry);
         setMediaDrawerOpen(true);
+
+        // Mark as viewed
+        if (!entry.is_viewed) {
+            router.post(markViewed({ contest: contest.id, entry: entry.id }).url, {}, {
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }
     };
 
     const getFileIcon = (type: string) => {
@@ -526,11 +536,16 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                                             : "голосов"}
                                                                 </Tag>
                                                             </Space>
-                                                            {contest.is_active && activity.is_voted && (
-                                                                <Tag variant="outlined" color="volcano" icon={<HeartFilled />}>
-                                                                    Вы проголосовали
-                                                                </Tag>
-                                                            )}
+                                                             {contest.is_active && activity.is_voted && (
+                                                                 <Tag variant="outlined" color="volcano" icon={<HeartFilled />}>
+                                                                     Вы проголосовали
+                                                                 </Tag>
+                                                             )}
+                                                             {activity.is_viewed && (
+                                                                 <Tag variant="outlined" color="default" icon={<EyeOutlined />}>
+                                                                     Просмотрено
+                                                                 </Tag>
+                                                             )}
                                                         </Space>
                                                     </Space>
                                                 </Card>

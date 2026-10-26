@@ -45,14 +45,15 @@ final readonly class ContestService
      * Get contest data for the public show page.
      *
      * @param  array<int, int>  $userVoteEntryIds
+     * @param  array<int, int>  $viewedEntryIds
      */
-    public function getPublicShowData(Contest $contest, array $userVoteEntryIds = []): ContestShowDTO
+    public function getPublicShowData(Contest $contest, array $userVoteEntryIds = [], array $viewedEntryIds = []): ContestShowDTO
     {
         $this->loadContestRelations($contest);
 
         $isTimeActive = $this->isTimeActive($contest);
         $quizActivities = QuizActivityDTO::collection($contest->quizEntries)->toArray();
-        $votingActivities = VotingActivityDTO::collection($contest->entries, $userVoteEntryIds)->toArray();
+        $votingActivities = VotingActivityDTO::collection($contest->entries, $userVoteEntryIds, $viewedEntryIds)->toArray();
 
         return new ContestShowDTO(
             id: $contest->id,
@@ -224,6 +225,33 @@ final readonly class ContestService
             ->toArray();
 
         return $result;
+    }
+
+    /**
+     * Get viewed entry IDs for a user in a contest.
+     *
+     * @return array<int, int>
+     */
+    public function getViewedEntryIds(Contest $contest, User $user): array
+    {
+        /** @var array<int, int> $result */
+        $result = $user->entryViews()
+            ->where('contest_id', $contest->id)
+            ->pluck('entry_id')
+            ->toArray();
+
+        return $result;
+    }
+
+    /**
+     * Mark an entry as viewed by a user.
+     */
+    public function markEntryAsViewed(Contest $contest, User $user, int $entryId): void
+    {
+        $user->entryViews()->updateOrCreate(
+            ['contest_id' => $contest->id, 'entry_id' => $entryId],
+            ['contest_id' => $contest->id, 'entry_id' => $entryId]
+        );
     }
 
     /**

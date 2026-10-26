@@ -12,6 +12,7 @@ Route::middleware(['auth'])->group(function () {
     // Contest management (public pages for authenticated users)
     Route::get('/', [ContestController::class, 'publicIndex'])->name('contests.public');
     Route::get('contests/{contest}', [ContestController::class, 'publicShow'])->name('contests.public.show');
+    Route::post('contests/{contest}/entries/{entry}/view', [ContestController::class, 'markAsViewed'])->name('contests.public.view');
 
     // Admin user management
     Route::prefix('admin/users')->middleware(['auth', 'admin'])->group(function () {

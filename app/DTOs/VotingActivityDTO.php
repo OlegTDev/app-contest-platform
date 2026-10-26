@@ -17,6 +17,7 @@ final readonly class VotingActivityDTO implements Arrayable
     /**
      * @param  array<string, mixed>|null  $fieldsData
      * @param  array<int, MediaDTO>  $media
+     * @param  array<int, int>  $viewedEntryIds
      */
     public function __construct(
         public int $id,
@@ -26,6 +27,7 @@ final readonly class VotingActivityDTO implements Arrayable
         public ?string $authorDepartment,
         public int $votesCount,
         public bool $isVoted,
+        public bool $isViewed,
         public ?array $fieldsData,
         /** @var array<int, MediaDTO> */
         public array $media,
@@ -38,19 +40,22 @@ final readonly class VotingActivityDTO implements Arrayable
      *
      * @param  \Illuminate\Database\Eloquent\Collection<int, ContestEntry>  $entries
      * @param  array<int, int>  $userVoteEntryIds
+     * @param  array<int, int>  $viewedEntryIds
      * @return Collection<int, self>
      */
     public static function collection(
         Collection $entries,
         array $userVoteEntryIds = [],
+        array $viewedEntryIds = [],
     ): Collection {
-        return $entries->map(fn (ContestEntry $entry): self => self::from($entry, $userVoteEntryIds));
+        return $entries->map(fn (ContestEntry $entry): self => self::from($entry, $userVoteEntryIds, $viewedEntryIds));
     }
 
     /**
      * @param  array<int, int>  $userVoteEntryIds
+     * @param  array<int, int>  $viewedEntryIds
      */
-    public static function from(ContestEntry $entry, array $userVoteEntryIds = []): self
+    public static function from(ContestEntry $entry, array $userVoteEntryIds = [], array $viewedEntryIds = []): self
     {
         /** @var \Illuminate\Database\Eloquent\Collection<int, Media> $media */
         $media = $entry->media;
@@ -63,6 +68,7 @@ final readonly class VotingActivityDTO implements Arrayable
             authorDepartment: $entry->author_department,
             votesCount: $entry->votes_count,
             isVoted: in_array($entry->id, $userVoteEntryIds, strict: true),
+            isViewed: in_array($entry->id, $viewedEntryIds, strict: true),
             fieldsData: $entry->fields_data !== null ? (array) $entry->fields_data : null,
             media: MediaDTO::collection($media)->all(),
             createdAt: $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : '',
@@ -85,6 +91,7 @@ final readonly class VotingActivityDTO implements Arrayable
             'author_department' => $this->authorDepartment,
             'votes_count' => $this->votesCount,
             'is_voted' => $this->isVoted,
+            'is_viewed' => $this->isViewed,
             'fields_data' => $this->fieldsData,
             'media' => array_map(fn (MediaDTO $m): array => $m->toArray(), $this->media),
             'created_at' => $this->createdAt,

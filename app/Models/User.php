@@ -56,6 +56,14 @@ class User extends Authenticatable implements LdapAuthenticatable
         return $this->hasMany(ContestVote::class, 'user_id');
     }
 
+    /**
+     * @return HasMany<EntryView, $this>
+     */
+    public function entryViews(): HasMany
+    {
+        return $this->hasMany(EntryView::class);
+    }
+
     // Role constants
     public const ROLE_ADMIN = 'admin';
 
