@@ -133,7 +133,7 @@ export default function PublicIndex({ contest, entries }: PublicIndexProps): Rea
                                                     <img
                                                         src={entry.fields_data.main_image as string}
                                                         alt={entry.title}
-                                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
                                                     />
                                                 ) : (
                                                     "Изображение работы"

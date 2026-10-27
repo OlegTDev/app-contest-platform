@@ -462,7 +462,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                                     <img
                                                                         src={mainMedia.thumbnail_url ?? mainMedia.file_url}
                                                                         alt={activity.title}
-                                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                                                     />
                                                                 ) : (
                                                                     <div style={{ textAlign: 'center' }}>
