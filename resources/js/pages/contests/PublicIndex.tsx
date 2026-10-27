@@ -1,5 +1,5 @@
 import { Head, Link } from "@inertiajs/react";
-import { Card, Row, Col, Typography, Tag, Empty, Space, Button } from "antd";
+import { Card, Typography, Tag, Empty, Space, Button } from "antd";
 import { TrophyOutlined, QuestionCircleOutlined, ThunderboltOutlined, FolderOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
@@ -72,121 +72,106 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                             />
                         </Card>
                     ) : (
-                        <Row gutter={[24, 24]}>
+                        <Space direction="vertical" size="large" style={{ width: "100%" }}>
                             {contests.map((contest) => (
-                                <Col xs={24} sm={12} lg={8} key={contest.id}>
-                                    <Link href={contest.slug ? `/contests/${contest.slug}` : `/contests/${contest.id}`}>
-                                        <Card
-                                            hoverable
-                                            style={{
-                                                height: "100%",
+                                <Link href={contest.slug ? `/contests/${contest.slug}` : `/contests/${contest.id}`}>
+                                    <Card
+                                        hoverable
+                                        style={{
+                                            width: "100%",
+                                            border: "1px solid #f0f0f0",
+                                            transition: "all 0.3s",
+                                        }}
+                                        styles={{
+                                            body: {
                                                 display: "flex",
-                                                flexDirection: "column",
-                                                border: "1px solid #f0f0f0",
-                                                transition: "all 0.3s",
-                                            }}
-                                            styles={{
-                                                body: {
-                                                    flex: 1,
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                },
+                                                alignItems: "center",
+                                                gap: 24,
+                                            },
+                                        }}
+                                    >
+                                        {/* Icon and Type */}
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 12,
+                                                minWidth: 200,
                                             }}
                                         >
-                                            {/* Icon and Type */}
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "flex-start",
-                                                    marginBottom: 16,
-                                                }}
-                                            >
-                                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                                    {getTypeIcon(contest.type)}
-                                                    <Tag color={getTypeColor(contest.type)}>
-                                                        {getTypeLabel(contest.type)}
-                                                    </Tag>
-                                                    {contest.is_archived && (
-                                                        <Tag color="default" icon={<FolderOutlined />}>
-                                                            Архив
-                                                        </Tag>
-                                                    )}
-                                                </div>
-                                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                                    {dayjs(contest.created_at).format("DD.MM.YYYY")}
-                                                </Text>
-                                            </div>
+                                            {getTypeIcon(contest.type)}
+                                            <Tag color={getTypeColor(contest.type)}>
+                                                {getTypeLabel(contest.type)}
+                                            </Tag>
+                                            {contest.is_archived && (
+                                                <Tag color="default" icon={<FolderOutlined />}>
+                                                    Архив
+                                                </Tag>
+                                            )}
+                                        </div>
 
-                                            {/* Title */}
-                                            <Title level={4} style={{ margin: "0 0 12px 0" }}>
+                                        {/* Title and Description */}
+                                        <div style={{ flex: 1 }}>
+                                            <Title level={4} style={{ margin: "0 0 8px 0" }}>
                                                 {contest.title}
                                             </Title>
-
-                                            {/* Description */}
                                             {contest.description && (
                                                 <Paragraph
                                                     type="secondary"
-                                                    ellipsis={{ rows: 3 }}
-                                                    style={{
-                                                        flex: 1,
-                                                        marginBottom: 16,
-                                                    }}
+                                                    ellipsis={{ rows: 2 }}
+                                                    style={{ margin: 0 }}
                                                 >
                                                     {contest.description}
                                                 </Paragraph>
                                             )}
+                                        </div>
 
-                                            {/* Stats */}
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    padding: "12px 0",
-                                                    borderTop: "1px solid #f0f0f0",
-                                                    marginTop: "auto",
-                                                }}
-                                            >
-                                                <Space>
-                                                    {contest.type === "quiz" ? (
-                                                        <>
-                                                            <QuestionCircleOutlined style={{ color: "#999" }} />
-                                                            <Text type="secondary">
-                                                                {contest.quiz_entry_count}{" "}
-                                                                {contest.quiz_entry_count === 1
-                                                                    ? "вопрос"
-                                                                    : contest.quiz_entry_count < 5
-                                                                        ? "вопроса"
-                                                                        : "вопросов"}
-                                                            </Text>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <ThunderboltOutlined style={{ color: "#999" }} />
-                                                            <Text type="secondary">
-                                                                {contest.entry_count}{" "}
-                                                                {contest.entry_count === 1
-                                                                    ? "работа"
-                                                                    : "работ"}
-                                                            </Text>
-                                                        </>
-                                                    )}
-                                                </Space>
-                                            </div>
-
-                                            {/* Period */}
+                                        {/* Stats and Period */}
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "flex-end",
+                                                gap: 8,
+                                                minWidth: 180,
+                                            }}
+                                        >
+                                            <Space>
+                                                {contest.type === "quiz" ? (
+                                                    <>
+                                                        <QuestionCircleOutlined style={{ color: "#999" }} />
+                                                        <Text type="secondary">
+                                                            {contest.quiz_entry_count}{" "}
+                                                            {contest.quiz_entry_count === 1
+                                                                ? "вопрос"
+                                                                : contest.quiz_entry_count < 5
+                                                                    ? "вопроса"
+                                                                    : "вопросов"}
+                                                        </Text>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <ThunderboltOutlined style={{ color: "#999" }} />
+                                                        <Text type="secondary">
+                                                            {contest.entry_count}{" "}
+                                                            {contest.entry_count === 1
+                                                                ? "работа"
+                                                                : "работ"}
+                                                        </Text>
+                                                    </>
+                                                )}
+                                            </Space>
                                             {(contest.start_at || contest.end_at) && (
                                                 <div
                                                     style={{
-                                                        marginTop: 8,
-                                                        padding: "8px 12px",
+                                                        padding: "4px 12px",
                                                         background: contest.is_archived ? "#f5f5f5" : "#f6ffed",
                                                         borderRadius: 6,
                                                         fontSize: 12,
                                                     }}
                                                 >
                                                     <Text type="secondary">
-                                                        Период голосования: {contest.start_at
+                                                        {contest.start_at
                                                             ? dayjs(contest.start_at).format("DD.MM.YYYY HH:mm")
                                                             : "—"}{" "}
                                                         —{" "}
@@ -196,11 +181,16 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                                                     </Text>
                                                 </div>
                                             )}
-                                        </Card>
-                                    </Link>
-                                </Col>
+                                        </div>
+
+                                        {/* Created Date */}
+                                        <Text type="secondary" style={{ fontSize: 12, minWidth: 100, textAlign: "right" }}>
+                                            {dayjs(contest.created_at).format("DD.MM.YYYY")}
+                                        </Text>
+                                    </Card>
+                                </Link>
                             ))}
-                        </Row>
+                        </Space>
                     )}
                 </Space>
             </div>
