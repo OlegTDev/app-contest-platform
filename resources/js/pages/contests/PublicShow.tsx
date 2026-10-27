@@ -288,7 +288,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
         <>
             <Head title={contest.title} />
 
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 0" }}>
+            <div style={{ margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     {/* Back button */}
                     <Link href="/">
