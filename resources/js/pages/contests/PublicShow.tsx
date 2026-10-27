@@ -95,8 +95,8 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
         ) ?? null;
 
     const handleVote = (entry: VotingActivity) => {
-        if (!contest.is_active && !contest.is_archived) {
-            message.warning("Голосование сейчас недоступно");
+        if (!contest.is_time_active && !contest.is_archived) {
+            message.warning("Период голосования завершён");
             return;
         }
 
@@ -261,34 +261,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
         }
     };
 
-    // Not time active yet
-    if (!contest.is_time_active && contest.is_active === false) {
-        return (
-            <>
-                <Head title={contest.title} />
-                <div style={{ maxWidth: 800, margin: "100px auto", textAlign: "center" }}>
-                    <Card>
-                        <Result
-                            status="info"
-                            title="Конкурс ещё не начался"
-                            subTitle={
-                                contest.start_at
-                                    ? `Начало: ${dayjs(contest.start_at).format("DD.MM.YYYY HH:mm")}`
-                                    : "Следите за обновлениями"
-                            }
-                            extra={[
-                                <Link key="back" href="/">
-                                    <Button type="primary">К конкурсам</Button>
-                                </Link>,
-                            ]}
-                        />
-                    </Card>
-                </div>
-            </>
-        );
-    }
-
-    // Contest closed
+    // Contest closed or paused
     if (contest.status === "closed" || contest.status === "paused") {
         return (
             <>
@@ -593,7 +566,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
             >
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     {/* Vote Section */}
-                    {activeEntry && (contest.is_active || contest.is_archived) && (
+                    {activeEntry && (contest.is_time_active || contest.is_archived) && (
                         <Card size="small">
                             <Space
                                 style={{ width: '100%', justifyContent: 'space-between' }}
@@ -615,6 +588,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                     danger={activeEntry.is_voted}
                                     icon={activeEntry.is_voted ? <HeartFilled /> : <HeartOutlined />}
                                     loading={voting}
+                                    disabled={!contest.is_time_active && !contest.is_archived}
                                     onClick={() => handleVote(activeEntry)}
                                 >
                                     {activeEntry.is_voted ? 'Убрать голос' : 'Проголосовать'}
