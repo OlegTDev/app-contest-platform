@@ -1,6 +1,6 @@
 import { Head, Link } from "@inertiajs/react";
 import { Card, Row, Col, Typography, Tag, Empty, Space, Button } from "antd";
-import { TrophyOutlined, QuestionCircleOutlined, ThunderboltOutlined, ArchiveOutlined } from "@ant-design/icons";
+import { TrophyOutlined, QuestionCircleOutlined, ThunderboltOutlined, FolderOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 const { Title, Text, Paragraph } = Typography;
@@ -108,7 +108,7 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                                                         {getTypeLabel(contest.type)}
                                                     </Tag>
                                                     {contest.is_archived && (
-                                                        <Tag color="default" icon={<ArchiveOutlined />}>
+                                                        <Tag color="default" icon={<FolderOutlined />}>
                                                             Архив
                                                         </Tag>
                                                     )}
