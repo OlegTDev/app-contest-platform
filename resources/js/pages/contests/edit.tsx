@@ -19,6 +19,7 @@ type FormType = {
   title: string;
   type: string;
   status: string;
+  slug: string | null;
   description: string;
   start_at: string;
   end_at: string;
@@ -31,6 +32,7 @@ type ContestEditProps = {
     title: string;
     type: string;
     status: string;
+    slug: string | null;
     description: string | null;
     start_at: string | null;
     end_at: string | null;
@@ -44,6 +46,7 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
     title: contest.title,
     type: contest.type,
     status: contest.status,
+    slug: contest.slug ?? null,
     description: contest.description || "",
     start_at: contest.start_at || "",
     end_at: contest.end_at || "",
@@ -283,6 +286,19 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
                       { label: "На паузе", value: "paused" },
                       { label: "Закрыт", value: "closed" },
                     ]}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label="URL-псевдоним"
+                  validateStatus={errors.slug ? "error" : ""}
+                  help={errors.slug || "Генерируется автоматически из названия при создании"}
+                >
+                  <Input
+                    value={data.slug ?? ""}
+                    onChange={(e) => setData("slug", e.target.value || null)}
+                    placeholder="luchshiy-proekt-goda"
+                    size="small"
                   />
                 </Form.Item>
 

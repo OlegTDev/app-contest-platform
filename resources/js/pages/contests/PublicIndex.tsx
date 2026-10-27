@@ -9,6 +9,7 @@ type ContestItem = {
     id: number;
     title: string;
     type: string;
+    slug: string | null;
     description: string | null;
     start_at: string | null;
     end_at: string | null;
@@ -73,7 +74,7 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                         <Row gutter={[24, 24]}>
                             {contests.map((contest) => (
                                 <Col xs={24} sm={12} lg={8} key={contest.id}>
-                                    <Link href={`/contests/${contest.id}`}>
+                                    <Link href={contest.slug ? `/contests/${contest.slug}` : `/contests/${contest.id}`}>
                                         <Card
                                             hoverable
                                             style={{

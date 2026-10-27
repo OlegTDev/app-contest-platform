@@ -38,6 +38,7 @@ class ContestRequest extends FormRequest
             'project_schema.*.type' => ['required', 'string'],
             'project_schema.*.required' => ['required', 'boolean'],
             'project_schema.*.select_values' => ['string'],
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
         ];
     }
 }

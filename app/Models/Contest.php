@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ContestType $type
  * @property string $title
  * @property string $status
+ * @property string|null $slug
  * @property string|null $description
  * @property CarbonInterface|null $start_at
  * @property CarbonInterface|null $end_at
@@ -29,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Collection<int, QuizEntry> $quizEntries
  * @property User|null $author
  */
-#[Fillable(['title', 'type', 'project_schema', 'status', 'description', 'start_at', 'end_at'])]
+#[Fillable(['title', 'type', 'project_schema', 'status', 'slug', 'description', 'start_at', 'end_at'])]
 #[ObservedBy(ContestObserver::class)]
 class Contest extends Model
 {
@@ -127,5 +128,21 @@ class Contest extends Model
     public function canEdit(User $user): bool
     {
         return $user->exists && $user->id === $this->user_id;
+    }
+
+    /**
+     * Resolve the route binding for a given value.
+     * Tries numeric ID first, then falls back to slug.
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     */
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        if (is_numeric($value)) {
+            return $this->find($value);
+        }
+
+        return $this->where('slug', $value)->first();
     }
 }
