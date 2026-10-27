@@ -285,6 +285,7 @@ export default function ContestEdit({ contest, contestTypes }: ContestEditProps)
                       { label: "Активен", value: "published" },
                       { label: "На паузе", value: "paused" },
                       { label: "Закрыт", value: "closed" },
+                      { label: "Архив", value: "archived" },
                     ]}
                   />
                 </Form.Item>

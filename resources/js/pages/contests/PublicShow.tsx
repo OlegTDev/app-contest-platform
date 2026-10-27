@@ -55,6 +55,7 @@ type ContestItem = {
     end_at: string | null;
     is_active: boolean;
     is_time_active: boolean;
+    is_archived: boolean;
     activities: ActivityItem[];
     created_at: string;
 };
@@ -77,6 +78,7 @@ const statusLabels: Record<string, string> = {
     published: "Опубликован",
     paused: "На паузе",
     closed: "Закрыт",
+    archived: "Архив",
 };
 
 export default function PublicShow({ contest, leaderboard }: PublicShowProps): React.JSX.Element {
@@ -93,7 +95,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
         ) ?? null;
 
     const handleVote = (entry: VotingActivity) => {
-        if (!contest.is_active) {
+        if (!contest.is_active && !contest.is_archived) {
             message.warning("Голосование сейчас недоступно");
             return;
         }
@@ -536,10 +538,15 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                                 </Tag>
                                                             </Space>
                                                              {contest.is_active && activity.is_voted && (
-                                                                 <Tag variant="outlined" color="volcano" icon={<HeartFilled />}>
-                                                                     Вы проголосовали
-                                                                 </Tag>
-                                                             )}
+                                                                  <Tag variant="outlined" color="volcano" icon={<HeartFilled />}>
+                                                                      Вы проголосовали
+                                                                  </Tag>
+                                                              )}
+                                                              {contest.is_archived && activity.is_voted && (
+                                                                  <Tag variant="outlined" color="default" icon={<HeartFilled />}>
+                                                                      Голос в архиве
+                                                                  </Tag>
+                                                              )}
                                                         </Space>
                                                         {activity.is_viewed && (
                                                             <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
@@ -586,7 +593,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
             >
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     {/* Vote Section */}
-                    {activeEntry && contest.is_active && (
+                    {activeEntry && (contest.is_active || contest.is_archived) && (
                         <Card size="small">
                             <Space
                                 style={{ width: '100%', justifyContent: 'space-between' }}

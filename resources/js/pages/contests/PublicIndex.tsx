@@ -1,6 +1,6 @@
 import { Head, Link } from "@inertiajs/react";
 import { Card, Row, Col, Typography, Tag, Empty, Space, Button } from "antd";
-import { TrophyOutlined, QuestionCircleOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import { TrophyOutlined, QuestionCircleOutlined, ThunderboltOutlined, ArchiveOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 const { Title, Text, Paragraph } = Typography;
@@ -16,6 +16,7 @@ type ContestItem = {
     quiz_entry_count: number;
     entry_count: number;
     created_at: string;
+    is_archived: boolean;
 };
 
 type PublicIndexProps = {
@@ -106,6 +107,11 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                                                     <Tag color={getTypeColor(contest.type)}>
                                                         {getTypeLabel(contest.type)}
                                                     </Tag>
+                                                    {contest.is_archived && (
+                                                        <Tag color="default" icon={<ArchiveOutlined />}>
+                                                            Архив
+                                                        </Tag>
+                                                    )}
                                                 </div>
                                                 <Text type="secondary" style={{ fontSize: 12 }}>
                                                     {dayjs(contest.created_at).format("DD.MM.YYYY")}
@@ -174,13 +180,13 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                                                     style={{
                                                         marginTop: 8,
                                                         padding: "8px 12px",
-                                                        background: "#f6ffed",
+                                                        background: contest.is_archived ? "#f5f5f5" : "#f6ffed",
                                                         borderRadius: 6,
                                                         fontSize: 12,
                                                     }}
                                                 >
                                                     <Text type="secondary">
-                                                        {contest.start_at
+                                                        Период голосования: {contest.start_at
                                                             ? dayjs(contest.start_at).format("DD.MM.YYYY HH:mm")
                                                             : "—"}{" "}
                                                         —{" "}

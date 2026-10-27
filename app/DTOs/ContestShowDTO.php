@@ -28,6 +28,7 @@ final readonly class ContestShowDTO
         public bool $isActive,
         public bool $isTimeActive,
         public string $createdAt,
+        public bool $isArchived = false,
         /** @var array<QuizActivityType> */
         public array $quizActivities = [],
         /** @var array<VotingActivityType> */
@@ -52,6 +53,7 @@ final readonly class ContestShowDTO
             'end_at' => $this->endAt,
             'is_active' => $this->isActive,
             'is_time_active' => $this->isTimeActive,
+            'is_archived' => $this->isArchived,
             'activities' => array_merge($this->quizActivities, $this->votingActivities),
             'leaderboard' => $this->leaderboard,
             'created_at' => $this->createdAt,

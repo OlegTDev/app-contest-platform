@@ -29,6 +29,7 @@ final readonly class ContestItemDTO implements Arrayable
         public int $quizEntryCount,
         public int $entryCount,
         public string $createdAt,
+        public bool $isArchived = false,
         public array $contestTypes = [],
     ) {}
 
@@ -62,6 +63,7 @@ final readonly class ContestItemDTO implements Arrayable
             quizEntryCount: $contest->quizEntries->count(),
             entryCount: $contest->entries->count(),
             createdAt: $contest->created_at->format('Y-m-d H:i'),
+            isArchived: $contest->status === 'archived',
             contestTypes: $contestTypes,
         );
     }
@@ -84,6 +86,7 @@ final readonly class ContestItemDTO implements Arrayable
             'quiz_entry_count' => $this->quizEntryCount,
             'entry_count' => $this->entryCount,
             'created_at' => $this->createdAt,
+            'is_archived' => $this->isArchived,
             'contest_types' => $this->contestTypes,
         ];
     }

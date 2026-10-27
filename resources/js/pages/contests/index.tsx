@@ -52,6 +52,7 @@ const statusColors: Record<string, string> = {
   published: "green",
   paused: "orange",
   closed: "red",
+  archived: "default",
 };
 
 const statusLabels: Record<string, string> = {
@@ -59,6 +60,7 @@ const statusLabels: Record<string, string> = {
   published: "Активен",
   paused: "На паузе",
   closed: "Закрыт",
+  archived: "Архив",
 };
 
 export default function ContestIndex({ contests, filters }: ContestIndexProps): React.JSX.Element {
@@ -229,6 +231,7 @@ export default function ContestIndex({ contests, filters }: ContestIndexProps): 
                   { label: "Активен", value: "published" },
                   { label: "На паузе", value: "paused" },
                   { label: "Закрыт", value: "closed" },
+                  { label: "Архив", value: "archived" },
                 ]}
               />
               <Select

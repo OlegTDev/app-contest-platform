@@ -26,14 +26,6 @@ final readonly class ContestService
     public function getActiveContests(): Collection
     {
         $contests = Contest::where('status', 'published')
-            ->where(function (Builder $query): void {
-                $query->whereNull('start_at')
-                    ->orWhere('start_at', '<=', now());
-            })
-            ->where(function (Builder $query): void {
-                $query->whereNull('end_at')
-                    ->orWhere('end_at', '>=', now());
-            })
             ->with(['quizEntries', 'entries'])
             ->orderByDesc('created_at')
             ->get();
@@ -67,6 +59,7 @@ final readonly class ContestService
             isActive: $contest->isActive(),
             isTimeActive: $isTimeActive,
             createdAt: $contest->created_at->format('Y-m-d H:i'),
+            isArchived: $contest->status === 'archived',
             quizActivities: $quizActivities,
             votingActivities: $votingActivities,
             leaderboard: [],

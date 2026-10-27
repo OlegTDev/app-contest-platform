@@ -28,7 +28,7 @@ class ContestRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(ContestType::class)],
-            'status' => ['sometimes', 'string', 'in:draft,published,paused,closed'],
+            'status' => ['sometimes', 'string', 'in:draft,published,paused,closed,archived'],
             'description' => ['nullable', 'string', 'max:2000'],
             'start_at' => ['nullable', 'date_format:Y-m-d H:i:s'],
             'end_at' => ['nullable', 'date_format:Y-m-d H:i:s'],
