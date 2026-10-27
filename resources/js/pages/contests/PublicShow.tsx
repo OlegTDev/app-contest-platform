@@ -322,7 +322,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
 
                     {/* Period */}
                     {(contest.start_at || contest.end_at) && (
-                        <Card title="Период проведения">
+                        <Card title="Период голосования">
                             <Descriptions bordered column={1} size="small">
                                 <Descriptions.Item label="Начало">
                                     {contest.start_at ? dayjs(contest.start_at).format("DD.MM.YYYY HH:mm") : "Не указано"}
