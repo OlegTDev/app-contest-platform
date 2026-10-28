@@ -194,6 +194,7 @@ final readonly class ContestService
 
         return LeaderboardItemDTO::collection(
             $contest->entries()
+                ->reorder()
                 ->whereNotNull('votes_count')
                 ->orderByDesc('votes_count')
                 ->limit(50)

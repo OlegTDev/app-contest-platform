@@ -734,6 +734,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 dataIndex: 'title',
                                 key: 'title',
                                 width: 250,
+                                sorter: false,
                                 render: (title: string, record: LeaderboardItem) => (
                                     <Space direction="vertical" size={0}>
                                         <Text strong style={{ wordBreak: 'break-word' }}>{title}</Text>
@@ -755,6 +756,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 dataIndex: 'votes_count',
                                 key: 'votes_count',
                                 width: 100,
+                                sorter: false,
                                 render: (votes: number) => (
                                     <Tag color="blue">
                                         {votes} {votes === 1 ? 'голос' : votes < 5 ? 'голоса' : 'голосов'}
