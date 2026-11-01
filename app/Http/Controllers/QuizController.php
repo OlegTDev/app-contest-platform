@@ -98,8 +98,8 @@ class QuizController extends Controller
             'description' => $validated['description'] ?? null,
             'fields_data' => $fieldsData,
             'sort_order' => $validated['sort_order'] ?? 0,
-            'show_from' => $validated['show_from'] ? Carbon::parse($validated['show_from']) : null,
-            'show_until' => $validated['show_until'] ? Carbon::parse($validated['show_until']) : null,
+            'show_from' => ($validated['show_from'] ?? null) ? Carbon::parse($validated['show_from']) : null,
+            'show_until' => ($validated['show_until'] ?? null) ? Carbon::parse($validated['show_until']) : null,
         ]);
 
         return redirect()->route('admin.contests.show', $contest)
@@ -156,10 +156,10 @@ class QuizController extends Controller
             'description' => $validated['description'] ?? null,
             'fields_data' => $fieldsData,
             'sort_order' => $validated['sort_order'] ?? $entry->sort_order,
-            'show_from' => $validated['show_from']
+            'show_from' => ($validated['show_from'] ?? null)
                 ? Carbon::parse($validated['show_from'])
                 : $entry->show_from,
-            'show_until' => $validated['show_until']
+            'show_until' => ($validated['show_until'] ?? null)
                 ? Carbon::parse($validated['show_until'])
                 : $entry->show_until,
         ]);

@@ -62,13 +62,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{contest}/quizzes', [QuizController::class, 'index'])->name('admin.quizzes.index');
         Route::get('/{contest}/quizzes/create', [QuizController::class, 'create'])->name('admin.quizzes.create');
         Route::post('/{contest}/quizzes', [QuizController::class, 'store'])->name('admin.quizzes.store');
-        Route::get('/{contest}/quizzes/{quiz}/take', [QuizController::class, 'take'])->name('admin.quizzes.take');
-        Route::get('/{contest}/quizzes/{quiz}/result', [QuizController::class, 'result'])->name('admin.quizzes.result');
-        Route::get('/{contest}/quizzes/{quiz}/leaderboard', [QuizController::class, 'leaderboard'])->name('admin.quizzes.leaderboard');
-        Route::post('/{contest}/quizzes/{quiz}/submit', [QuizController::class, 'submit'])->name('admin.quizzes.submit');
-        Route::get('/{contest}/quizzes/{quiz}/edit', [QuizController::class, 'edit'])->name('admin.quizzes.edit');
-        Route::patch('/{contest}/quizzes/{quiz}', [QuizController::class, 'update'])->name('admin.quizzes.update');
-        Route::delete('/{contest}/quizzes/{quiz}', [QuizController::class, 'destroy'])->name('admin.quizzes.destroy');
+        Route::get('/{contest}/quizzes/{entry}/take', [QuizController::class, 'take'])->name('admin.quizzes.take');
+        Route::get('/{contest}/quizzes/{entry}/result', [QuizController::class, 'result'])->name('admin.quizzes.result');
+        Route::get('/{contest}/quizzes/{entry}/leaderboard', [QuizController::class, 'leaderboard'])->name('admin.quizzes.leaderboard');
+        Route::post('/{contest}/quizzes/{entry}/submit', [QuizController::class, 'submit'])->name('admin.quizzes.submit');
+        Route::get('/{contest}/quizzes/{entry}/edit', [QuizController::class, 'edit'])->name('admin.quizzes.edit');
+        Route::patch('/{contest}/quizzes/{entry}', [QuizController::class, 'update'])->name('admin.quizzes.update');
+        Route::delete('/{contest}/quizzes/{entry}', [QuizController::class, 'destroy'])->name('admin.quizzes.destroy');
     });
 
     // Contest detail (public pages for authenticated users)
@@ -79,10 +79,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('entries/leaderboard', [VoteController::class, 'leaderboard'])->name('entries.leaderboard');
 
         // Quiz participation
-        Route::get('quizzes/{quiz}/take', [QuizController::class, 'take'])->name('quizzes.take');
-        Route::post('quizzes/{quiz}/submit', [QuizController::class, 'submit'])->name('quizzes.submit');
-        Route::get('quizzes/{quiz}/result', [QuizController::class, 'result'])->name('quizzes.result');
-        Route::get('quizzes/{quiz}/leaderboard', [QuizController::class, 'leaderboard'])->name('quizzes.leaderboard');
+        Route::get('quizzes/{entry}/take', [QuizController::class, 'take'])->name('quizzes.take');
+        Route::post('quizzes/{entry}/submit', [QuizController::class, 'submit'])->name('quizzes.submit');
+        Route::get('quizzes/{entry}/result', [QuizController::class, 'result'])->name('quizzes.result');
+        Route::get('quizzes/{entry}/leaderboard', [QuizController::class, 'leaderboard'])->name('quizzes.leaderboard');
     });
 });
 
