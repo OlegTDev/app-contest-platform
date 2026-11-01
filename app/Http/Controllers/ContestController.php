@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class ContestController extends Controller
 {
@@ -36,7 +37,7 @@ class ContestController extends Controller
      */
     public function publicShow(Request $request, Contest $contest): Response
     {
-        if (! in_array($contest->status, ['published', 'archived', 'closed', 'paused', 'draft'], strict: true)) {
+        if (! in_array($contest->status, ['published', 'archived', 'closed', 'paused'], strict: true)) {
             abort(404);
         }
 
@@ -53,12 +54,16 @@ class ContestController extends Controller
             ? $this->userActivity->getAnsweredQuizEntryIds($user, $contest->id)->toArray()
             : [];
 
-        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
+        try {
+            $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
 
-        return Inertia::render('contests/PublicShow', [
-            'contest' => $data->toArray(),
-            'leaderboard' => $this->contestService->getLeaderboard($contest),
-        ]);
+            return Inertia::render('contests/PublicShow', [
+                'contest' => $data->toArray(),
+                'leaderboard' => $this->contestService->getLeaderboard($contest),
+            ]);
+        } catch (Throwable) {
+            abort(404);
+        }
     }
 
     /**

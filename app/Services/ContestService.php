@@ -16,6 +16,7 @@ use App\Models\Contest;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Throwable;
 
 final readonly class ContestService
 {
