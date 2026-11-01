@@ -36,7 +36,9 @@ class ContestController extends Controller
      */
     public function publicShow(Request $request, Contest $contest): Response
     {
-        abort_unless(in_array($contest->status, ['published', 'archived', 'closed', 'paused'], strict: true), 404);
+        if (! in_array($contest->status, ['published', 'archived', 'closed', 'paused', 'draft'], strict: true)) {
+            abort(404);
+        }
 
         $user = $request->user();
         $userVoteEntryIds = $user !== null
@@ -51,12 +53,16 @@ class ContestController extends Controller
             ? $this->userActivity->getAnsweredQuizEntryIds($user, $contest->id)->toArray()
             : [];
 
-        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
+        try {
+            $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
 
-        return Inertia::render('contests/PublicShow', [
-            'contest' => $data->toArray(),
-            'leaderboard' => $this->contestService->getLeaderboard($contest),
-        ]);
+            return Inertia::render('contests/PublicShow', [
+                'contest' => $data->toArray(),
+                'leaderboard' => $this->contestService->getLeaderboard($contest),
+            ]);
+        } catch (\Throwable $e) {
+            abort(404);
+        }
     }
 
     /**
