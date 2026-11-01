@@ -48,6 +48,7 @@ class ContestController extends Controller
                 $contest->load($contest->type->value === 'quiz' ? ['quizEntries' => fn ($q) => $q->active()->orderBy('sort_order'), 'quizEntries.media'] : ['entries' => fn ($q) => $q->orderBy('id')->with('user'), 'entries.media']);
             }
         } catch (Throwable) {
+            // ignore
         }
 
         $user = $request->user();

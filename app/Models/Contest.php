@@ -140,9 +140,24 @@ class Contest extends Model
     public function resolveRouteBinding($value, $field = null): ?self
     {
         if (is_numeric($value)) {
-            return $this->find($value);
+            $contest = $this->find($value);
+            if ($contest) {
+                return $contest;
+            }
         }
 
-        return $this->where('slug', $value)->first();
+        $contest = $this->where('slug', $value)->first();
+        if ($contest) {
+            return $contest;
+        }
+
+        if (! is_numeric($value)) {
+            $contest = $this->find($value);
+            if ($contest) {
+                return $contest;
+            }
+        }
+
+        return null;
     }
 }
