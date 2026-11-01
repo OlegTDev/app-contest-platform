@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use App\Observers\ContestEntryObserver;
 use App\Services\TimeWindowService;
 use Database\Factories\ContestEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +25,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['contest_id', 'user_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count'])]
-#[ObservedBy(ContestEntryObserver::class)]
 class ContestEntry extends Model
 {
     /** @use HasFactory<ContestEntryFactory> */

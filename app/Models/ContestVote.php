@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Observers\ContestEntryObserver;
 use Database\Factories\ContestVoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  */
 #[Fillable(['contest_id', 'entry_id', 'user_id'])]
+#[ObservedBy(ContestEntryObserver::class)]
 class ContestVote extends Model
 {
     /** @use HasFactory<ContestVoteFactory> */
