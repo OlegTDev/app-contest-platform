@@ -67,7 +67,7 @@ final readonly class QuizActivityDTO implements Arrayable
             question: $entry->question,
             options: $entry->options,
             quizType: $entry->type,
-            isVisible: $entry->isVisible(),
+            isVisible: method_exists($entry, 'isVisible') ? $entry->isVisible() : true,
             isAnswered: in_array($entry->id, $answeredEntryIds, true),
             media: $media,
             createdAt: $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : '',
