@@ -52,6 +52,7 @@ jobs:
           cp .env.example .env
           composer install --no-interaction --prefer-dist --optimize-autoloader
           npm ci --prefer-offline
+          php artisan key:generate --ansi
         env:
           DB_CONNECTION: pgsql
           DB_HOST: ${{ secrets.DB_HOST || '127.0.0.1' }}
@@ -62,9 +63,6 @@ jobs:
 
       - name: Build frontend assets
         run: npm run build
-
-      - name: Generate application key
-        run: php artisan key:generate --ansi
 
       - name: Run PHPStan (Level 7)
         run: vendor/bin/phpstan analyse --no-progress
