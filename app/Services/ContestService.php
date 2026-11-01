@@ -50,11 +50,18 @@ final readonly class ContestService
     {
         $this->loadContestRelations($contest);
 
-        $quizEntries = $contest->quizEntries ?? collect();
-        $entries = $contest->entries ?? collect();
+        $quizEntries = $contest->relationLoaded('quizEntries') ? $contest->quizEntries : ($contest->quizEntries ?? collect());
+        if (! $quizEntries instanceof Collection) {
+            $quizEntries = collect($quizEntries);
+        }
 
-        $quizActivities = QuizActivityDTO::collection($quizEntries, $answeredQuizEntryIds)->toArray();
-        $votingActivities = VotingActivityDTO::collection($entries, $userVoteEntryIds, $viewedEntryIds)->toArray();
+        $entries = $contest->relationLoaded('entries') ? $contest->entries : ($contest->entries ?? collect());
+        if (! $entries instanceof Collection) {
+            $entries = collect($entries);
+        }
+
+        $quizActivities = $quizEntries->isEmpty() ? [] : QuizActivityDTO::collection($quizEntries, $answeredQuizEntryIds)->toArray();
+        $votingActivities = $entries->isEmpty() ? [] : VotingActivityDTO::collection($entries, $userVoteEntryIds, $viewedEntryIds)->toArray();
 
         return new ContestShowDTO(
             id: $contest->id,
