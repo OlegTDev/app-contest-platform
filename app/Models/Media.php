@@ -57,12 +57,12 @@ class Media extends Model
 
     public function getFileUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->file_path);
+        return asset('storage/'.$this->file_path);
     }
 
     public function getThumbnailUrlAttribute(): ?string
     {
-        return $this->thumbnail_path ? Storage::disk('public')->url($this->thumbnail_path) : null;
+        return $this->thumbnail_path ? asset('storage/'.$this->thumbnail_path) : null;
     }
 
     /**

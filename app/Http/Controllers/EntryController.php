@@ -27,7 +27,7 @@ class EntryController extends Controller
         if ($contest->type->value === 'voting') {
             /** @var Collection<int, array<string, mixed>> $entries */
             $entries = $contest->entries()
-                ->with(['media' => fn ($q) => $q->main()])
+                ->with('media')
                 ->orderBy('id')
                 ->get()
                 ->map(fn (ContestEntry $entry): array => [
@@ -42,6 +42,7 @@ class EntryController extends Controller
                         'id' => $m->id,
                         'file_name' => $m->file_name,
                         'file_url' => $m->file_url,
+                        'thumbnail_url' => $m->thumbnail_url,
                         'file_type' => $m->file_type,
                         'file_extension' => $m->file_extension,
                         'file_size' => $m->file_size,
@@ -53,7 +54,7 @@ class EntryController extends Controller
         } else {
             /** @var Collection<int, array<string, mixed>> $entries */
             $entries = $contest->quizEntries()
-                ->with(['media' => fn ($q) => $q->main()])
+                ->with('media')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn (QuizEntry $entry): array => [
@@ -72,6 +73,7 @@ class EntryController extends Controller
                         'id' => $m->id,
                         'file_name' => $m->file_name,
                         'file_url' => $m->file_url,
+                        'thumbnail_url' => $m->thumbnail_url,
                         'file_type' => $m->file_type,
                         'file_extension' => $m->file_extension,
                         'file_size' => $m->file_size,
