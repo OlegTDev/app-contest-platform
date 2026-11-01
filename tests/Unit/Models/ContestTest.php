@@ -141,16 +141,6 @@ describe('Contest model', function () {
     });
 
     describe('relationships', function () {
-        it('has many projects', function () {
-            $contest = Contest::factory()->create();
-            $contest->projects()->createMany([
-                ['title' => 'Project 1', 'user_id' => $this->user->id, 'fields_data' => []],
-                ['title' => 'Project 2', 'user_id' => $this->user->id, 'fields_data' => []],
-            ]);
-
-            expect($contest->fresh('projects')->projects)->toHaveCount(2);
-        });
-
         it('has many quiz entries', function () {
             $contest = Contest::factory()->create();
             $contest->quizEntries()->createMany([

@@ -54,7 +54,6 @@
 | `ContestVote` | Голос пользователя (unique: user + contest + entry) |
 | `QuizEntry` | Вопрос викторины (sort_order, планирование) |
 | `QuizAnswer` | Ответ пользователя (is_correct, answered_at) |
-| `Project` | Подача проекта пользователя с кастомными полями |
 | `Media` | Файл (полиморфный: contest / entry) |
 | `User` | Пользователь (Fortify + LDAP + passkeys) |
 

@@ -27,7 +27,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonInterface|null $start_at
  * @property CarbonInterface|null $end_at
  * @property mixed $project_schema
- * @property Collection<int, Project> $projects
  * @property Collection<int, ContestEntry> $entries
  * @property Collection<int, QuizEntry> $quizEntries
  * @property User|null $author
@@ -45,14 +44,6 @@ class Contest extends Model
         'start_at' => 'datetime',
         'end_at' => 'datetime',
     ];
-
-    /**
-     * @return HasMany<Project, $this>
-     */
-    public function projects(): HasMany
-    {
-        return $this->hasMany(Project::class);
-    }
 
     /**
      * @return HasMany<QuizEntry, $this>
