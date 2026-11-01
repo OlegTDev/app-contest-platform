@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use Illuminate\Contracts\Support\Arrayable;
+
 /**
  * @phpstan-type QuizActivityType array{id: int, title: string, description: string|null, is_visible: bool, created_at: string}
  * @phpstan-type VotingActivityType array{id: int, title: string, description: string|null, author_name: string|null, author_department: string|null, votes_count: int, is_voted: bool, fields_data: array<string, mixed>|null, media: array<int, array{id: int, file_name: string, file_url: string, file_type: string, file_extension: string, file_size: int|null, is_main: bool, created_at: string}>, created_at: string}
  * @phpstan-type LeaderboardType array{id: int, title: string, votes_count: int, author_name: string|null}
+ *
+ * @implements Arrayable<string, mixed>
  */
-final readonly class ContestShowDTO
+final readonly class ContestShowDTO implements Arrayable
 {
     /**
      * @param  array<QuizActivityType>  $quizActivities

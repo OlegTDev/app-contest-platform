@@ -7,19 +7,23 @@ namespace App\Http\Controllers;
 use App\Actions\BuildQuizFieldsDataAction;
 use App\Actions\SubmitQuizAnswerAction;
 use App\Http\Requests\StoreQuizEntryRequest;
+use App\Http\Requests\SubmitQuizAnswerRequest;
 use App\Http\Requests\UpdateQuizEntryRequest;
 use App\Models\Contest;
 use App\Models\QuizAnswer;
 use App\Models\QuizEntry;
+use App\Services\UserContestActivityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class QuizController extends Controller
 {
+    public function __construct(
+        private readonly UserContestActivityService $userContestActivity,
+    ) {}
     /**
      * Display quiz entries for a contest (for organizer).
      */
@@ -183,14 +187,12 @@ class QuizController extends Controller
     public function take(Contest $contest, QuizEntry $entry): Response
     {
         abort_unless($contest->isActive(), 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
+        $this->ensureEntryBelongsToContest($contest, $entry);
         abort_unless($entry->isVisible(), 403);
 
         $user = $this->user();
 
-        $existingAnswer = QuizAnswer::where('quiz_entry_id', $entry->id)
-            ->where('user_id', $user->id)
-            ->first();
+        $existingAnswer = $this->userContestActivity->getUserAnswerForQuizEntry($user, $entry);
 
         return Inertia::render('quizzes/Take', [
             'quiz' => [
@@ -217,18 +219,15 @@ class QuizController extends Controller
         SubmitQuizAnswerAction $submitAction,
         Contest $contest,
         QuizEntry $entry,
-        Request $request,
+        SubmitQuizAnswerRequest $request,
     ): RedirectResponse {
         abort_unless($contest->isActive(), 403);
-        abort_unless($entry->contest_id === $contest->id, 404);
+        $this->ensureEntryBelongsToContest($contest, $entry);
         abort_unless($entry->isVisible(), 403);
 
         $user = $this->user();
 
-        $validated = $request->validate([
-            'selected_options' => ['required', 'array'],
-            'selected_options.*' => ['string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $submitAction->execute($entry, $user->id, $validated['selected_options']);
 
@@ -240,13 +239,11 @@ class QuizController extends Controller
      */
     public function result(Contest $contest, QuizEntry $entry): Response|RedirectResponse
     {
-        abort_unless($entry->contest_id === $contest->id, 404);
+        $this->ensureEntryBelongsToContest($contest, $entry);
 
         $user = $this->user();
 
-        $answer = QuizAnswer::where('quiz_entry_id', $entry->id)
-            ->where('user_id', $user->id)
-            ->first();
+        $answer = $this->userContestActivity->getUserAnswerForQuizEntry($user, $entry);
 
         if (! $answer) {
             return redirect()->route('quizzes.take', [$contest, $entry]);
@@ -297,5 +294,10 @@ class QuizController extends Controller
             ]);
 
         return response()->json(['leaderboard' => $leaderboard]);
+    }
+
+    private function ensureEntryBelongsToContest(Contest $contest, QuizEntry $entry): void
+    {
+        abort_unless($entry->contest_id === $contest->id, 404);
     }
 }

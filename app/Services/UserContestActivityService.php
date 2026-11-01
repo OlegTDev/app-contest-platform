@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\QuizAnswer;
+use App\Models\QuizEntry;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
@@ -58,5 +60,25 @@ final readonly class UserContestActivityService
         return $user->quizAnswers()
             ->whereHas('quizEntry', fn ($query) => $query->where('contest_id', $contestId))
             ->pluck('quiz_entry_id');
+    }
+
+    /**
+     * Get the user's answer for a specific quiz entry.
+     */
+    public function getUserAnswerForQuizEntry(User $user, QuizEntry $entry): ?QuizAnswer
+    {
+        return $user->quizAnswers()
+            ->where('quiz_entry_id', $entry->id)
+            ->first();
+    }
+
+    /**
+     * Check if the user has answered a specific quiz entry.
+     */
+    public function hasAnsweredQuizEntry(User $user, QuizEntry $entry): bool
+    {
+        return $user->quizAnswers()
+            ->where('quiz_entry_id', $entry->id)
+            ->exists();
     }
 }

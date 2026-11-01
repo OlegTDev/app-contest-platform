@@ -68,7 +68,7 @@ class ContestAdminController extends Controller
         $data = $this->contestService->getAdminShowData($contest, $this->user()->id);
 
         return Inertia::render('contests/show', [
-            'contest' => $data,
+            'contest' => $data->toArray(),
         ]);
     }
 

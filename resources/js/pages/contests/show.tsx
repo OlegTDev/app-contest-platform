@@ -41,9 +41,13 @@ type ContestItem = {
   start_at: string | null;
   end_at: string | null;
   is_active: boolean;
-  can_manage: boolean;
-  activities: ActivityItem[];
+  is_time_active?: boolean;
+  is_archived?: boolean;
+  can_manage?: boolean;
+  activities?: ActivityItem[] | null;
+  leaderboard?: unknown[];
   created_at: string;
+  slug?: string | null;
 };
 
 type ContestShowProps = {
@@ -158,7 +162,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               title={
                 <Space>
                   <span>Вопросы</span>
-                  <Tag>{contest.activities.length}</Tag>
+                  <Tag>{contest.activities?.length || 0}</Tag>
                 </Space>
               }
               extra={
@@ -182,7 +186,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                 ) : null
               }
             >
-              {contest.activities.length === 0 ? (
+              {!contest.activities || contest.activities.length === 0 ? (
                 <Empty description="Вопросов пока нет" />
               ) : (
                 <List
@@ -228,7 +232,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               title={
                 <Space>
                   <span>Работы</span>
-                  <Tag>{contest.activities.length}</Tag>
+                  <Tag>{contest.activities?.length || 0}</Tag>
                 </Space>
               }
               extra={
@@ -245,7 +249,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                   </Space>
                 ) : null
               }>
-              {contest.activities.length === 0 ? (
+              {!contest.activities || contest.activities.length === 0 ? (
                 <Empty description="Работ пока нет" />
               ) : (
                 <List

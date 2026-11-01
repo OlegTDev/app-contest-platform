@@ -78,10 +78,14 @@ final readonly class ContestService
     {
         $this->loadContestRelations($contest, withMedia: false);
 
-        $activities = match ($contest->type->value) {
-            'quiz' => $contest->quizEntries
-                ->map(fn ($entry) => AdminQuizEntryDTO::fromArray([
+        $quizActivities = [];
+        $votingActivities = [];
+
+        if ($contest->type->value === 'quiz') {
+            $quizActivities = $contest->quizEntries
+                ->map(fn ($entry) => [
                     'id' => $entry->id,
+                    'type' => 'quiz',
                     'title' => $entry->title,
                     'description' => $entry->description,
                     'question' => $entry->question,
@@ -89,21 +93,26 @@ final readonly class ContestService
                     'quiz_type' => $entry->type,
                     'is_scheduled' => $entry->isScheduled(),
                     'is_visible' => $entry->isVisible(),
-                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
-                ]))
-                ->toArray(),
-            default => $contest->entries
-                ->map(fn ($entry) => AdminVotingEntryDTO::fromArray([
+                    'created_at' => $entry->created_at?->format('Y-m-d H:i') ?? '',
+                ])
+                ->toArray();
+        } else {
+            $votingActivities = $contest->entries
+                ->map(fn ($entry) => [
                     'id' => $entry->id,
+                    'type' => 'voting',
                     'title' => $entry->title,
                     'description' => $entry->description,
                     'author_name' => $entry->author_name,
                     'author_department' => $entry->author_department,
                     'votes_count' => $entry->votes_count,
-                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
-                ]))
-                ->toArray(),
-        };
+                    'is_voted' => false,
+                    'fields_data' => null,
+                    'media' => [],
+                    'created_at' => $entry->created_at?->format('Y-m-d H:i') ?? '',
+                ])
+                ->toArray();
+        }
 
         return new ContestShowDTO(
             id: $contest->id,
@@ -118,8 +127,8 @@ final readonly class ContestService
             isTimeActive: app(TimeWindowService::class)->isContestActive($contest),
             createdAt: $contest->created_at->format('Y-m-d H:i'),
             isArchived: $contest->status === 'archived',
-            quizActivities: $activities,
-            votingActivities: $activities,
+            quizActivities: $quizActivities,
+            votingActivities: $votingActivities,
             leaderboard: [],
         );
     }
