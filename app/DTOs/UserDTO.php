@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTOs;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
@@ -25,7 +26,7 @@ final readonly class UserDTO implements Arrayable
         public ?string $position,
         public ?string $cityCode,
         public ?string $phone,
-        public string $role,
+        public string|UserRole $role,
         public string $createdAt,
         public array $availableRoles = [],
     ) {}
@@ -58,7 +59,7 @@ final readonly class UserDTO implements Arrayable
             position: $user->position,
             cityCode: $user->city_code,
             phone: $user->phone,
-            role: $user->role,
+            role: $user->role instanceof UserRole ? $user->role->value : $user->role,
             createdAt: $user->created_at?->format('Y-m-d H:i') ?? '',
             availableRoles: $availableRoles,
         );
