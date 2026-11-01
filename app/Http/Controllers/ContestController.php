@@ -41,10 +41,13 @@ class ContestController extends Controller
             abort(404);
         }
 
-        if (method_exists($contest, 'loadMissing')) {
-            $contest->loadMissing($contest->type->value === 'quiz' ? ['quizEntries', 'quizEntries.media'] : ['entries', 'entries.media', 'entries.user']);
-        } else {
-            $contest->load($contest->type->value === 'quiz' ? ['quizEntries' => fn ($q) => $q->active()->orderBy('sort_order'), 'quizEntries.media'] : ['entries' => fn ($q) => $q->orderBy('id')->with('user'), 'entries.media']);
+        try {
+            if (method_exists($contest, 'loadMissing')) {
+                $contest->loadMissing($contest->type->value === 'quiz' ? ['quizEntries', 'quizEntries.media'] : ['entries', 'entries.media', 'entries.user']);
+            } else {
+                $contest->load($contest->type->value === 'quiz' ? ['quizEntries' => fn ($q) => $q->active()->orderBy('sort_order'), 'quizEntries.media'] : ['entries' => fn ($q) => $q->orderBy('id')->with('user'), 'entries.media']);
+            }
+        } catch (Throwable) {
         }
 
         $user = $request->user();
