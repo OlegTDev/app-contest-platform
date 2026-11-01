@@ -30,7 +30,7 @@ final readonly class ContestService
      */
     public function getActiveContests(): Collection
     {
-        $contests = Contest::where('status', 'published')
+        $contests = Contest::published()
             ->with(['quizEntries', 'entries'])
             ->orderByDesc('created_at')
             ->get();

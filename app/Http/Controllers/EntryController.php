@@ -27,7 +27,7 @@ class EntryController extends Controller
         if ($contest->type->value === 'voting') {
             /** @var Collection<int, array<string, mixed>> $entries */
             $entries = $contest->entries()
-                ->with('media')
+                ->with('media.main')
                 ->orderBy('id')
                 ->get()
                 ->map(fn (ContestEntry $entry): array => [
@@ -53,7 +53,7 @@ class EntryController extends Controller
         } else {
             /** @var Collection<int, array<string, mixed>> $entries */
             $entries = $contest->quizEntries()
-                ->with('media')
+                ->with('media.main')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn (QuizEntry $entry): array => [

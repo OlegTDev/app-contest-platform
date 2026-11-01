@@ -114,6 +114,14 @@ class Contest extends Model
     }
 
     /**
+     * Scope: only published contests.
+     */
+    public function scopePublished($query): void
+    {
+        $query->where('status', 'published');
+    }
+
+    /**
      * Check if the given user can edit this contest.
      */
     public function canEdit(User $user): bool

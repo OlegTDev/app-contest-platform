@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,5 +63,13 @@ class Media extends Model
     public function getThumbnailUrlAttribute(): ?string
     {
         return $this->thumbnail_path ? Storage::disk('public')->url($this->thumbnail_path) : null;
+    }
+
+    /**
+     * Scope: only main media files.
+     */
+    public function scopeMain(Builder $query): void
+    {
+        $query->where('is_main', true);
     }
 }

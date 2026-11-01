@@ -122,13 +122,6 @@ class QuizController extends Controller
                 'options' => $entry->options,
                 'type' => $entry->type,
             ],
-            'initialQuestions' => [[
-                'id' => 'q_1',
-                'question' => $entry->question ?? '',
-                'type' => $entry->type ?? 'single',
-                'options' => ($entry->options ?? []),
-                'correct_answer' => [],
-            ]],
         ]);
     }
 
@@ -223,6 +216,7 @@ class QuizController extends Controller
         SubmitQuizAnswerAction $submitAction,
         Contest $contest,
         QuizEntry $entry,
+        Request $request,
     ): RedirectResponse {
         abort_unless($contest->isActive(), 403);
         abort_unless($entry->contest_id === $contest->id, 404);
@@ -230,7 +224,7 @@ class QuizController extends Controller
 
         $user = $this->user();
 
-        $validated = request()->validate([
+        $validated = $request->validate([
             'selected_options' => ['required', 'array'],
             'selected_options.*' => ['string', 'max:255'],
         ]);
