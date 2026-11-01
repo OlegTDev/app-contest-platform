@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TimeWindowService;
 use Database\Factories\QuizEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -101,21 +101,7 @@ class QuizEntry extends Model
      */
     public function isVisible(): bool
     {
-        if (! $this->show_from || ! $this->show_until) {
-            return true;
-        }
-
-        $now = Carbon::now();
-
-        if ($now->lt($this->show_from)) {
-            return false;
-        }
-
-        if ($now->gt($this->show_until)) {
-            return false;
-        }
-
-        return true;
+        return app(TimeWindowService::class)->isWithinWindow($this->show_from, $this->show_until);
     }
 
     /**

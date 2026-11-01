@@ -52,6 +52,7 @@ final readonly class UserService
     public function findOrCreate(string $login, \stdClass $ldapAttributes): User
     {
         $mapAttributes = $this->mapAttributes($ldapAttributes);
+
         return User::firstOrCreate(['login' => $login], [
             ...$mapAttributes,
             'password' => Str::random(24),
@@ -60,7 +61,6 @@ final readonly class UserService
     }
 
     /**
-     * @param \stdClass $attributes
      * @return array{"city_code": string, department: string, email: string, name: string, phone: string, position: string}
      */
     private function mapAttributes(\stdClass $attributes): array

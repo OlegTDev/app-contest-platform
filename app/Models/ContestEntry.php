@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TimeWindowService;
 use Database\Factories\ContestEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -33,6 +33,8 @@ class ContestEntry extends Model
     protected $casts = [
         'fields_data' => 'array',
         'votes_count' => 'integer',
+        'show_from' => 'datetime',
+        'show_until' => 'datetime',
     ];
 
     /**
@@ -68,10 +70,10 @@ class ContestEntry extends Model
     }
 
     /**
-     * Check if the entry is currently visible (no time restrictions).
+     * Check if the entry is currently visible based on time window.
      */
     public function isVisible(): bool
     {
-        return true;
+        return app(TimeWindowService::class)->isWithinWindow($this->show_from, $this->show_until);
     }
 }

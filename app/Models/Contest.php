@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ContestType;
 use App\Observers\ContestObserver;
+use App\Services\TimeWindowService;
 use Carbon\CarbonInterface;
 use Database\Factories\ContestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -93,17 +94,7 @@ class Contest extends Model
             return false;
         }
 
-        $now = now();
-
-        if ($this->start_at && $now->lt($this->start_at)) {
-            return false;
-        }
-
-        if ($this->end_at && $now->gt($this->end_at)) {
-            return false;
-        }
-
-        return true;
+        return app(TimeWindowService::class)->isContestActive($this);
     }
 
     /**

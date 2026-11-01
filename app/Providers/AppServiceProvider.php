@@ -16,11 +16,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(JwtService::class, static function() {
+        $this->app->bind(JwtService::class, static function () {
             $secretKey = config('auth.jwt_secret');
-            if (!$secretKey) {
+            if (! $secretKey) {
                 abort(503, 'Не указан ключ шифрования JWT');
             }
+
             return new JwtService($secretKey);
         });
     }

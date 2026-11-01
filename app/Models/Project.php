@@ -6,6 +6,7 @@ use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -24,4 +25,20 @@ class Project extends Model
     protected $casts = [
         'fields_data' => 'array',
     ];
+
+    /**
+     * @return BelongsTo<Contest, $this>
+     */
+    public function contest(): BelongsTo
+    {
+        return $this->belongsTo(Contest::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

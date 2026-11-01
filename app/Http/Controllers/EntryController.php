@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Contest;
@@ -121,53 +123,45 @@ class EntryController extends Controller
                 'author_department' => ['nullable', 'string', 'max:255'],
                 'fields_data' => ['nullable', 'array'],
             ]);
-
             $contest->entries()->create([...$validated, 'user_id' => $this->user()->id]);
         } else {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:255'],
                 'description' => ['nullable', 'string', 'max:2000'],
-                'question' => ['nullable', 'string', 'max:2000'],
+                'question' => ['required', 'string', 'max:2000'],
                 'options' => ['required', 'array', 'min:2'],
                 'options.*.text' => ['required', 'string', 'max:500'],
                 'options.*.is_correct' => ['required', 'boolean'],
                 'type' => ['required', 'in:single,multiple'],
                 'sort_order' => ['nullable', 'integer'],
-                'show_from' => ['nullable', 'date:Y-m-d H:i:s'],
-                'show_until' => ['nullable', 'date:Y-m-d H:i:s'],
+                'show_from' => ['nullable', 'date_format:Y-m-d H:i:s'],
+                'show_until' => ['nullable', 'date_format:Y-m-d H:i:s'],
             ]);
 
-            // Build fields_data from quiz card fields
-            $fieldsData = null;
-            if (isset($validated['question']) || isset($validated['options'])) {
-                $optionsWithIds = [];
-                if (isset($validated['options']) && is_array($validated['options'])) {
-                    foreach ($validated['options'] as $index => $opt) {
-                        $optionsWithIds[] = [
-                            'id' => 'opt_'.($index + 1),
-                            'text' => $opt['text'] ?? '',
-                            'is_correct' => $opt['is_correct'] ?? false,
-                        ];
-                    }
-                }
-                $fieldsData = array_filter([
-                    'question' => $validated['question'] ?? null,
-                    'options' => $optionsWithIds,
-                    'type' => $validated['type'],
-                ], fn ($v) => $v !== null);
-            }
+            $fieldsData = [
+                'question' => $validated['question'],
+                'options' => array_map(function ($opt, $index) {
+                    return [
+                        'id' => 'opt_'.($index + 1),
+                        'text' => $opt['text'],
+                        'is_correct' => $opt['is_correct'],
+                    ];
+                }, $validated['options'], range(0, count($validated['options']) - 1)),
+                'type' => $validated['type'],
+            ];
 
             $contest->quizEntries()->create([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'fields_data' => $fieldsData,
                 'sort_order' => $validated['sort_order'] ?? 0,
-                'show_from' => $validated['show_from'] ? \Carbon\Carbon::parse($validated['show_from']) : null,
-                'show_until' => $validated['show_until'] ? \Carbon\Carbon::parse($validated['show_until']) : null,
+                'show_from' => $validated['show_from'] ? Carbon::parse($validated['show_from']) : null,
+                'show_until' => $validated['show_until'] ? Carbon::parse($validated['show_until']) : null,
             ]);
         }
 
-        return redirect()->route('admin.entries.index', $contest)->with('success', 'Entry created successfully.');
+        return redirect()->route('admin.entries.index', $contest)
+            ->with('success', 'Entry created successfully.');
     }
 
     /**
@@ -225,13 +219,6 @@ class EntryController extends Controller
      */
     public function update(Request $request, Contest $contest, string $entry): RedirectResponse
     {
-        \Log::info('Entry update request', [
-            'contest_id' => $contest->id,
-            'entry_id' => $entry,
-            'contest_type' => $contest->type->value,
-            'request_data' => $request->all(),
-        ]);
-
         $this->canManageContest($contest);
 
         if ($contest->type->value === 'voting') {
@@ -242,51 +229,39 @@ class EntryController extends Controller
                 'author_department' => ['nullable', 'string', 'max:255'],
                 'fields_data' => ['nullable', 'array'],
             ]);
-
             $contest->entries()->where('id', $entry)->update($validated);
         } else {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:255'],
                 'description' => ['nullable', 'string', 'max:2000'],
-                'question' => ['nullable', 'string', 'max:2000'],
+                'question' => ['required', 'string', 'max:2000'],
                 'options' => ['required', 'array', 'min:2'],
                 'options.*.text' => ['required', 'string', 'max:500'],
                 'options.*.is_correct' => ['required', 'boolean'],
                 'type' => ['required', 'in:single,multiple'],
                 'sort_order' => ['nullable', 'integer'],
-                'show_from' => ['nullable', 'date:Y-m-d H:i:s'],
-                'show_until' => ['nullable', 'date:Y-m-d H:i:s'],
+                'show_from' => ['nullable', 'date_format:Y-m-d H:i:s'],
+                'show_until' => ['nullable', 'date_format:Y-m-d H:i:s'],
             ]);
 
-            // Build fields_data from quiz card fields
-            $fieldsData = null;
-            if (isset($validated['question']) || isset($validated['options'])) {
-                $optionsWithIds = [];
-                if (isset($validated['options']) && is_array($validated['options'])) {
-                    foreach ($validated['options'] as $index => $opt) {
-                        $optionsWithIds[] = [
-                            'id' => 'opt_'.($index + 1),
-                            'text' => $opt['text'] ?? '',
-                            'is_correct' => $opt['is_correct'] ?? false,
-                        ];
-                    }
-                }
-                $fieldsData = array_filter([
-                    'question' => $validated['question'] ?? null,
-                    'options' => $optionsWithIds,
-                    'type' => $validated['type'] ?? 'single',
-                ], fn ($v) => $v !== null);
-            }
+            $fieldsData = [
+                'question' => $validated['question'],
+                'options' => array_map(function ($opt, $index) {
+                    return [
+                        'id' => 'opt_'.($index + 1),
+                        'text' => $opt['text'],
+                        'is_correct' => $opt['is_correct'],
+                    ];
+                }, $validated['options'], range(0, count($validated['options']) - 1)),
+                'type' => $validated['type'] ?? 'single',
+            ];
 
             $updateData = [
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'sort_order' => $validated['sort_order'] ?? 0,
+                'fields_data' => $fieldsData,
             ];
-
-            if ($fieldsData !== null) {
-                $updateData['fields_data'] = $fieldsData;
-            }
 
             if (isset($validated['show_from']) && $validated['show_from'] !== '') {
                 $updateData['show_from'] = Carbon::parse($validated['show_from']);
@@ -299,7 +274,8 @@ class EntryController extends Controller
             $contest->quizEntries()->where('id', $entry)->update($updateData);
         }
 
-        return redirect()->route('admin.entries.index', $contest)->with('success', 'Entry updated successfully.');
+        return redirect()->route('admin.entries.index', $contest)
+            ->with('success', 'Entry updated successfully.');
     }
 
     /**
@@ -315,6 +291,7 @@ class EntryController extends Controller
             $contest->quizEntries()->where('id', $entry)->delete();
         }
 
-        return redirect()->route('admin.entries.index', $contest)->with('success', 'Entry deleted successfully.');
+        return redirect()->route('admin.entries.index', $contest)
+            ->with('success', 'Entry deleted successfully.');
     }
 }

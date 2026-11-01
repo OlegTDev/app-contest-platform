@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Contest;
-use App\Models\ContestEntry;
 use App\Models\Media;
-use App\Models\QuizEntry;
+use App\Services\MediaUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,7 @@ use Inertia\Response;
 
 class MediaController extends Controller
 {
-    public function index(Request $request, Contest $contest): Response
+    public function index(Contest $contest): Response
     {
         $this->canManageContest($contest);
 
@@ -38,11 +39,13 @@ class MediaController extends Controller
         ]);
     }
 
-    public function store(Request $request, Contest $contest): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        Contest $contest,
+        MediaUploadService $uploadService,
+    ): RedirectResponse {
         $this->canManageContest($contest);
 
-        /** @var int $maxSize */
         $maxSize = config('media.max_upload_size');
 
         $request->validate([
@@ -56,50 +59,23 @@ class MediaController extends Controller
         $entryType = $request->input('entry_type');
 
         foreach ($request->file('files') as $file) {
-            $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension() ?: 'bin';
-            /** @var string $mimeType */
-            $mimeType = $file->getMimeType();
-
-            $fileType = match (true) {
-                str_starts_with($mimeType, 'image/') => 'image',
-                str_starts_with($mimeType, 'video/') => 'video',
-                str_starts_with($mimeType, 'audio/') => 'audio',
-                $extension === 'pdf' => 'pdf',
-                default => 'document',
-            };
-
-            $uniqueName = uniqid().'.'.$extension;
-            $path = $file->storeAs('media/'.$contest->id, $uniqueName, 'public');
-
-            $thumbnailPath = null;
-            if ($fileType === 'image') {
-                $thumbnailPath = $this->generateThumbnail($file, $path, $contest->id);
-            }
-
-            Media::create([
-                'contest_id' => $contest->id,
-                'entry_id' => $entryId,
-                'entry_type' => $entryType ?: 'Contest',
-                'file_name' => $originalName,
-                'file_path' => $path,
-                'thumbnail_path' => $thumbnailPath,
-                'file_type' => $fileType,
-                'file_extension' => $extension,
-                'file_size' => $file->getSize(),
-            ]);
+            $fileType = $uploadService->detectFileType($file);
+            $attributes = $uploadService->uploadFile($file, $contest->id, $entryId, $entryType, $fileType);
+            Media::create($attributes);
         }
 
         return redirect()->back()->with('success', 'Файлы успешно загружены.');
     }
 
-    public function entryIndex(Request $request, Contest $contest, string $entry): Response
-    {
+    public function entryIndex(
+        Request $request,
+        Contest $contest,
+        string $entry,
+        MediaUploadService $uploadService,
+    ): Response {
         $this->canManageContest($contest);
 
-        /** @var ContestEntry|QuizEntry|null $entryModel */
-        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
-            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+        $entryModel = $uploadService->resolveEntry($entry, $contest->id);
 
         if ($entryModel === null) {
             abort(404);
@@ -129,19 +105,20 @@ class MediaController extends Controller
         ]);
     }
 
-    public function entryStore(Request $request, Contest $contest, string $entry): RedirectResponse
-    {
+    public function entryStore(
+        Request $request,
+        Contest $contest,
+        MediaUploadService $uploadService,
+        string $entry,
+    ): RedirectResponse {
         $this->canManageContest($contest);
 
-        /** @var ContestEntry|QuizEntry|null $entryModel */
-        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
-            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+        $entryModel = $uploadService->resolveEntry($entry, $contest->id);
 
         if ($entryModel === null) {
             abort(404);
         }
 
-        /** @var int $maxSize */
         $maxSize = config('media.max_upload_size');
 
         $request->validate([
@@ -150,45 +127,25 @@ class MediaController extends Controller
         ]);
 
         foreach ($request->file('files') as $file) {
-            $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension() ?: 'bin';
-            /** @var string $mimeType */
-            $mimeType = $file->getMimeType();
-
-            $fileType = match (true) {
-                str_starts_with($mimeType, 'image/') => 'image',
-                str_starts_with($mimeType, 'video/') => 'video',
-                str_starts_with($mimeType, 'audio/') => 'audio',
-                $extension === 'pdf' => 'pdf',
-                default => 'document',
-            };
-
-            $uniqueName = uniqid().'.'.$extension;
-            $path = $file->storeAs('media/'.$contest->id, $uniqueName, 'public');
-
-            $thumbnailPath = null;
-            if ($fileType === 'image') {
-                $thumbnailPath = $this->generateThumbnail($file, $path, $contest->id);
-            }
-
-            Media::create([
-                'contest_id' => $contest->id,
-                'entry_id' => $entryModel->id,
-                'entry_type' => get_class($entryModel),
-                'file_name' => $originalName,
-                'file_path' => $path,
-                'thumbnail_path' => $thumbnailPath,
-                'file_type' => $fileType,
-                'file_extension' => $extension,
-                'file_size' => $file->getSize(),
-            ]);
+            $fileType = $uploadService->detectFileType($file);
+            $attributes = $uploadService->uploadFile(
+                $file,
+                $contest->id,
+                $entryModel->id,
+                get_class($entryModel),
+                $fileType,
+            );
+            Media::create($attributes);
         }
 
         return redirect()->back()->with('success', 'Файлы успешно загружены.');
     }
 
-    public function destroy(Request $request, Contest $contest, Media $media): RedirectResponse
-    {
+    public function destroy(
+        Request $request,
+        Contest $contest,
+        Media $media,
+    ): RedirectResponse {
         $this->canManageContest($contest);
         abort_unless($media->contest_id === $contest->id, 404);
 
@@ -201,14 +158,17 @@ class MediaController extends Controller
         return back()->with('success', 'Media deleted successfully.');
     }
 
-    public function entryDestroy(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
-    {
+    public function entryDestroy(
+        Request $request,
+        Contest $contest,
+        string $entry,
+        Media $media,
+        MediaUploadService $uploadService,
+    ): RedirectResponse {
         $this->canManageContest($contest);
         abort_unless($media->contest_id === $contest->id, 404);
 
-        /** @var ContestEntry|QuizEntry|null $entryModel */
-        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
-            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+        $entryModel = $uploadService->resolveEntry($entry, $contest->id);
 
         if ($entryModel === null) {
             abort(404);
@@ -224,14 +184,17 @@ class MediaController extends Controller
         return back()->with('success', 'Media deleted successfully.');
     }
 
-    public function toggleMain(Request $request, Contest $contest, string $entry, Media $media): RedirectResponse
-    {
+    public function toggleMain(
+        Request $request,
+        Contest $contest,
+        string $entry,
+        Media $media,
+        MediaUploadService $uploadService,
+    ): RedirectResponse {
         $this->canManageContest($contest);
         abort_unless($media->contest_id === $contest->id, 404);
 
-        /** @var ContestEntry|QuizEntry|null $entryModel */
-        $entryModel = ContestEntry::where('id', $entry)->where('contest_id', $contest->id)->first()
-            ?? QuizEntry::where('id', $entry)->where('contest_id', $contest->id)->first();
+        $entryModel = $uploadService->resolveEntry($entry, $contest->id);
 
         if ($entryModel === null) {
             abort(404);
@@ -249,84 +212,5 @@ class MediaController extends Controller
         $media->update(['is_main' => ! $media->is_main]);
 
         return back()->with('success', $media->is_main ? 'Файл сделан главным.' : 'Файл больше не главный.');
-    }
-
-    /**
-     * Generate a thumbnail for an uploaded image using native GD.
-     */
-    private function generateThumbnail(\Illuminate\Http\UploadedFile $file, string $originalPath, int $contestId): ?string
-    {
-        $source = $file->getRealPath();
-        $meta = getimagesize($source);
-
-        if ($meta === false) {
-            return null;
-        }
-
-        $width = $meta[0];
-        $height = $meta[1];
-        $type = $meta[2];
-
-        $sourceImage = match ($type) {
-            IMAGETYPE_JPEG => imagecreatefromjpeg($source),
-            IMAGETYPE_PNG => imagecreatefrompng($source),
-            IMAGETYPE_WEBP => imagecreatefromwebp($source),
-            IMAGETYPE_GIF => imagecreatefromgif($source),
-            default => null,
-        };
-
-        if ($sourceImage === false) {
-            return null;
-        }
-
-        $maxSize = (int) config('media.thumbnail.max_size', 600);
-        $quality = (int) config('media.thumbnail.quality', 95);
-        $twoPass = (bool) config('media.thumbnail.two_pass', true);
-
-        // Preserve aspect ratio: fit within max_size box
-        if ($width > $height) {
-            $newWidth = min($width, $maxSize);
-            $newHeight = (int) round($height * ($newWidth / $width));
-        } else {
-            $newHeight = min($height, $maxSize);
-            $newWidth = (int) round($width * ($newHeight / $height));
-        }
-
-        $thumb = imagecreatetruecolor($newWidth, $newHeight);
-        imagealphablending($thumb, true);
-        imagesavealpha($thumb, true);
-
-        if ($type === IMAGETYPE_PNG) {
-            $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
-            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
-        } elseif ($type === IMAGETYPE_JPEG || $type === IMAGETYPE_WEBP) {
-            $white = imagecolorallocate($thumb, 255, 255, 255);
-            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $white);
-        }
-
-        if ($twoPass) {
-            // Two-pass resize for better quality
-            $intermediate = imagecreatetruecolor($newWidth, $newHeight);
-            imagecopyresampled($intermediate, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-            imagecopyresampled($thumb, $intermediate, 0, 0, 0, 0, $newWidth, $newHeight, $newWidth, $newHeight);
-            imagedestroy($intermediate);
-        } else {
-            imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-        }
-
-        imagedestroy($sourceImage);
-
-        $thumbName = pathinfo($originalPath, PATHINFO_FILENAME).'_thumb.jpg';
-        $thumbPath = 'media/'.$contestId.'/thumbs/'.$thumbName;
-
-        $thumbDir = dirname(Storage::disk('public')->path($thumbPath));
-        if (! is_dir($thumbDir)) {
-            mkdir($thumbDir, 0755, true);
-        }
-
-        imagejpeg($thumb, Storage::disk('public')->path($thumbPath), $quality);
-        imagedestroy($thumb);
-
-        return $thumbPath;
     }
 }

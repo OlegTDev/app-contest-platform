@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Actions\BuildQuizFieldsDataAction;
+use App\Actions\SubmitQuizAnswerAction;
+use App\Http\Requests\StoreQuizEntryRequest;
+use App\Http\Requests\UpdateQuizEntryRequest;
 use App\Models\Contest;
 use App\Models\QuizAnswer;
 use App\Models\QuizEntry;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,7 +22,7 @@ class QuizController extends Controller
     /**
      * Display quiz entries for a contest (for organizer).
      */
-    public function index(Request $request, Contest $contest): Response
+    public function index(Contest $contest): Response
     {
         $this->canManageContest($contest);
 
@@ -52,7 +56,7 @@ class QuizController extends Controller
     /**
      * Show form for creating a new quiz entry.
      */
-    public function create(Request $request, Contest $contest): Response
+    public function create(Contest $contest): Response
     {
         $this->canManageContest($contest);
 
@@ -68,38 +72,20 @@ class QuizController extends Controller
     /**
      * Store a new quiz entry.
      */
-    public function store(Request $request, Contest $contest): RedirectResponse
-    {
+    public function store(
+        StoreQuizEntryRequest $request,
+        Contest $contest,
+        BuildQuizFieldsDataAction $buildFieldsData,
+    ): RedirectResponse {
         $this->canManageContest($contest);
 
-        /** @var array{title: string, description: string|null, question: string, options: array<int, array{text: string, is_correct: bool}>, type: string, sort_order: int|null, show_from: string|null, show_until: string|null} $validated */
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'question' => ['required', 'string', 'max:2000'],
-            'options' => ['required', 'array', 'min:2'],
-            'options.*.text' => ['required', 'string', 'max:500'],
-            'options.*.is_correct' => ['required', 'boolean'],
-            'type' => ['required', 'in:single,multiple'],
-            'sort_order' => ['nullable', 'integer'],
-            'show_from' => ['nullable', 'date_format:Y-m-d H:i:s'],
-            'show_until' => ['nullable', 'date_format:Y-m-d H:i:s'],
-        ]);
+        $validated = $request->validated();
 
-        // Build fields_data with option IDs
-        $optionsWithIds = array_map(function ($opt, $index) {
-            return [
-                'id' => 'opt_'.($index + 1),
-                'text' => $opt['text'],
-                'is_correct' => $opt['is_correct'],
-            ];
-        }, $validated['options'], range(0, count($validated['options']) - 1));
-
-        $fieldsData = [
-            'question' => $validated['question'],
-            'options' => $optionsWithIds,
-            'type' => $validated['type'],
-        ];
+        $fieldsData = $buildFieldsData->execute(
+            $validated['options'],
+            $validated['question'],
+            $validated['type'],
+        );
 
         $contest->quizEntries()->create([
             'title' => $validated['title'],
@@ -110,13 +96,14 @@ class QuizController extends Controller
             'show_until' => $validated['show_until'] ? Carbon::parse($validated['show_until']) : null,
         ]);
 
-        return redirect()->route('admin.entries.index', $contest)->with('success', 'Quiz card created successfully.');
+        return redirect()->route('admin.entries.index', $contest)
+            ->with('success', 'Quiz card created successfully.');
     }
 
     /**
      * Show form for editing a quiz entry.
      */
-    public function edit(Request $request, Contest $contest, QuizEntry $entry): Response
+    public function edit(Contest $contest, QuizEntry $entry): Response
     {
         $this->canManageContest($contest);
         abort_unless($entry->contest_id === $contest->id, 404);
@@ -148,69 +135,58 @@ class QuizController extends Controller
     /**
      * Update a quiz entry.
      */
-    public function update(Request $request, Contest $contest, QuizEntry $entry): RedirectResponse
-    {
+    public function update(
+        UpdateQuizEntryRequest $request,
+        Contest $contest,
+        QuizEntry $entry,
+        BuildQuizFieldsDataAction $buildFieldsData,
+    ): RedirectResponse {
         $this->canManageContest($contest);
         abort_unless($entry->contest_id === $contest->id, 404);
 
-        /** @var array{title: string, description: string|null, question: string, options: array<int, array{text: string, is_correct: bool}>, type: string, sort_order: int|null, show_from: string|null, show_until: string|null} $validated */
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'question' => ['required', 'string', 'max:2000'],
-            'options' => ['required', 'array', 'min:2'],
-            'options.*.text' => ['required', 'string', 'max:500'],
-            'options.*.is_correct' => ['required', 'boolean'],
-            'type' => ['required', 'in:single,multiple'],
-            'sort_order' => ['nullable', 'integer'],
-            'show_from' => ['nullable', 'date_format:Y-m-d H:i:s'],
-            'show_until' => ['nullable', 'date_format:Y-m-d H:i:s'],
-        ]);
+        $validated = $request->validated();
 
-        // Build fields_data with option IDs
-        $optionsWithIds = array_map(function ($opt, $index) {
-            return [
-                'id' => 'opt_'.($index + 1),
-                'text' => $opt['text'],
-                'is_correct' => $opt['is_correct'],
-            ];
-        }, $validated['options'], range(0, count($validated['options']) - 1));
-
-        $fieldsData = [
-            'question' => $validated['question'],
-            'options' => $optionsWithIds,
-            'type' => $validated['type'],
-        ];
+        $fieldsData = $buildFieldsData->execute(
+            $validated['options'],
+            $validated['question'],
+            $validated['type'],
+        );
 
         $entry->update([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'fields_data' => $fieldsData,
             'sort_order' => $validated['sort_order'] ?? $entry->sort_order,
-            'show_from' => $validated['show_from'] ? Carbon::parse($validated['show_from']) : $entry->show_from,
-            'show_until' => $validated['show_until'] ? Carbon::parse($validated['show_until']) : $entry->show_until,
+            'show_from' => $validated['show_from']
+                ? Carbon::parse($validated['show_from'])
+                : $entry->show_from,
+            'show_until' => $validated['show_until']
+                ? Carbon::parse($validated['show_until'])
+                : $entry->show_until,
         ]);
 
-        return redirect()->route('admin.entries.index', $contest)->with('success', 'Quiz card updated successfully.');
+        return redirect()->route('admin.entries.index', $contest)
+            ->with('success', 'Quiz card updated successfully.');
     }
 
     /**
      * Delete a quiz entry.
      */
-    public function destroy(Request $request, Contest $contest, QuizEntry $entry): RedirectResponse
+    public function destroy(Contest $contest, QuizEntry $entry): RedirectResponse
     {
         $this->canManageContest($contest);
         abort_unless($entry->contest_id === $contest->id, 404);
 
         $entry->delete();
 
-        return redirect()->route('admin.entries.index', $contest)->with('success', 'Quiz card deleted successfully.');
+        return redirect()->route('admin.entries.index', $contest)
+            ->with('success', 'Quiz card deleted successfully.');
     }
 
     /**
      * Show quiz entry for answering (for participants).
      */
-    public function take(Request $request, Contest $contest, QuizEntry $entry): Response
+    public function take(Contest $contest, QuizEntry $entry): Response
     {
         abort_unless($contest->isActive(), 403);
         abort_unless($entry->contest_id === $contest->id, 404);
@@ -243,34 +219,23 @@ class QuizController extends Controller
     /**
      * Submit answer for a quiz entry.
      */
-    public function submit(Request $request, Contest $contest, QuizEntry $entry): RedirectResponse
-    {
+    public function submit(
+        SubmitQuizAnswerAction $submitAction,
+        Contest $contest,
+        QuizEntry $entry,
+    ): RedirectResponse {
         abort_unless($contest->isActive(), 403);
         abort_unless($entry->contest_id === $contest->id, 404);
         abort_unless($entry->isVisible(), 403);
 
         $user = $this->user();
 
-        /** @var array{selected_options: array<int, string>} $validated */
-        $validated = $request->validate([
+        $validated = request()->validate([
             'selected_options' => ['required', 'array'],
             'selected_options.*' => ['string', 'max:255'],
         ]);
 
-        $selectedOptions = $validated['selected_options'];
-
-        $isCorrect = $this->checkAnswer($entry, $selectedOptions);
-
-        DB::transaction(function () use ($entry, $user, $selectedOptions, $isCorrect): void {
-            // Use create instead of updateOrCreate to prevent answer changes
-            QuizAnswer::create([
-                'quiz_entry_id' => $entry->id,
-                'user_id' => $user->id,
-                'selected_options' => $selectedOptions,
-                'is_correct' => $isCorrect,
-                'answered_at' => now(),
-            ]);
-        });
+        $submitAction->execute($entry, $user->id, $validated['selected_options']);
 
         return redirect()->route('quizzes.result', [$contest, $entry]);
     }
@@ -278,7 +243,7 @@ class QuizController extends Controller
     /**
      * Show quiz result.
      */
-    public function result(Request $request, Contest $contest, QuizEntry $entry): Response|RedirectResponse
+    public function result(Contest $contest, QuizEntry $entry): Response|RedirectResponse
     {
         abort_unless($entry->contest_id === $contest->id, 404);
 
@@ -314,63 +279,27 @@ class QuizController extends Controller
     }
 
     /**
-     * Check if the answer is correct.
-     *
-     * @param  array<int, string>  $selectedOptions
-     */
-    protected function checkAnswer(QuizEntry $entry, array $selectedOptions): bool
-    {
-        $options = $entry->options;
-        if ($options === null || empty($options)) {
-            return false;
-        }
-
-        $correctOptionIds = array_filter($options, fn ($opt) => $opt['is_correct'] === true);
-        $correctIds = array_map(fn ($opt) => $opt['id'], $correctOptionIds);
-        $expectedCount = count($correctIds);
-        $selectedCount = count($selectedOptions);
-
-        // For single-answer quizzes, counts must match
-        if ($entry->type === 'single' && $expectedCount !== $selectedCount) {
-            return false;
-        }
-
-        // All selected must be correct and all correct must be selected
-        return array_diff($selectedOptions, $correctIds) === []
-            && array_diff($correctIds, $selectedOptions) === [];
-    }
-
-    /**
      * Get leaderboard for quiz entries.
+     * Uses a single GROUP BY query instead of N+1 per user.
      */
-    public function leaderboard(Request $request, Contest $contest): JsonResponse
+    public function leaderboard(Contest $contest): JsonResponse
     {
         abort_unless($contest->isActive(), 403);
 
-        $correctAnswers = QuizAnswer::whereHas('quizEntry', function ($query) use ($contest) {
+        $leaderboard = QuizAnswer::whereHas('quizEntry', function ($query) use ($contest) {
             $query->where('contest_id', $contest->id);
         })
             ->where('is_correct', true)
             ->select('user_id')
-            ->distinct()
+            ->selectRaw('count(*) as correct_count')
+            ->groupBy('user_id')
+            ->orderByDesc('correct_count')
+            ->limit(50)
             ->get()
-            ->pluck('user_id')
-            ->toArray();
-
-        $leaderboard = [];
-        foreach ($correctAnswers as $userId) {
-            $count = QuizAnswer::where('is_correct', true)
-                ->whereHas('quizEntry', fn ($q) => $q->where('contest_id', $contest->id))
-                ->where('user_id', $userId)
-                ->count();
-
-            $leaderboard[] = [
-                'user_id' => $userId,
-                'correct_count' => $count,
-            ];
-        }
-
-        usort($leaderboard, fn ($a, $b) => $b['correct_count'] <=> $a['correct_count']);
+            ->map(fn ($row) => [
+                'user_id' => $row->user_id,
+                'correct_count' => (int) $row->correct_count,
+            ]);
 
         return response()->json(['leaderboard' => $leaderboard]);
     }

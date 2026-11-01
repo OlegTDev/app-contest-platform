@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Service\JwtService;
+use App\Services\JwtService;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ class AuthController extends Controller
     {
         $token = $request->post('token');
 
-        if (!$token) {
+        if (! $token) {
             abort(401, 'Токен авторизации отсутствует');
         }
 
@@ -26,4 +26,3 @@ class AuthController extends Controller
         return back();
     }
 }
-

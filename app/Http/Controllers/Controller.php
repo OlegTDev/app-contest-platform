@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contest;
 use App\Models\User;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 abstract class Controller
 {
@@ -26,7 +26,7 @@ abstract class Controller
      * Проверить, может ли пользователь управлять конкурсом.
      * Админ и модератор имеют доступ ко всем конкурсам.
      *
-     * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+     * @throws AccessDeniedHttpException
      */
     protected function canManageContest(Contest $contest): void
     {

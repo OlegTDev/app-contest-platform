@@ -55,7 +55,7 @@ final readonly class ContestService
         // Load media for filtered entries
         $filteredQuizEntries->load('media');
 
-        $isTimeActive = $this->isTimeActive($contest);
+        $isTimeActive = app(TimeWindowService::class)->isContestActive($contest);
         $quizActivities = QuizActivityDTO::collection($filteredQuizEntries, $answeredQuizEntryIds)->toArray();
         $votingActivities = VotingActivityDTO::collection($contest->entries, $userVoteEntryIds, $viewedEntryIds)->toArray();
 
@@ -305,20 +305,12 @@ final readonly class ContestService
 
     /**
      * Check if contest is within its time window.
+     *
+     * @deprecated Use TimeWindowService::isContestActive() instead.
      */
     private function isTimeActive(Contest $contest): bool
     {
-        $now = now();
-
-        if ($contest->start_at && $now->lt($contest->start_at)) {
-            return false;
-        }
-
-        if ($contest->end_at && $now->gt($contest->end_at)) {
-            return false;
-        }
-
-        return true;
+        return app(TimeWindowService::class)->isContestActive($contest);
     }
 
     /**

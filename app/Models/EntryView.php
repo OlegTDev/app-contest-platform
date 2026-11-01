@@ -23,8 +23,6 @@ class EntryView extends Model
     /** @use HasFactory<EntryViewFactory> */
     use HasFactory;
 
-    protected $casts = [];
-
     /**
      * @return BelongsTo<User, $this>
      */

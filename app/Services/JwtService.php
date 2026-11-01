@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Services;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 class JwtService
 {
-    public function __construct(private readonly string $secretKey)
-    {}
+    public function __construct(private readonly string $secretKey) {}
 
     public function decode(string $token): \stdClass
     {
