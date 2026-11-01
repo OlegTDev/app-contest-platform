@@ -143,6 +143,7 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
       title: "Название",
       dataIndex: "title",
       key: "title",
+      width: 250,
       render: (title: string, record: QuizActivity) => (
         <Space>
           <Text strong>{title}</Text>
