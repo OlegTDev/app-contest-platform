@@ -16,14 +16,14 @@ describe('QuizAnswer model', function () {
         $answer = QuizAnswer::factory()->create([
             'quiz_entry_id' => $this->entry->id,
             'user_id' => $this->user->id,
-            'answer' => 'Paris',
+            'selected_options' => [1],
             'is_correct' => true,
             'answered_at' => now(),
         ]);
 
         expect($answer->quiz_entry_id)->toBe($this->entry->id)
             ->and($answer->user_id)->toBe($this->user->id)
-            ->and($answer->answer)->toBe('Paris')
+            ->and($answer->selected_options)->toBe([1])
             ->and($answer->is_correct)->toBeTrue()
             ->and($answer->answered_at)->not->toBeNull();
     });
@@ -38,7 +38,7 @@ describe('QuizAnswer model', function () {
         $answer = new QuizAnswer;
 
         expect($answer->getFillable())
-            ->toBe(['quiz_entry_id', 'user_id', 'answer', 'is_correct', 'answered_at']);
+            ->toBe(['quiz_entry_id', 'user_id', 'selected_options', 'is_correct', 'answered_at']);
     });
 
     it('casts is_correct as a boolean', function () {
@@ -58,6 +58,15 @@ describe('QuizAnswer model', function () {
 
         expect($answer->answered_at)->toBeInstanceOf(CarbonImmutable::class)
             ->and($answer->answered_at->timestamp)->toBe($answeredAt->timestamp);
+    });
+
+    it('casts selected_options as an array', function () {
+        $options = [1, 3, 5];
+
+        $answer = QuizAnswer::factory()->create(['selected_options' => $options]);
+
+        expect($answer->selected_options)->toBeArray()
+            ->and($answer->selected_options)->toBe($options);
     });
 
     describe('relationships', function () {
@@ -122,10 +131,15 @@ describe('QuizAnswer model', function () {
         it('defaults is_correct to false', function () {
             $answer = $this->entry->answers()->create([
                 'user_id' => $this->user->id,
-                'answer' => 'Wrong answer',
             ]);
 
             expect($answer->fresh()->is_correct)->toBeFalse();
+        });
+
+        it('handles null selected_options', function () {
+            $answer = QuizAnswer::factory()->create(['selected_options' => null]);
+
+            expect($answer->selected_options)->toBeNull();
         });
     });
 });

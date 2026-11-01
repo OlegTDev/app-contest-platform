@@ -150,8 +150,8 @@ describe('QuizEntry model', function () {
         it('has many answers', function () {
             $entry = QuizEntry::factory()->create();
             $entry->answers()->createMany([
-                ['user_id' => $this->user->id, 'answer' => 'Answer 1', 'is_correct' => true],
-                ['user_id' => User::factory()->create()->id, 'answer' => 'Answer 2', 'is_correct' => false],
+                ['user_id' => $this->user->id, 'selected_options' => [1], 'is_correct' => true],
+                ['user_id' => User::factory()->create()->id, 'selected_options' => [2], 'is_correct' => false],
             ]);
 
             expect($entry->fresh('answers')->answers)->toHaveCount(2);

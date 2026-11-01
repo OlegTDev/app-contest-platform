@@ -22,7 +22,7 @@ class QuizAnswerFactory extends Factory
         return [
             'quiz_entry_id' => QuizEntry::factory(),
             'user_id' => User::factory(),
-            'answer' => fake()->sentence(),
+            'selected_options' => [fake()->randomNumber()],
             'is_correct' => fake()->boolean(50),
             'answered_at' => now(),
         ];
