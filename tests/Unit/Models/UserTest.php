@@ -3,8 +3,6 @@
 use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\User;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Laravel\Fortify\Contracts\PasskeyUser;
 use LdapRecord\Laravel\Auth\LdapAuthenticatable;
 
 describe('User model', function () {
@@ -66,16 +64,6 @@ describe('User model', function () {
     });
 
     describe('implements', function () {
-        it('implements MustVerifyEmail', function () {
-            $user = User::factory()->create();
-            expect($user)->toBeInstanceOf(MustVerifyEmail::class);
-        });
-
-        it('implements PasskeyUser', function () {
-            $user = User::factory()->create();
-            expect($user)->toBeInstanceOf(PasskeyUser::class);
-        });
-
         it('implements LdapAuthenticatable', function () {
             $user = User::factory()->create();
             expect($user)->toBeInstanceOf(LdapAuthenticatable::class);

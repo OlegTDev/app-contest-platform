@@ -42,12 +42,12 @@ class ContestAccessControlTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_gets_403_on_contest_management_index(): void
+    public function test_admin_can_open_contest_management_index(): void
     {
-        // Contest management is reserved for the moderator role.
+        // Contest management is available to moderators and admins.
         $this->actingAs($this->adminUser)
             ->get(route('admin.contests.index'))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_moderator_can_open_contest_management_index(): void

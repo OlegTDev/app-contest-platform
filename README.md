@@ -53,7 +53,7 @@
 | `ContestEntry` | Подача в голосовании (с автором, полями, голосами) |
 | `ContestVote` | Голос пользователя (unique: user + contest + entry) |
 | `QuizEntry` | Вопрос викторины (sort_order, планирование) |
-| `QuizAnswer` | Ответ пользователя (is_correct, answered_at) |
+| `QuizAnswer` | Ответ пользователя (selected_options, is_correct, answered_at) |
 | `Media` | Файл (полиморфный: contest / entry) |
 | `User` | Пользователь (Fortify + LDAP + passkeys) |
 

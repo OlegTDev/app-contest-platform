@@ -32,7 +32,7 @@ describe('Contest model', function () {
         $contest = new Contest;
 
         expect($contest->getFillable())
-            ->toBe(['title', 'type', 'project_schema', 'status', 'description', 'start_at', 'end_at']);
+            ->toBe(['title', 'type', 'project_schema', 'status', 'slug', 'description', 'start_at', 'end_at']);
     });
 
     describe('isActive()', function () {

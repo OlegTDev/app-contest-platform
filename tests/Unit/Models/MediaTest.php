@@ -36,7 +36,7 @@ describe('Media model', function () {
         $media = new Media;
 
         expect($media->getFillable())
-            ->toBe(['contest_id', 'entry_id', 'entry_type', 'file_name', 'file_path', 'file_type', 'file_extension', 'file_size', 'is_main']);
+            ->toBe(['contest_id', 'entry_id', 'entry_type', 'file_name', 'file_path', 'thumbnail_path', 'file_type', 'file_extension', 'file_size', 'is_main']);
     });
 
     it('casts file_size as integer', function () {
