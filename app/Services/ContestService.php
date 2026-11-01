@@ -50,6 +50,12 @@ final readonly class ContestService
     {
         $this->loadContestRelations($contest);
 
+        if ($contest->type->value === 'quiz' && ! $contest->relationLoaded('quizEntries')) {
+            $contest->load(['quizEntries' => fn ($q) => $q->active()->orderBy('sort_order'), 'quizEntries.media']);
+        } elseif ($contest->type->value !== 'quiz' && ! $contest->relationLoaded('entries')) {
+            $contest->load(['entries' => fn ($q) => $q->orderBy('id')->with('user'), 'entries.media']);
+        }
+
         $quizEntries = $contest->relationLoaded('quizEntries') ? $contest->quizEntries : ($contest->quizEntries ?? collect());
         if (! $quizEntries instanceof Collection) {
             $quizEntries = collect($quizEntries);
