@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contest;
 use App\Services\ContestService;
+use App\Services\UserContestActivityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,6 +16,7 @@ class ContestController extends Controller
 {
     public function __construct(
         private readonly ContestService $contestService,
+        private readonly UserContestActivityService $userActivity,
     ) {}
 
     /**
@@ -38,15 +40,15 @@ class ContestController extends Controller
 
         $user = $request->user();
         $userVoteEntryIds = $user !== null
-            ? $this->contestService->getUserVoteEntryIds($contest, $user)
+            ? $this->userActivity->getUserVoteEntryIds($user, $contest->id)->toArray()
             : [];
 
         $viewedEntryIds = $user !== null
-            ? $this->contestService->getViewedEntryIds($contest, $user)
+            ? $this->userActivity->getViewedEntryIds($user, $contest->id)->toArray()
             : [];
 
         $answeredQuizEntryIds = $user !== null
-            ? $this->contestService->getAnsweredQuizEntryIds($contest, $user)
+            ? $this->userActivity->getAnsweredQuizEntryIds($user, $contest->id)->toArray()
             : [];
 
         $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
@@ -65,7 +67,7 @@ class ContestController extends Controller
         $user = $request->user();
 
         if ($user !== null) {
-            $this->contestService->markEntryAsViewed($contest, $user, $entryId);
+            $this->userActivity->markEntryAsViewed($user, $contest->id, $entryId);
         }
 
         return back();

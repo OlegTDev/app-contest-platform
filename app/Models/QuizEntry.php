@@ -111,4 +111,18 @@ class QuizEntry extends Model
     {
         return $this->show_from !== null && $this->show_until !== null;
     }
+
+    /**
+     * Scope: only active (visible) entries.
+     */
+    public function scopeActive($query): void
+    {
+        $query->where(function ($q): void {
+            $q->whereNull('show_from')
+                ->orWhere('show_from', '<=', now());
+        })->where(function ($q): void {
+            $q->whereNull('show_until')
+                ->orWhere('show_until', '>=', now());
+        });
+    }
 }

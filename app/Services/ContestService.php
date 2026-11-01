@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTOs\AdminContestDTO;
+use App\DTOs\AdminQuizEntryDTO;
+use App\DTOs\AdminVotingEntryDTO;
 use App\DTOs\ContestItemDTO;
 use App\DTOs\ContestShowDTO;
 use App\DTOs\LeaderboardItemDTO;
@@ -11,12 +14,15 @@ use App\DTOs\QuizActivityDTO;
 use App\DTOs\VotingActivityDTO;
 use App\Models\Contest;
 use App\Models\User;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 final readonly class ContestService
 {
+    public function __construct(
+        private readonly UserContestActivityService $userActivity,
+    ) {}
+
     /**
      * Get active published contests for the public index page.
      *
@@ -43,20 +49,7 @@ final readonly class ContestService
     {
         $this->loadContestRelations($contest);
 
-        // Get filtered quiz entries directly from the query
-        $filteredQuizEntries = $contest->quizEntries()->where(function ($q): void {
-            $q->whereNull('show_from')
-                ->orWhere('show_from', '<=', now());
-        })->where(function ($q): void {
-            $q->whereNull('show_until')
-                ->orWhere('show_until', '>=', now());
-        })->orderBy('sort_order')->get();
-
-        // Load media for filtered entries
-        $filteredQuizEntries->load('media');
-
-        $isTimeActive = app(TimeWindowService::class)->isContestActive($contest);
-        $quizActivities = QuizActivityDTO::collection($filteredQuizEntries, $answeredQuizEntryIds)->toArray();
+        $quizActivities = QuizActivityDTO::collection($contest->quizEntries, $answeredQuizEntryIds)->toArray();
         $votingActivities = VotingActivityDTO::collection($contest->entries, $userVoteEntryIds, $viewedEntryIds)->toArray();
 
         return new ContestShowDTO(
@@ -69,7 +62,7 @@ final readonly class ContestService
             startAt: $contest->start_at?->format('Y-m-d H:i'),
             endAt: $contest->end_at?->format('Y-m-d H:i'),
             isActive: $contest->isActive(),
-            isTimeActive: $isTimeActive,
+            isTimeActive: app(TimeWindowService::class)->isContestActive($contest),
             createdAt: $contest->created_at->format('Y-m-d H:i'),
             isArchived: $contest->status === 'archived',
             quizActivities: $quizActivities,
@@ -80,58 +73,61 @@ final readonly class ContestService
 
     /**
      * Get contest data for the admin show page.
-     *
-     * @return array<string, mixed>
      */
-    public function getAdminShowData(Contest $contest, int $userId): array
+    public function getAdminShowData(Contest $contest, int $userId): ContestShowDTO
     {
         $this->loadContestRelations($contest, withMedia: false);
 
         $activities = match ($contest->type->value) {
-            'quiz' => $contest->quizEntries->map(fn ($entry): array => [
-                'id' => $entry->id,
-                'type' => 'quiz',
-                'title' => $entry->title,
-                'description' => $entry->description,
-                'question' => $entry->question,
-                'options' => $entry->options,
-                'quiz_type' => $entry->type,
-                'is_scheduled' => $entry->isScheduled(),
-                'is_visible' => $entry->isVisible(),
-                'created_at' => $entry->created_at->format('Y-m-d H:i'),
-            ])->toArray(),
-            default => $contest->entries->map(fn ($entry): array => [
-                'id' => $entry->id,
-                'type' => 'voting',
-                'title' => $entry->title,
-                'description' => $entry->description,
-                'author_name' => $entry->author_name,
-                'author_department' => $entry->author_department,
-                'votes_count' => $entry->votes_count,
-                'created_at' => $entry->created_at->format('Y-m-d H:i'),
-            ])->toArray(),
+            'quiz' => $contest->quizEntries
+                ->map(fn ($entry) => AdminQuizEntryDTO::fromArray([
+                    'id' => $entry->id,
+                    'title' => $entry->title,
+                    'description' => $entry->description,
+                    'question' => $entry->question,
+                    'options' => $entry->options,
+                    'quiz_type' => $entry->type,
+                    'is_scheduled' => $entry->isScheduled(),
+                    'is_visible' => $entry->isVisible(),
+                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
+                ]))
+                ->toArray(),
+            default => $contest->entries
+                ->map(fn ($entry) => AdminVotingEntryDTO::fromArray([
+                    'id' => $entry->id,
+                    'title' => $entry->title,
+                    'description' => $entry->description,
+                    'author_name' => $entry->author_name,
+                    'author_department' => $entry->author_department,
+                    'votes_count' => $entry->votes_count,
+                    'created_at' => $entry->created_at->format('Y-m-d H:i'),
+                ]))
+                ->toArray(),
         };
 
-        return [
-            'id' => $contest->id,
-            'title' => $contest->title,
-            'type' => $contest->type->value,
-            'status' => $contest->status,
-            'description' => $contest->description,
-            'start_at' => $contest->start_at?->format('Y-m-d H:i'),
-            'end_at' => $contest->end_at?->format('Y-m-d H:i'),
-            'is_active' => $contest->isActive(),
-            'can_manage' => $this->userCanManage($userId),
-            'activities' => $activities,
-            'created_at' => $contest->created_at->format('Y-m-d H:i'),
-        ];
+        return new ContestShowDTO(
+            id: $contest->id,
+            title: $contest->title,
+            type: $contest->type->value,
+            status: $contest->status,
+            slug: $contest->slug,
+            description: $contest->description,
+            startAt: $contest->start_at?->format('Y-m-d H:i'),
+            endAt: $contest->end_at?->format('Y-m-d H:i'),
+            isActive: $contest->isActive(),
+            isTimeActive: app(TimeWindowService::class)->isContestActive($contest),
+            createdAt: $contest->created_at->format('Y-m-d H:i'),
+            isArchived: $contest->status === 'archived',
+            quizActivities: $activities,
+            votingActivities: $activities,
+            leaderboard: [],
+        );
     }
 
     /**
      * Get contests for the admin index page with pagination.
      *
      * @param  array<string, string|null>  $filters
-     * @return LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, can_manage: bool, created_at: string}>
      */
     public function getAdminContests(array $filters, int $userId): LengthAwarePaginator
     {
@@ -150,9 +146,13 @@ final readonly class ContestService
             $query->where('title', 'ilike', '%'.$filters['search'].'%');
         }
 
-        /** @var LengthAwarePaginator<int, array{id: int, title: string, type: string, status: string, description: string|null, start_at: string|null, end_at: string|null, is_active: bool, quiz_entry_count: int, entry_count: int, author: array{id: int, name: string}, can_manage: bool, created_at: string}> $paginator */
-        $paginator = $query->paginate(15)->through(function (Contest $contest) use ($userId): array {
-            return [
+        $canManage = $this->userCanManage($userId);
+
+        /** @var LengthAwarePaginator<int, Contest> $paginator */
+        $paginator = $query->paginate(15);
+
+        return $paginator->through(
+            fn (Contest $contest) => AdminContestDTO::fromArray([
                 'id' => $contest->id,
                 'title' => $contest->title,
                 'type' => $contest->type->value,
@@ -167,18 +167,14 @@ final readonly class ContestService
                     'id' => $contest->user_id,
                     'name' => $contest->author !== null ? $contest->author->name : 'Unknown',
                 ],
-                'can_manage' => $this->userCanManage($userId),
+                'can_manage' => $canManage,
                 'created_at' => $contest->created_at->format('Y-m-d H:i'),
-            ];
-        });
-
-        return $paginator;
+            ])->toArray()
+        );
     }
 
     /**
      * Get contest data for the admin edit page.
-     *
-     * @return array<string, mixed>
      */
     public function getAdminEditData(Contest $contest): array
     {
@@ -217,100 +213,22 @@ final readonly class ContestService
     }
 
     /**
-     * Get user vote entry IDs for a contest.
-     *
-     * @return array<int, int>
-     */
-    public function getUserVoteEntryIds(Contest $contest, Authenticatable $user): array
-    {
-        /** @var User $authUser */
-        $authUser = $user instanceof User
-            ? $user
-            : throw new \InvalidArgumentException('Invalid user type');
-
-        /** @var array<int, int> $result */
-        $result = $authUser->votes()
-            ->where('contest_id', $contest->id)
-            ->pluck('entry_id')
-            ->toArray();
-
-        return $result;
-    }
-
-    /**
-     * Get viewed entry IDs for a user in a contest.
-     *
-     * @return array<int, int>
-     */
-    public function getViewedEntryIds(Contest $contest, User $user): array
-    {
-        /** @var array<int, int> $result */
-        $result = $user->entryViews()
-            ->where('contest_id', $contest->id)
-            ->pluck('entry_id')
-            ->toArray();
-
-        return $result;
-    }
-
-    /**
-     * Mark an entry as viewed by a user.
-     */
-    public function markEntryAsViewed(Contest $contest, User $user, int $entryId): void
-    {
-        $user->entryViews()->updateOrCreate(
-            ['contest_id' => $contest->id, 'entry_id' => $entryId],
-            ['contest_id' => $contest->id, 'entry_id' => $entryId]
-        );
-    }
-
-    /**
-     * Get answered quiz entry IDs for a user in a contest.
-     *
-     * @return array<int, int>
-     */
-    public function getAnsweredQuizEntryIds(Contest $contest, User $user): array
-    {
-        /** @var array<int, int> $result */
-        $result = $user->quizAnswers()
-            ->whereHas('quizEntry', fn ($query) => $query->where('contest_id', $contest->id))
-            ->pluck('quiz_entry_id')
-            ->toArray();
-
-        return $result;
-    }
-
-    /**
      * Load contest relations for public show.
      */
     private function loadContestRelations(Contest $contest, bool $withMedia = true): void
     {
-        $contest->load([
-            'quizEntries' => function ($query): void {
-                $query->where(function ($q): void {
-                    $q->whereNull('show_from')
-                        ->orWhere('show_from', '<=', now());
-                })->where(function ($q): void {
-                    $q->whereNull('show_until')
-                        ->orWhere('show_until', '>=', now());
-                })->orderBy('sort_order');
-            },
-            'quizEntries.media',
-            'entries' => function ($query): void {
-                $query->orderBy('id');
-            },
-            'entries.media',
-        ]);
-    }
+        $with = [
+            'quizEntries' => fn ($query) => $query->active()->orderBy('sort_order'),
+        ];
 
-    /**
-     * Check if contest is within its time window.
-     *
-     * @deprecated Use TimeWindowService::isContestActive() instead.
-     */
-    private function isTimeActive(Contest $contest): bool
-    {
-        return app(TimeWindowService::class)->isContestActive($contest);
+        if ($withMedia) {
+            $with['quizEntries.media'] = [];
+            $with['entries.media'] = [];
+        }
+
+        $with['entries'] = fn ($query) => $query->orderBy('id');
+
+        $contest->load($with);
     }
 
     /**
