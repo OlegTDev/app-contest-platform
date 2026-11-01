@@ -9,6 +9,7 @@ use Carbon\CarbonInterface;
 use Database\Factories\ContestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -116,7 +117,7 @@ class Contest extends Model
     /**
      * Scope: only published contests.
      */
-    public function scopePublished($query): void
+    public function scopePublished(Builder $query): void
     {
         $query->where('status', 'published');
     }

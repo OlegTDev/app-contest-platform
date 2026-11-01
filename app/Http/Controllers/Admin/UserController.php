@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignRoleRequest;
 use App\Models\User;
@@ -37,11 +38,7 @@ final class UserController extends Controller
                 'next_page_url' => $users->nextPageUrl(),
                 'prev_page_url' => $users->previousPageUrl(),
             ],
-            'available_roles' => [
-                ['value' => User::ROLE_ADMIN, 'label' => 'Admin'],
-                ['value' => User::ROLE_MODERATOR, 'label' => 'Moderator'],
-                ['value' => User::ROLE_USER, 'label' => 'User'],
-            ],
+            'available_roles' => UserRole::selectOptions(),
         ]);
     }
 

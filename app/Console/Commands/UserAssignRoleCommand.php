@@ -20,7 +20,7 @@ final class UserAssignRoleCommand extends Command
      *
      * @var list<string>
      */
-    private const VALID_ROLES = [User::ROLE_ADMIN, User::ROLE_MODERATOR, User::ROLE_USER];
+    private const VALID_ROLES = ['admin', 'moderator', 'user'];
 
     public function handle(): int
     {

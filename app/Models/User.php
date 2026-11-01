@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -72,13 +73,6 @@ class User extends Authenticatable implements LdapAuthenticatable
         return $this->hasMany(QuizAnswer::class, 'user_id');
     }
 
-    // Role constants
-    public const ROLE_ADMIN = 'admin';
-
-    public const ROLE_MODERATOR = 'moderator';
-
-    public const ROLE_USER = 'user';
-
     /**
      * Get the attributes that should be cast.
      *
@@ -88,6 +82,7 @@ class User extends Authenticatable implements LdapAuthenticatable
     {
         return [
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -96,7 +91,7 @@ class User extends Authenticatable implements LdapAuthenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+        return $this->role === UserRole::ADMIN;
     }
 
     /**
@@ -104,6 +99,6 @@ class User extends Authenticatable implements LdapAuthenticatable
      */
     public function isModerator(): bool
     {
-        return $this->role === self::ROLE_MODERATOR;
+        return $this->role === UserRole::MODERATOR;
     }
 }

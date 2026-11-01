@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Console\Command;
 use LdapRecord\LdapRecordException;
@@ -145,7 +146,7 @@ final class SyncLdapUsersCommand extends Command
                         'email' => $mail,
                         'guid' => $guid,
                         'domain' => config('app.name'),
-                        'role' => User::ROLE_USER,
+                        'role' => UserRole::USER->value,
                     ]);
 
                     $this->output->writeln(sprintf(

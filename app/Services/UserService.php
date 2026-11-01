@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\DTOs\UserDTO;
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
@@ -17,9 +18,9 @@ final readonly class UserService
      * @var list<array{value: string, label: string}>
      */
     private const AVAILABLE_ROLES = [
-        ['value' => User::ROLE_ADMIN, 'label' => 'Admin'],
-        ['value' => User::ROLE_MODERATOR, 'label' => 'Moderator'],
-        ['value' => User::ROLE_USER, 'label' => 'User'],
+        ['value' => UserRole::ADMIN->value, 'label' => 'Admin'],
+        ['value' => UserRole::MODERATOR->value, 'label' => 'Moderator'],
+        ['value' => UserRole::USER->value, 'label' => 'User'],
     ];
 
     /**

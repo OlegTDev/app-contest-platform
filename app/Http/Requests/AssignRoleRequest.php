@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -31,7 +32,7 @@ class AssignRoleRequest extends FormRequest
             'role' => [
                 'required',
                 'string',
-                'in:'.implode(',', [User::ROLE_ADMIN, User::ROLE_MODERATOR, User::ROLE_USER]),
+                'in:'.implode(',', array_map(fn (UserRole $r) => $r->value, UserRole::cases())),
             ],
         ];
     }

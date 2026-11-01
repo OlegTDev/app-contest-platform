@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -52,11 +53,11 @@ class UserManagementTest extends TestCase
         $this->actingAs($this->adminUser);
 
         $this->patch(route('admin.users.update-role', $this->regularUser->getRouteKey()), [
-            'role' => User::ROLE_MODERATOR,
+            'role' => UserRole::MODERATOR->value,
         ])->assertRedirect();
 
         $this->regularUser->refresh();
-        $this->assertEquals(User::ROLE_MODERATOR, $this->regularUser->role);
+        $this->assertEquals(UserRole::MODERATOR, $this->regularUser->role);
     }
 
     public function test_admin_can_promote_user_to_admin_role(): void
@@ -64,11 +65,11 @@ class UserManagementTest extends TestCase
         $this->actingAs($this->adminUser);
 
         $this->patch(route('admin.users.update-role', $this->regularUser->getRouteKey()), [
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRole::ADMIN->value,
         ])->assertRedirect();
 
         $this->regularUser->refresh();
-        $this->assertEquals(User::ROLE_ADMIN, $this->regularUser->role);
+        $this->assertEquals(UserRole::ADMIN, $this->regularUser->role);
     }
 
     public function test_admin_cannot_assign_invalid_role(): void
@@ -85,7 +86,7 @@ class UserManagementTest extends TestCase
         $this->actingAs($this->regularUser);
 
         $this->patch(route('admin.users.update-role', $this->moderatorUser->getRouteKey()), [
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRole::ADMIN->value,
         ])->assertStatus(403);
     }
 
@@ -94,7 +95,7 @@ class UserManagementTest extends TestCase
         // Outer 'auth' middleware redirects unauthenticated users to login (302)
         // The 'admin' middleware only applies to authenticated non-admin users (403)
         $this->patch(route('admin.users.update-role', $this->regularUser->getRouteKey()), [
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRole::ADMIN->value,
         ])->assertRedirect();
     }
 
@@ -106,20 +107,20 @@ class UserManagementTest extends TestCase
 
         $output = Artisan::call('user:assign-role', [
             'login' => 'testuser',
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRole::ADMIN->value,
         ]);
 
         $this->assertEquals(0, $output);
 
         $user->refresh();
-        $this->assertEquals(User::ROLE_ADMIN, $user->role);
+        $this->assertEquals(UserRole::ADMIN, $user->role);
     }
 
     public function test_command_fails_for_non_existent_login(): void
     {
         $output = Artisan::call('user:assign-role', [
             'login' => 'nonexistent',
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRole::ADMIN->value,
         ]);
 
         $this->assertEquals(1, $output);
@@ -147,13 +148,13 @@ class UserManagementTest extends TestCase
 
         $output = Artisan::call('user:assign-role', [
             'login' => 'testuser',
-            'role' => User::ROLE_MODERATOR,
+            'role' => UserRole::MODERATOR->value,
         ]);
 
         $this->assertEquals(0, $output);
 
         $user->refresh();
-        $this->assertEquals(User::ROLE_MODERATOR, $user->role);
+        $this->assertEquals(UserRole::MODERATOR, $user->role);
     }
 
     public function test_command_can_demote_admin_to_regular_user_by_login(): void
@@ -164,12 +165,12 @@ class UserManagementTest extends TestCase
 
         $output = Artisan::call('user:assign-role', [
             'login' => 'adminuser',
-            'role' => User::ROLE_USER,
+            'role' => UserRole::USER->value,
         ]);
 
         $this->assertEquals(0, $output);
 
         $user->refresh();
-        $this->assertEquals(User::ROLE_USER, $user->role);
+        $this->assertEquals(UserRole::USER, $user->role);
     }
 }
