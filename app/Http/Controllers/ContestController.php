@@ -54,16 +54,12 @@ class ContestController extends Controller
             ? $this->userActivity->getAnsweredQuizEntryIds($user, $contest->id)->toArray()
             : [];
 
-        try {
-            $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
+        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
 
-            return Inertia::render('contests/PublicShow', [
-                'contest' => $data->toArray(),
-                'leaderboard' => $this->contestService->getLeaderboard($contest),
-            ]);
-        } catch (Throwable) {
-            abort(404);
-        }
+        return Inertia::render('contests/PublicShow', [
+            'contest' => $data->toArray(),
+            'leaderboard' => $this->contestService->getLeaderboard($contest),
+        ]);
     }
 
     /**

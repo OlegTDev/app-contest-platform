@@ -186,7 +186,9 @@ class QuizController extends Controller
      */
     public function take(Contest $contest, QuizEntry $entry): Response
     {
-        abort_unless($contest->isActive(), 403);
+        if (! in_array($contest->status, ['published', 'archived', 'closed', 'paused'], strict: true)) {
+            abort(404);
+        }
         $this->ensureEntryBelongsToContest($contest, $entry);
         abort_unless($entry->isVisible(), 403);
 
@@ -221,7 +223,9 @@ class QuizController extends Controller
         QuizEntry $entry,
         SubmitQuizAnswerRequest $request,
     ): RedirectResponse {
-        abort_unless($contest->isActive(), 403);
+        if (! in_array($contest->status, ['published', 'archived', 'closed', 'paused'], strict: true)) {
+            abort(404);
+        }
         $this->ensureEntryBelongsToContest($contest, $entry);
         abort_unless($entry->isVisible(), 403);
 
@@ -276,7 +280,9 @@ class QuizController extends Controller
      */
     public function leaderboard(Contest $contest): JsonResponse
     {
-        abort_unless($contest->isActive(), 403);
+        if (! in_array($contest->status, ['published', 'archived', 'closed', 'paused'], strict: true)) {
+            abort(404);
+        }
 
         $leaderboard = QuizAnswer::whereHas('quizEntry', function ($query) use ($contest) {
             $query->where('contest_id', $contest->id);
