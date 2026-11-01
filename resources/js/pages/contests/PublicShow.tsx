@@ -67,7 +67,7 @@ type ContestItem = {
     is_active: boolean;
     is_time_active: boolean;
     is_archived: boolean;
-    activities: ActivityItem[];
+    activities?: ActivityItem[] | null;
     created_at: string;
 };
 
@@ -104,7 +104,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
     const [quizResult, setQuizResult] = useState<Record<number, { is_correct: boolean }>>({});
 
     const activeEntry =
-        contest.activities.find(
+        (contest.activities || []).find(
             (a): a is VotingActivity => a.type === "voting" && a.id === selectedEntry?.id
         ) ?? null;
 
@@ -140,13 +140,15 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
     };
 
     const handleQuizRedirect = () => {
-        if (contest.activities.length > 0) {
-            const firstQuiz = contest.activities.find(
+        if ((contest.activities || []).length > 0) {
+            const firstQuiz = (contest.activities || []).find(
                 (a) => a.type === "quiz"
             ) as QuizActivity;
-            router.get(`/admin/contests/${contest.id}/quizzes/${firstQuiz.id}/take`, {}, {
-                preserveScroll: true,
-            });
+            if (firstQuiz) {
+                router.get(`/admin/contests/${contest.id}/quizzes/${firstQuiz.id}/take`, {}, {
+                    preserveScroll: true,
+                });
+            }
         }
     };
 
@@ -409,15 +411,15 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 <Space>
                                     <QuestionCircleOutlined style={{ color: "#1677ff" }} />
                                     <span>Вопросы</span>
-                                    <Tag>{contest.activities.filter((a) => a.type === "quiz").length}</Tag>
+                                    <Tag>{(contest.activities || []).filter((a) => a.type === "quiz").length}</Tag>
                                 </Space>
                             }
                         >
-                            {contest.activities.filter((a) => a.type === "quiz").length === 0 ? (
+                            {(contest.activities || []).filter((a) => a.type === "quiz").length === 0 ? (
                                 <Empty description="Вопросов пока нет" />
                             ) : (
                                 <Row gutter={[16, 16]}>
-                                    {contest.activities.map((activity) => {
+                                    {(contest.activities || []).map((activity) => {
                                         if (activity.type !== "quiz") return null;
                                         const quiz = activity as QuizActivity;
                                         const isAnswered = quiz.is_answered || !!quizResult[quiz.id];
@@ -549,11 +551,11 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 <Space>
                                     <ThunderboltOutlined style={{ color: "#52c41a" }} />
                                     <span>Работы</span>
-                                    <Tag>{contest.activities.filter((a) => a.type === "voting").length}</Tag>
+                                    <Tag>{(contest.activities || []).filter((a) => a.type === "voting").length}</Tag>
                                 </Space>
                             }
                             extra={
-                                contest.activities.some((a) => a.type === "voting") ? (
+                                (contest.activities || []).some((a) => a.type === "voting") ? (
                                     <Button
                                         type="primary"
                                         icon={<TrophyOutlined />}
@@ -564,11 +566,11 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 ) : null
                             }
                         >
-                            {contest.activities.filter((a) => a.type === "voting").length === 0 ? (
+                            {(contest.activities || []).filter((a) => a.type === "voting").length === 0 ? (
                                 <Empty description="Работ пока нет" />
                             ) : (
                                 <Row gutter={[16, 16]}>
-                                    {contest.activities.map((activity) => {
+                                    {(contest.activities || []).map((activity) => {
                                         if (activity.type !== "voting") return null;
                                         // Show only the file marked as main (is_main: true); fallback to the first file if none is marked.
                                         const mainMedia =
