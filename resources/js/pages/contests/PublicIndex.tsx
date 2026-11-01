@@ -74,7 +74,7 @@ export default function PublicIndex({ contests }: PublicIndexProps): React.JSX.E
                     ) : (
                         <Space direction="vertical" size="large" style={{ width: "100%" }}>
                             {contests.map((contest) => (
-                                <Link href={contest.slug ? `/contests/${contest.slug}` : `/contests/${contest.id}`}>
+                                <Link href={`/contests/${contest.slug || contest.id}`}>
                                     <Card
                                         hoverable
                                         style={{
