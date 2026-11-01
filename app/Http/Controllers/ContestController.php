@@ -45,7 +45,11 @@ class ContestController extends Controller
             ? $this->contestService->getViewedEntryIds($contest, $user)
             : [];
 
-        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds);
+        $answeredQuizEntryIds = $user !== null
+            ? $this->contestService->getAnsweredQuizEntryIds($contest, $user)
+            : [];
+
+        $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
 
         return Inertia::render('contests/PublicShow', [
             'contest' => $data->toArray(),

@@ -36,6 +36,43 @@ class QuizEntry extends Model
     ];
 
     /**
+     * Get the question text from fields_data.
+     */
+    public function getQuestionAttribute(): ?string
+    {
+        return $this->fields_data['question'] ?? null;
+    }
+
+    /**
+     * Get the options array from fields_data.
+     *
+     * @return array<int, array{id: string, text: string, is_correct: bool}>|null
+     */
+    public function getOptionsAttribute(): ?array
+    {
+        $options = $this->fields_data['options'] ?? null;
+        if (! is_array($options)) {
+            return null;
+        }
+
+        return array_map(function ($opt) {
+            return [
+                'id' => $opt['id'] ?? '',
+                'text' => $opt['text'] ?? '',
+                'is_correct' => (bool) ($opt['is_correct'] ?? false),
+            ];
+        }, $options);
+    }
+
+    /**
+     * Get the quiz type from fields_data.
+     */
+    public function getTypeAttribute(): string
+    {
+        return $this->fields_data['type'] ?? 'single';
+    }
+
+    /**
      * @return BelongsTo<Contest, $this>
      */
     public function contest(): BelongsTo

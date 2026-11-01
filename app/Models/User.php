@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,6 +29,7 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Collection<int, Contest> $contests
+ * @property Collection<int, QuizAnswer> $quizAnswers
  */
 #[Fillable(['name', 'email', 'login', 'department', 'position', 'city_code', 'phone', 'password', 'guid', 'domain', 'role'])]
 #[Hidden(['password'])]
@@ -62,6 +62,14 @@ class User extends Authenticatable implements LdapAuthenticatable
     public function entryViews(): HasMany
     {
         return $this->hasMany(EntryView::class);
+    }
+
+    /**
+     * @return HasMany<QuizAnswer, $this>
+     */
+    public function quizAnswers(): HasMany
+    {
+        return $this->hasMany(QuizAnswer::class, 'user_id');
     }
 
     // Role constants

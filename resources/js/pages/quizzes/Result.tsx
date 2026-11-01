@@ -1,160 +1,111 @@
 import { Head, Link } from "@inertiajs/react";
-import { Button, Card, Result, Space, Table, Typography } from "antd";
-import type { ColumnsType } from "antd/es/table";
+import { Button, Card, Result, Space, Tag, Typography } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
 
-type QuestionOption = {
-  id: string;
-  text: string;
-};
-
-type Question = {
-  id: string;
-  question: string;
-  type: "single" | "multiple";
-  options: QuestionOption[];
-  correct_answer: string | string[];
+type QuizOption = {
+    id: string;
+    text: string;
+    is_correct: boolean;
 };
 
 type Quiz = {
-  id: number;
-  title: string;
-  description: string;
-  questions: Question[];
+    id: number;
+    title: string;
+    description: string | null;
+    question: string | null;
+    options: QuizOption[] | null;
+    type: string | null;
 };
 
 type Contest = {
-  id: number;
-  title: string;
+    id: number;
+    title: string;
 };
 
-type ResultData = {
-  score: number;
-  total_questions: number;
-  correct_answers: number;
-  percentage: number;
-  completed_at: string;
+type AnswerData = {
+    is_correct: boolean;
+    selected_options: string[] | null;
+    answered_at: string | null;
 };
 
 type QuizResultProps = {
-  quiz: Quiz;
-  contest: Contest;
-  result: ResultData;
+    quiz: Quiz;
+    contest: Contest;
+    answer: AnswerData;
 };
 
-export default function QuizResult({ quiz, contest, result }: QuizResultProps): React.JSX.Element {
-  const getStatus = () => {
-    if (result.percentage >= 80) return "success";
-    if (result.percentage >= 50) return "warning";
-    return "error";
-  };
+export default function QuizResult({ quiz, contest, answer }: QuizResultProps): React.JSX.Element {
+    const getStatus = () => answer.is_correct ? "success" : "error";
+    const getTitle = () => answer.is_correct ? "Правильно!" : "Неправильно";
+    const getSubtitle = () =>
+        answer.is_correct
+            ? "Отличный результат! Вы выбрали верный ответ."
+            : "К сожалению, ваш ответ неверный. Попробуйте в следующий раз!";
 
-  const getEmoji = () => {
-    if (result.percentage >= 80) return "🎉";
-    if (result.percentage >= 50) return "👍";
-    return "😔";
-  };
+    return (
+        <>
+            <Head title="Результат" />
 
-  const getMotivation = () => {
-    if (result.percentage >= 80) return "Отличный результат! Вы прекрасно разбираетесь в теме!";
-    if (result.percentage >= 50) return "Неплохо! Есть над чем поработать.";
-    return "Стоит повторить материал и попробовать снова.";
-  };
+            <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 0" }}>
+                <Space direction="vertical" size="large" style={{ width: "100%" }}>
+                    <div>
+                        <Link href={`/contests/${contest.id}`}>
+                            <Button type="text" style={{ float: "left", marginRight: 12 }}>
+                                ← Назад
+                            </Button>
+                        </Link>
+                        <Title level={2}>{quiz.title}</Title>
+                    </div>
 
-  const getCorrectOption = (question: Question): string[] => {
-    if (Array.isArray(question.correct_answer)) {
-      return question.correct_answer;
-    }
-    return [question.correct_answer];
-  };
+                    <Result
+                        status={getStatus()}
+                        title={getTitle()}
+                        subTitle={getSubtitle()}
+                    />
 
-  const getQuestionReviewData = () => {
-    return quiz.questions.map((q, index) => {
-      const correctIds = getCorrectOption(q);
-      return {
-        key: q.id,
-        question: index + 1,
-        text: q.question,
-        correctAnswer: correctIds
-          .map((id) => q.options.find((o) => o.id === id)?.text || id)
-          .join(", "),
-        status: "correct",
-      };
-    });
-  };
+                    <Card title="Ваш ответ">
+                        <Space direction="vertical" style={{ width: "100%" }}>
+                            {quiz.options?.map((option) => {
+                                const isSelected = answer.selected_options?.includes(option.id);
+                                const isCorrect = option.is_correct;
+                                
+                                let tagColor: string | undefined;
+                                if (isCorrect && isSelected) tagColor = "green";
+                                else if (isCorrect && !isSelected) tagColor = "default";
+                                else if (!isCorrect && isSelected) tagColor = "red";
+                                
+                                return (
+                                    <Tag
+                                        key={option.id}
+                                        color={tagColor}
+                                        icon={
+                                            isCorrect && isSelected ? <CheckCircleOutlined /> :
+                                            !isCorrect && isSelected ? <CloseCircleOutlined /> :
+                                            undefined
+                                        }
+                                        style={{ 
+                                            width: "100%", 
+                                            textAlign: "left",
+                                            fontSize: 14,
+                                            padding: "8px 12px",
+                                        }}
+                                    >
+                                        {option.text}
+                                    </Tag>
+                                );
+                            })}
+                        </Space>
+                    </Card>
 
-  const reviewColumns: ColumnsType<ReturnType<typeof getQuestionReviewData>[number]> = [
-    {
-      title: "№",
-      dataIndex: "question",
-      key: "question",
-      width: 60,
-    },
-    {
-      title: "Вопрос",
-      dataIndex: "text",
-      key: "text",
-      ellipsis: true,
-    },
-    {
-      title: "Правильный ответ",
-      dataIndex: "correctAnswer",
-      key: "correctAnswer",
-      ellipsis: true,
-    },
-  ];
-
-  return (
-    <>
-      <Head title="Результаты викторины" />
-
-      <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <div>
-            <Link href={`/admin/contests/${contest.id}/quizzes/${quiz.id}`}>
-              <Button type="text" style={{ float: "left", marginRight: 12 }}>
-                ← Назад
-              </Button>
-            </Link>
-            <Title level={2}>Результаты</Title>
-            <Paragraph type="secondary">
-              {quiz.title} | {contest.title}
-            </Paragraph>
-          </div>
-
-          <Result
-            status={getStatus() as "success" | "error" | "info" | "warning"}
-            title={`${getEmoji()} ${result.percentage}%`}
-            subTitle={
-              <div>
-                <Paragraph style={{ marginBottom: 4 }}>
-                  Правильных ответов: <Text strong>{result.correct_answers}</Text> из {result.total_questions}
-                </Paragraph>
-                <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                  {getMotivation()}
-                </Paragraph>
-              </div>
-            }
-            extra={[
-              <Link key="leaderboard" href={`/admin/contests/${contest.id}/quizzes/${quiz.id}/leaderboard`}>
-                <Button type="primary">Таблица лидеров</Button>
-              </Link>,
-            ]}
-          />
-
-          <Card title="Детальный обзор">
-            <Table
-              columns={reviewColumns}
-              dataSource={getQuestionReviewData()}
-              pagination={false}
-              size="small"
-            />
-          </Card>
-
-
-        </Space>
-      </div>
-    </>
-  );
+                    {answer.answered_at && (
+                        <Text type="secondary">
+                            Ответ дан: {answer.answered_at}
+                        </Text>
+                    )}
+                </Space>
+            </div>
+        </>
+    );
 }

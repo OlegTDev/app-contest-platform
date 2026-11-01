@@ -3,6 +3,7 @@ services:
         image: nginx:${NGINX_VERSION}-alpine
         volumes:
             - ./:/app
+            - ./storage/app/public:/app/public/storage:ro
             - ./docker/dev/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
         ports:
             - ${NGINX_PORT}:80

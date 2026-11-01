@@ -13,7 +13,6 @@ use App\Models\Contest;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 final readonly class ContestService
@@ -38,13 +37,26 @@ final readonly class ContestService
      *
      * @param  array<int, int>  $userVoteEntryIds
      * @param  array<int, int>  $viewedEntryIds
+     * @param  array<int, int>  $answeredQuizEntryIds
      */
-    public function getPublicShowData(Contest $contest, array $userVoteEntryIds = [], array $viewedEntryIds = []): ContestShowDTO
+    public function getPublicShowData(Contest $contest, array $userVoteEntryIds = [], array $viewedEntryIds = [], array $answeredQuizEntryIds = []): ContestShowDTO
     {
         $this->loadContestRelations($contest);
 
+        // Get filtered quiz entries directly from the query
+        $filteredQuizEntries = $contest->quizEntries()->where(function ($q): void {
+            $q->whereNull('show_from')
+                ->orWhere('show_from', '<=', now());
+        })->where(function ($q): void {
+            $q->whereNull('show_until')
+                ->orWhere('show_until', '>=', now());
+        })->orderBy('sort_order')->get();
+
+        // Load media for filtered entries
+        $filteredQuizEntries->load('media');
+
         $isTimeActive = $this->isTimeActive($contest);
-        $quizActivities = QuizActivityDTO::collection($contest->quizEntries)->toArray();
+        $quizActivities = QuizActivityDTO::collection($filteredQuizEntries, $answeredQuizEntryIds)->toArray();
         $votingActivities = VotingActivityDTO::collection($contest->entries, $userVoteEntryIds, $viewedEntryIds)->toArray();
 
         return new ContestShowDTO(
@@ -69,7 +81,6 @@ final readonly class ContestService
     /**
      * Get contest data for the admin show page.
      *
-     * @param  int  $userId
      * @return array<string, mixed>
      */
     public function getAdminShowData(Contest $contest, int $userId): array
@@ -82,6 +93,9 @@ final readonly class ContestService
                 'type' => 'quiz',
                 'title' => $entry->title,
                 'description' => $entry->description,
+                'question' => $entry->question,
+                'options' => $entry->options,
+                'quiz_type' => $entry->type,
                 'is_scheduled' => $entry->isScheduled(),
                 'is_visible' => $entry->isVisible(),
                 'created_at' => $entry->created_at->format('Y-m-d H:i'),
@@ -251,6 +265,22 @@ final readonly class ContestService
     }
 
     /**
+     * Get answered quiz entry IDs for a user in a contest.
+     *
+     * @return array<int, int>
+     */
+    public function getAnsweredQuizEntryIds(Contest $contest, User $user): array
+    {
+        /** @var array<int, int> $result */
+        $result = $user->quizAnswers()
+            ->whereHas('quizEntry', fn ($query) => $query->where('contest_id', $contest->id))
+            ->pluck('quiz_entry_id')
+            ->toArray();
+
+        return $result;
+    }
+
+    /**
      * Load contest relations for public show.
      */
     private function loadContestRelations(Contest $contest, bool $withMedia = true): void
@@ -265,14 +295,12 @@ final readonly class ContestService
                         ->orWhere('show_until', '>=', now());
                 })->orderBy('sort_order');
             },
+            'quizEntries.media',
             'entries' => function ($query): void {
                 $query->orderBy('id');
             },
+            'entries.media',
         ]);
-
-        if ($withMedia) {
-            $contest->load('entries.media');
-        }
     }
 
     /**

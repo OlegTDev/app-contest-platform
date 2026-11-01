@@ -20,12 +20,23 @@ type MediaItem = {
     created_at: string;
 };
 
+type QuizOption = {
+    id: string;
+    text: string;
+    is_correct: boolean;
+};
+
 type QuizActivity = {
     id: number;
     type: "quiz";
     title: string;
     description: string | null;
+    question: string | null;
+    options: QuizOption[] | null;
+    quizType: string | null;
     is_visible: boolean;
+    is_answered: boolean;
+    media: MediaItem[];
     created_at: string;
 };
 
@@ -88,6 +99,9 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
     const [selectedEntry, setSelectedEntry] = useState<VotingActivity | null>(null);
     const [voting, setVoting] = useState(false);
     const [leaderboardDrawerOpen, setLeaderboardDrawerOpen] = useState(false);
+    const [quizAnswering, setQuizAnswering] = useState<number | null>(null);
+    const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string[]>>({});
+    const [quizResult, setQuizResult] = useState<Record<number, { is_correct: boolean }>>({});
 
     const activeEntry =
         contest.activities.find(
@@ -134,6 +148,60 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                 preserveScroll: true,
             });
         }
+    };
+
+    const handleQuizAnswerSelect = (quizId: number, optionId: string, quizType: string) => {
+        setSelectedAnswers((prev) => {
+            const current = prev[quizId] || [];
+            if (quizType === "single") {
+                return { ...prev, [quizId]: [optionId] };
+            }
+            // multiple
+            const newSelection = current.includes(optionId)
+                ? current.filter((id) => id !== optionId)
+                : [...current, optionId];
+            return { ...prev, [quizId]: newSelection };
+        });
+    };
+
+    const handleQuizSubmit = (quiz: QuizActivity) => {
+        if (!contest.is_time_active && !contest.is_archived) {
+            message.warning("Период викторины завершён");
+            return;
+        }
+
+        const selection = selectedAnswers[quiz.id] || [];
+        if (selection.length === 0) {
+            message.warning("Выберите ответ");
+            return;
+        }
+
+        setQuizAnswering(quiz.id);
+
+        router.post(`/contests/${contest.id}/quizzes/${quiz.id}/submit`, {
+            selected_options: selection,
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setQuizAnswering(null);
+                // Redirect to result page
+                router.get(`/contests/${contest.id}/quizzes/${quiz.id}/result`, {}, {
+                    preserveScroll: true,
+                });
+            },
+            onError: () => {
+                setQuizAnswering(null);
+                message.error("Не удалось отправить ответ");
+            },
+        });
+    };
+
+    const markQuizAsAnswered = (quizId: number, isCorrect: boolean) => {
+        setQuizResult((prev) => ({
+            ...prev,
+            [quizId]: { is_correct: isCorrect },
+        }));
     };
 
     const handlePreview = (file: MediaItem) => {
@@ -341,50 +409,135 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                 <Space>
                                     <QuestionCircleOutlined style={{ color: "#1677ff" }} />
                                     <span>Вопросы</span>
-                                    <Tag>{contest.activities.length}</Tag>
+                                    <Tag>{contest.activities.filter((a) => a.type === "quiz").length}</Tag>
                                 </Space>
                             }
-                            extra={
-                                contest.is_active && contest.activities.length > 0 ? (
-                                    <Button
-                                        type="primary"
-                                        icon={<QuestionCircleOutlined />}
-                                        onClick={handleQuizRedirect}
-                                    >
-                                        Пройти викторину
-                                    </Button>
-                                ) : null
-                            }
                         >
-                            {contest.activities.length === 0 ? (
+                            {contest.activities.filter((a) => a.type === "quiz").length === 0 ? (
                                 <Empty description="Вопросов пока нет" />
                             ) : (
-                                <List
-                                    dataSource={contest.activities}
-                                    renderItem={(activity) => {
+                                <Row gutter={[16, 16]}>
+                                    {contest.activities.map((activity) => {
                                         if (activity.type !== "quiz") return null;
+                                        const quiz = activity as QuizActivity;
+                                        const isAnswered = quiz.is_answered || !!quizResult[quiz.id];
+                                        const isAnswering = quizAnswering === quiz.id;
+                                        const selection = selectedAnswers[quiz.id] || [];
+                                        const result = quizResult[quiz.id];
+
                                         return (
-                                            <List.Item>
-                                                <Space
-                                                    style={{
-                                                        width: "100%",
-                                                        justifyContent: "space-between",
-                                                    }}
+                                            <Col xs={24} sm={12} lg={8} key={quiz.id}>
+                                                <Card
+                                                    hoverable
+                                                    style={{ height: '100%' }}
+                                                    cover={
+                                                        quiz.media && quiz.media.length > 0 ? (
+                                                            <div style={{ height: 160, overflow: 'hidden', background: '#f0f5ff' }}>
+                                                                <img
+                                                                    src={quiz.media.find((m) => m.is_main)?.file_url || quiz.media[0].file_url}
+                                                                    alt={quiz.title}
+                                                                    style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ height: 120, background: '#f0f5ff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+                                                                <Text type="secondary" style={{ fontSize: 13, textAlign: 'center' }}>
+                                                                    {quiz.question || quiz.title}
+                                                                </Text>
+                                                            </div>
+                                                        )
+                                                    }
                                                 >
-                                                    <Space>
-                                                        <Text strong>{activity.title}</Text>
-                                                        {!activity.is_visible && (
+                                                    <Space direction="vertical" style={{ width: '100%' }}>
+                                                        <Title level={5} style={{ marginBottom: 4 }}>
+                                                            {quiz.title}
+                                                        </Title>
+                                                        
+                                                        {!isAnswered ? (
+                                                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                                                {quiz.options?.map((option) => {
+                                                                    const isSelected = selection.includes(option.id);
+                                                                    return (
+                                                                        <div
+                                                                            key={option.id}
+                                                                            onClick={() => handleQuizAnswerSelect(quiz.id, option.id, quiz.quizType || "single")}
+                                                                            style={{
+                                                                                padding: '8px 12px',
+                                                                                border: isSelected ? '2px solid #1677ff' : '1px solid #d9d9d9',
+                                                                                borderRadius: 6,
+                                                                                cursor: 'pointer',
+                                                                                background: isSelected ? '#e6f0ff' : '#fff',
+                                                                                transition: 'all 0.2s',
+                                                                            }}
+                                                                        >
+                                                                            <Space>
+                                                                                {quiz.quizType === "single" ? (
+                                                                                    <input
+                                                                                        type="radio"
+                                                                                        checked={isSelected}
+                                                                                        readOnly
+                                                                                        style={{ margin: 0 }}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={isSelected}
+                                                                                        readOnly
+                                                                                        style={{ margin: 0 }}
+                                                                                    />
+                                                                                )}
+                                                                                <Text style={{ fontSize: 13 }}>{option.text}</Text>
+                                                                            </Space>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                <Button
+                                                                    type="primary"
+                                                                    size="small"
+                                                                    block
+                                                                    loading={isAnswering}
+                                                                    disabled={selection.length === 0}
+                                                                    onClick={() => handleQuizSubmit(quiz)}
+                                                                >
+                                                                    Ответить
+                                                                </Button>
+                                                            </Space>
+                                                        ) : (
+                                                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                                                {quiz.options?.map((option) => {
+                                                                    const isSelected = selection.includes(option.id);
+                                                                    const isCorrect = option.is_correct;
+                                                                    let tagColor: string | undefined;
+                                                                    
+                                                                    if (isCorrect && isSelected) tagColor = "green";
+                                                                    else if (isCorrect && !isSelected) tagColor = "red";
+                                                                    else if (!isCorrect && isSelected) tagColor = "volcano";
+                                                                    
+                                                                    return (
+                                                                        <Tag
+                                                                            key={option.id}
+                                                                            color={tagColor}
+                                                                            style={{ width: '100%', textAlign: 'center' }}
+                                                                        >
+                                                                            {option.text}
+                                                                        </Tag>
+                                                                    );
+                                                                })}
+                                                                <Tag color={result?.is_correct ? "success" : "error"}>
+                                                                    {result?.is_correct ? "✓ Правильно" : "✗ Неправильно"}
+                                                                </Tag>
+                                                            </Space>
+                                                        )}
+                                                        
+                                                        {!quiz.is_visible && (
                                                             <Tag color="orange">Скоро</Tag>
                                                         )}
                                                     </Space>
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                                        {dayjs(activity.created_at).format("DD.MM.YYYY")}
-                                                    </Text>
-                                                </Space>
-                                            </List.Item>
+                                                </Card>
+                                            </Col>
                                         );
-                                    }}
-                                />
+                                    })}
+                                </Row>
                             )}
                         </Card>
                     )}

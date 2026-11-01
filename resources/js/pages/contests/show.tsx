@@ -11,6 +11,9 @@ type QuizActivity = {
   type: "quiz";
   title: string;
   description: string | null;
+  question: string | null;
+  options: { id: string; text: string; is_correct: boolean }[] | null;
+  quiz_type: string | null;
   is_scheduled: boolean;
   is_visible: boolean;
   created_at: string;
@@ -107,15 +110,23 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
             </Space>
             {contest.can_manage && (
               <Space>
-                <Link href={`/admin/contests/${contest.id}/media`}>
-                  <Button icon={<PaperClipOutlined />}>Медиа</Button>
-                </Link>
-                <Link href={edit({ contest: contest.id }).url}>
-                  <Button icon={<EditOutlined />}>Редактировать</Button>
-                </Link>
-                <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-                  Удалить
-                </Button>
+                {contest.type === "quiz" ? (
+                  <Link href={`/admin/contests/${contest.id}/entries`}>
+                    <Button icon={<SettingOutlined />}>Управление</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href={`/admin/contests/${contest.id}/media`}>
+                      <Button icon={<PaperClipOutlined />}>Медиа</Button>
+                    </Link>
+                    <Link href={edit({ contest: contest.id }).url}>
+                      <Button icon={<EditOutlined />}>Редактировать</Button>
+                    </Link>
+                    <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
+                      Удалить
+                    </Button>
+                  </>
+                )}
               </Space>
             )}
           </div>
@@ -152,11 +163,16 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               }
               extra={
                 contest.can_manage ? (
-                  <Link href={`/admin/contests/${contest.id}/entries/create`}>
-                    <Button type="primary" icon={<PlusOutlined />}>
-                      Добавить вопрос
-                    </Button>
-                  </Link>
+                  <Space>
+                    <Link href={`/admin/contests/${contest.id}/entries`}>
+                      <Button icon={<SettingOutlined />}>Управление</Button>
+                    </Link>
+                    <Link href={`/admin/contests/${contest.id}/entries/create`}>
+                      <Button type="primary" icon={<PlusOutlined />}>
+                        Добавить вопрос
+                      </Button>
+                    </Link>
+                  </Space>
                 ) : contest.is_active ? (
                   <Link href={`/admin/contests/${contest.id}/entries/public`}>
                     <Button type="primary" icon={<PlayCircleOutlined />}>
@@ -176,17 +192,27 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
                     return (
                       <List.Item>
                         <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                          <Space>
+                          <Space direction="vertical" size={4}>
                             <Text strong>{activity.title}</Text>
+                            {activity.question && (
+                              <Text type="secondary" style={{ fontSize: 13 }}>
+                                {activity.question}
+                              </Text>
+                            )}
+                            {activity.options && activity.options.length > 0 && (
+                              <Text type="secondary" style={{ fontSize: 13 }}>
+                                Вариантов: {activity.options.length}
+                              </Text>
+                            )}
+                          </Space>
+                          <Space>
                             {activity.is_scheduled && (
                               <Tag color="blue">Таймер</Tag>
                             )}
+                            {!activity.is_visible && (
+                              <Tag color="orange">Скоро</Tag>
+                            )}
                           </Space>
-                          {!contest.can_manage && contest.is_active && (
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {dayjs(activity.created_at).format("DD.MM.YYYY")}
-                            </Text>
-                          )}
                         </Space>
                       </List.Item>
                     );

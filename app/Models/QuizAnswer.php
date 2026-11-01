@@ -13,17 +13,18 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $quiz_entry_id
  * @property int $user_id
- * @property string $answer
+ * @property array<string, mixed>|null $selected_options
  * @property bool $is_correct
  * @property Carbon|null $answered_at
  */
-#[Fillable(['quiz_entry_id', 'user_id', 'answer', 'is_correct', 'answered_at'])]
+#[Fillable(['quiz_entry_id', 'user_id', 'selected_options', 'is_correct', 'answered_at'])]
 class QuizAnswer extends Model
 {
     /** @use HasFactory<QuizAnswerFactory> */
     use HasFactory;
 
     protected $casts = [
+        'selected_options' => 'array',
         'is_correct' => 'boolean',
         'answered_at' => 'datetime',
     ];
