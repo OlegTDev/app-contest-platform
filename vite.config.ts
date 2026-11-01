@@ -19,9 +19,6 @@ export default defineConfig(({ command }) => {
         presets: [reactCompilerPreset()],
       }),
       wayfinder({
-        command: command === 'build'
-          ? "echo 'Skipping wayfinder during production build'"
-          : undefined,
         formVariants: true,
       }),
     ]),
