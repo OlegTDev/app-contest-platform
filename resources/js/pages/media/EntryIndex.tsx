@@ -303,7 +303,7 @@ export default function EntryMediaIndex({ contest, entry, media }: EntryMediaInd
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <Link href={`/admin/contests/${contest.id}/entries`}>
+                            <Link href={`/admin/contests/${contest.id}`}>
                                 <Button type="text" icon={<ArrowLeftOutlined />} style={{ float: 'left', marginRight: 12 }}>
                                     Назад
                                 </Button>

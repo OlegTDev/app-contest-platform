@@ -311,7 +311,7 @@ export default function CreateEntry({ contest }: CreateEntryProps): React.JSX.El
                                     >
                                         Создать карточку
                                     </Button>
-                                    <Link href={`/admin/contests/${contest.id}/entries`}>
+                                    <Link href={`/admin/contests/${contest.id}`}>
                                         <Button>Отмена</Button>
                                     </Link>
                                 </Space>

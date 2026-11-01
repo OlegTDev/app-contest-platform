@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\DTOs\AdminContestDTO;
-use App\DTOs\AdminQuizEntryDTO;
-use App\DTOs\AdminVotingEntryDTO;
 use App\DTOs\ContestItemDTO;
 use App\DTOs\ContestShowDTO;
 use App\DTOs\LeaderboardItemDTO;
 use App\DTOs\QuizActivityDTO;
 use App\DTOs\VotingActivityDTO;
 use App\Models\Contest;
+use App\Models\ContestEntry;
+use App\Models\Media;
+use App\Models\QuizEntry;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Throwable;
 
 final readonly class ContestService
 {
@@ -93,7 +93,7 @@ final readonly class ContestService
      */
     public function getAdminShowData(Contest $contest, int $userId): ContestShowDTO
     {
-        $this->loadContestRelations($contest, withMedia: false);
+        $this->loadContestRelations($contest, withMedia: true, onlyActive: false);
 
         $quizActivities = [];
         $votingActivities = [];
@@ -110,6 +110,7 @@ final readonly class ContestService
                     'quiz_type' => $entry->type,
                     'is_scheduled' => $entry->isScheduled(),
                     'is_visible' => $entry->isVisible(),
+                    'media' => $this->mapMedia($entry),
                     'created_at' => $entry->created_at?->format('Y-m-d H:i') ?? '',
                 ])
                 ->toArray();
@@ -124,8 +125,8 @@ final readonly class ContestService
                     'author_department' => $entry->author_department,
                     'votes_count' => $entry->votes_count,
                     'is_voted' => false,
-                    'fields_data' => null,
-                    'media' => [],
+                    'fields_data' => $entry->fields_data,
+                    'media' => $this->mapMedia($entry),
                     'created_at' => $entry->created_at?->format('Y-m-d H:i') ?? '',
                 ])
                 ->toArray();
@@ -147,6 +148,7 @@ final readonly class ContestService
             quizActivities: $quizActivities,
             votingActivities: $votingActivities,
             leaderboard: [],
+            canManage: $this->userCanManage($userId),
         );
     }
 
@@ -239,14 +241,43 @@ final readonly class ContestService
     }
 
     /**
+     * Map entry media for the admin show page.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapMedia(ContestEntry|QuizEntry $entry): array
+    {
+        if (! $entry->relationLoaded('media')) {
+            return [];
+        }
+
+        return $entry->media->map(fn (Media $media): array => [
+            'id' => $media->id,
+            'file_name' => $media->file_name,
+            'file_url' => $media->file_url,
+            'thumbnail_url' => $media->thumbnail_url,
+            'file_type' => $media->file_type,
+            'file_extension' => $media->file_extension,
+            'file_size' => $media->file_size,
+            'is_main' => $media->is_main,
+            'created_at' => $media->created_at?->format('Y-m-d H:i'),
+        ])->all();
+    }
+
+    /**
      * Load contest relations for public show.
      */
-    private function loadContestRelations(Contest $contest, bool $withMedia = true): void
+    private function loadContestRelations(Contest $contest, bool $withMedia = true, bool $onlyActive = true): void
     {
         $with = [];
 
         if ($contest->type->value === 'quiz') {
-            $with['quizEntries'] = fn ($query) => $query->active()->orderBy('sort_order');
+            $with['quizEntries'] = function ($query) use ($onlyActive): void {
+                if ($onlyActive) {
+                    $query->active();
+                }
+                $query->orderBy('sort_order');
+            };
             if ($withMedia) {
                 $with['quizEntries.media'] = [];
             }

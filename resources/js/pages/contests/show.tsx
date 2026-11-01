@@ -1,10 +1,22 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Button, Card, List, Tag, Typography, Space, Empty, Descriptions } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PaperClipOutlined, SettingOutlined } from "@ant-design/icons";
+import { Button, Card, Descriptions, Popconfirm, Space, Table, Tag, Typography } from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined, PaperClipOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { destroy, edit, status } from "@/routes/admin/contests";
 
 const { Title, Text, Paragraph } = Typography;
+
+type MediaItem = {
+  id: number;
+  file_name: string;
+  file_url: string;
+  thumbnail_url: string | null;
+  file_type: string;
+  file_extension: string;
+  file_size: number | null;
+  is_main: boolean;
+  created_at: string | null;
+};
 
 type QuizActivity = {
   id: number;
@@ -16,6 +28,7 @@ type QuizActivity = {
   quiz_type: string | null;
   is_scheduled: boolean;
   is_visible: boolean;
+  media: MediaItem[];
   created_at: string;
 };
 
@@ -27,6 +40,7 @@ type VotingActivity = {
   author_name: string | null;
   author_department: string | null;
   votes_count: number;
+  media: MediaItem[];
   created_at: string;
 };
 
@@ -69,6 +83,10 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function ContestShow({ contest }: ContestShowProps): React.JSX.Element {
+  const activities = contest.activities ?? [];
+  const quizActivities = activities.filter((a): a is QuizActivity => a.type === "quiz");
+  const votingActivities = activities.filter((a): a is VotingActivity => a.type === "voting");
+
   const handleDelete = () => {
     if (confirm("Вы уверены, что хотите удалить этот конкурс?")) {
       router.delete(destroy({ contest: contest.id }).url, {
@@ -83,9 +101,148 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
     });
   };
 
+  const handleDeleteEntry = (id: number, title: string) => {
+    if (confirm(`Вы уверены, что хотите удалить "${title}"?`)) {
+      router.delete(`/admin/contests/${contest.id}/entries/${id}`, {
+        preserveScroll: true,
+      });
+    }
+  };
+
   const getTypeLabel = (type: string) => {
     return type === "quiz" ? "Викторина" : "Голосование";
   };
+
+  const renderActions = (record: ActivityItem) => (
+    <Space size="small">
+      <Link href={`/admin/contests/${contest.id}/entries/${record.id}/media`}>
+        <Button size="small" icon={<PaperClipOutlined />}>
+          Медиа
+        </Button>
+      </Link>
+      <Link href={`/admin/contests/${contest.id}/entries/${record.id}/edit`}>
+        <Button size="small" icon={<EditOutlined />}>
+          Изменить
+        </Button>
+      </Link>
+      <Popconfirm
+        title="Удалить"
+        description="Это действие нельзя отменить"
+        onConfirm={() => handleDeleteEntry(record.id, record.title)}
+        okText="Удалить"
+        cancelText="Отмена"
+        okButtonProps={{ danger: true }}
+      >
+        <Button size="small" danger icon={<DeleteOutlined />} />
+      </Popconfirm>
+    </Space>
+  );
+
+  const quizColumns = [
+    {
+      title: "Название",
+      dataIndex: "title",
+      key: "title",
+      render: (title: string, record: QuizActivity) => (
+        <Space>
+          <Text strong>{title}</Text>
+          {record.is_scheduled && <Tag color="blue">Таймер</Tag>}
+          {!record.is_visible && <Tag color="orange">Скоро</Tag>}
+          {(record.media?.length ?? 0) > 0 && (
+            <Tag color="geekblue">
+              <PaperClipOutlined /> {record.media.length}
+            </Tag>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: "Вопрос",
+      dataIndex: "question",
+      key: "question",
+      ellipsis: true,
+      render: (question: string | null) => question || "—",
+    },
+    {
+      title: "Описание",
+      dataIndex: "description",
+      key: "description",
+      ellipsis: true,
+      render: (description: string | null) => description || "—",
+    },
+    {
+      title: "Вариантов",
+      dataIndex: "options",
+      key: "options",
+      width: 120,
+      render: (options: QuizActivity["options"]) => options?.length ?? 0,
+    },
+    {
+      title: "Создана",
+      dataIndex: "created_at",
+      key: "created_at",
+      width: 160,
+      render: (date: string) => dayjs(date).format("DD.MM.YYYY HH:mm"),
+    },
+    {
+      title: "Действия",
+      key: "actions",
+      width: 280,
+      render: (_: unknown, record: QuizActivity) => renderActions(record),
+    },
+  ];
+
+  const votingColumns = [
+    {
+      title: "Название",
+      dataIndex: "title",
+      key: "title",
+      render: (title: string, record: VotingActivity) => (
+        <Space>
+          <Text strong>{title}</Text>
+          {(record.media?.length ?? 0) > 0 && (
+            <Tag color="geekblue">
+              <PaperClipOutlined /> {record.media.length}
+            </Tag>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: "Автор",
+      dataIndex: "author_name",
+      key: "author_name",
+      width: 200,
+      render: (author: string | null) => author || "—",
+    },
+    {
+      title: "Описание",
+      dataIndex: "description",
+      key: "description",
+      ellipsis: true,
+      render: (description: string | null) => description || "—",
+    },
+    {
+      title: "Голосов",
+      dataIndex: "votes_count",
+      key: "votes_count",
+      width: 100,
+      render: (count: number) => count,
+    },
+    {
+      title: "Создана",
+      dataIndex: "created_at",
+      key: "created_at",
+      width: 160,
+      render: (date: string) => dayjs(date).format("DD.MM.YYYY HH:mm"),
+    },
+    {
+      title: "Действия",
+      key: "actions",
+      width: 280,
+      render: (_: unknown, record: VotingActivity) => renderActions(record),
+    },
+  ];
 
   return (
     <>
@@ -114,23 +271,17 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
             </Space>
             {contest.can_manage && (
               <Space>
-                {contest.type === "quiz" ? (
-                  <Link href={`/admin/contests/${contest.id}/entries`}>
-                    <Button icon={<SettingOutlined />}>Управление</Button>
+                {contest.type !== "quiz" && (
+                  <Link href={`/admin/contests/${contest.id}/media`}>
+                    <Button icon={<PaperClipOutlined />}>Медиа</Button>
                   </Link>
-                ) : (
-                  <>
-                    <Link href={`/admin/contests/${contest.id}/media`}>
-                      <Button icon={<PaperClipOutlined />}>Медиа</Button>
-                    </Link>
-                    <Link href={edit({ contest: contest.id }).url}>
-                      <Button icon={<EditOutlined />}>Редактировать</Button>
-                    </Link>
-                    <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-                      Удалить
-                    </Button>
-                  </>
                 )}
+                <Link href={edit({ contest: contest.id }).url}>
+                  <Button icon={<EditOutlined />}>Редактировать</Button>
+                </Link>
+                <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
+                  Удалить
+                </Button>
               </Space>
             )}
           </div>
@@ -162,67 +313,26 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               title={
                 <Space>
                   <span>Вопросы</span>
-                  <Tag>{contest.activities?.length || 0}</Tag>
+                  <Tag>{quizActivities.length}</Tag>
                 </Space>
               }
               extra={
                 contest.can_manage ? (
-                  <Space>
-                    <Link href={`/admin/contests/${contest.id}/entries`}>
-                      <Button icon={<SettingOutlined />}>Управление</Button>
-                    </Link>
-                    <Link href={`/admin/contests/${contest.id}/entries/create`}>
-                      <Button type="primary" icon={<PlusOutlined />}>
-                        Добавить вопрос
-                      </Button>
-                    </Link>
-                  </Space>
-                ) : contest.is_active ? (
-                  <Link href={`/admin/contests/${contest.id}/entries/public`}>
-                    <Button type="primary" icon={<PlayCircleOutlined />}>
-                      Пройти
+                  <Link href={`/admin/contests/${contest.id}/entries/create`}>
+                    <Button type="primary" icon={<PlusOutlined />}>
+                      Добавить вопрос
                     </Button>
                   </Link>
                 ) : null
               }
             >
-              {!contest.activities || contest.activities.length === 0 ? (
-                <Empty description="Вопросов пока нет" />
-              ) : (
-                <List
-                  dataSource={contest.activities}
-                  renderItem={(activity) => {
-                    if (activity.type !== "quiz") return null;
-                    return (
-                      <List.Item>
-                        <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                          <Space direction="vertical" size={4}>
-                            <Text strong>{activity.title}</Text>
-                            {activity.question && (
-                              <Text type="secondary" style={{ fontSize: 13 }}>
-                                {activity.question}
-                              </Text>
-                            )}
-                            {activity.options && activity.options.length > 0 && (
-                              <Text type="secondary" style={{ fontSize: 13 }}>
-                                Вариантов: {activity.options.length}
-                              </Text>
-                            )}
-                          </Space>
-                          <Space>
-                            {activity.is_scheduled && (
-                              <Tag color="blue">Таймер</Tag>
-                            )}
-                            {!activity.is_visible && (
-                              <Tag color="orange">Скоро</Tag>
-                            )}
-                          </Space>
-                        </Space>
-                      </List.Item>
-                    );
-                  }}
-                />
-              )}
+              <Table
+                columns={quizColumns}
+                dataSource={quizActivities}
+                rowKey="id"
+                pagination={false}
+                locale={{ emptyText: "Вопросов пока нет" }}
+              />
             </Card>
           )}
 
@@ -232,46 +342,26 @@ export default function ContestShow({ contest }: ContestShowProps): React.JSX.El
               title={
                 <Space>
                   <span>Работы</span>
-                  <Tag>{contest.activities?.length || 0}</Tag>
+                  <Tag>{votingActivities.length}</Tag>
                 </Space>
               }
               extra={
                 contest.can_manage ? (
-                  <Space>
-                    <Link href={`/admin/contests/${contest.id}/entries`}>
-                      <Button icon={<SettingOutlined />}>Управление</Button>
-                    </Link>
-                    <Link href={`/admin/contests/${contest.id}/entries/create`}>
-                      <Button type="primary" icon={<PlusOutlined />}>
-                        Добавить работу
-                      </Button>
-                    </Link>
-                  </Space>
+                  <Link href={`/admin/contests/${contest.id}/entries/create`}>
+                    <Button type="primary" icon={<PlusOutlined />}>
+                      Добавить работу
+                    </Button>
+                  </Link>
                 ) : null
-              }>
-              {!contest.activities || contest.activities.length === 0 ? (
-                <Empty description="Работ пока нет" />
-              ) : (
-                <List
-                  dataSource={contest.activities}
-                  renderItem={(activity) => {
-                    if (activity.type !== "voting") return null;
-                    return (
-                      <List.Item>
-                        <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                          <Space>
-                            <Text strong>{activity.title}</Text>
-                            {activity.author_name && (
-                              <Tag>{activity.author_name}</Tag>
-                            )}
-                            <Tag>{activity.votes_count} голосов</Tag>
-                          </Space>
-                        </Space>
-                      </List.Item>
-                    );
-                  }}
-                />
-              )}
+              }
+            >
+              <Table
+                columns={votingColumns}
+                dataSource={votingActivities}
+                rowKey="id"
+                pagination={false}
+                locale={{ emptyText: "Работ пока нет" }}
+              />
             </Card>
           )}
 

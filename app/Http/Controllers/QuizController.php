@@ -24,6 +24,7 @@ class QuizController extends Controller
     public function __construct(
         private readonly UserContestActivityService $userContestActivity,
     ) {}
+
     /**
      * Display quiz entries for a contest (for organizer).
      */
@@ -101,7 +102,7 @@ class QuizController extends Controller
             'show_until' => $validated['show_until'] ? Carbon::parse($validated['show_until']) : null,
         ]);
 
-        return redirect()->route('admin.entries.index', $contest)
+        return redirect()->route('admin.contests.show', $contest)
             ->with('success', 'Quiz card created successfully.');
     }
 
@@ -163,7 +164,7 @@ class QuizController extends Controller
                 : $entry->show_until,
         ]);
 
-        return redirect()->route('admin.entries.index', $contest)
+        return redirect()->route('admin.contests.show', $contest)
             ->with('success', 'Quiz card updated successfully.');
     }
 
@@ -177,7 +178,7 @@ class QuizController extends Controller
 
         $entry->delete();
 
-        return redirect()->route('admin.entries.index', $contest)
+        return redirect()->route('admin.contests.show', $contest)
             ->with('success', 'Quiz card deleted successfully.');
     }
 

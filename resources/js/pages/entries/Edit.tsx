@@ -140,7 +140,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
             <div style={{ maxWidth: "100%", margin: "0 auto", padding: "24px 0" }}>
                 <Space direction="vertical" size="large" style={{ width: "100%" }}>
                     <Space>
-                        <Link href={`/admin/contests/${contest.id}/entries`}>
+                        <Link href={`/admin/contests/${contest.id}`}>
                             <Button type="text">← Назад</Button>
                         </Link>
                         <div>
@@ -325,7 +325,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
                                     >
                                         Сохранить изменения
                                     </Button>
-                                    <Link href={`/admin/contests/${contest.id}/entries`}>
+                                    <Link href={`/admin/contests/${contest.id}`}>
                                         <Button>Отмена</Button>
                                     </Link>
                                 </Space>

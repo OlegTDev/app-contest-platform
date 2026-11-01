@@ -5,95 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Contest;
-use App\Models\ContestEntry;
-use App\Models\Media;
-use App\Models\QuizEntry;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class EntryController extends Controller
 {
-    /**
-     * Display entries for a contest (for organizer).
-     */
-    public function index(Request $request, Contest $contest): Response
-    {
-        $this->canManageContest($contest);
-
-        if ($contest->type->value === 'voting') {
-            /** @var Collection<int, array<string, mixed>> $entries */
-            $entries = $contest->entries()
-                ->with('media')
-                ->orderBy('id')
-                ->get()
-                ->map(fn (ContestEntry $entry): array => [
-                    'id' => $entry->id,
-                    'title' => $entry->title,
-                    'description' => $entry->description,
-                    'author_name' => $entry->author_name,
-                    'author_department' => $entry->author_department,
-                    'fields_data' => $entry->fields_data,
-                    'votes_count' => $entry->votes_count,
-                    'media' => $entry->media->map(fn (Media $m): array => [
-                        'id' => $m->id,
-                        'file_name' => $m->file_name,
-                        'file_url' => $m->file_url,
-                        'thumbnail_url' => $m->thumbnail_url,
-                        'file_type' => $m->file_type,
-                        'file_extension' => $m->file_extension,
-                        'file_size' => $m->file_size,
-                        'is_main' => $m->is_main,
-                        'created_at' => $m->created_at?->format('Y-m-d H:i'),
-                    ]),
-                    'created_at' => $entry->created_at?->format('Y-m-d H:i'),
-                ]);
-        } else {
-            /** @var Collection<int, array<string, mixed>> $entries */
-            $entries = $contest->quizEntries()
-                ->with('media')
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn (QuizEntry $entry): array => [
-                    'id' => $entry->id,
-                    'title' => $entry->title,
-                    'description' => $entry->description,
-                    'question' => $entry->question,
-                    'options' => $entry->options,
-                    'type' => $entry->type,
-                    'fields_data' => $entry->fields_data,
-                    'sort_order' => $entry->sort_order,
-                    'show_from' => $entry->show_from?->format('Y-m-d H:i'),
-                    'show_until' => $entry->show_until?->format('Y-m-d H:i'),
-                    'is_scheduled' => $entry->isScheduled(),
-                    'media' => $entry->media->map(fn (Media $m): array => [
-                        'id' => $m->id,
-                        'file_name' => $m->file_name,
-                        'file_url' => $m->file_url,
-                        'thumbnail_url' => $m->thumbnail_url,
-                        'file_type' => $m->file_type,
-                        'file_extension' => $m->file_extension,
-                        'file_size' => $m->file_size,
-                        'is_main' => $m->is_main,
-                        'created_at' => $m->created_at?->format('Y-m-d H:i'),
-                    ]),
-                    'created_at' => $entry->created_at?->format('Y-m-d H:i'),
-                ]);
-        }
-
-        return Inertia::render('entries/Index', [
-            'contest' => [
-                'id' => $contest->id,
-                'title' => $contest->title,
-                'type' => $contest->type->value,
-            ],
-            'entries' => $entries,
-        ]);
-    }
-
     /**
      * Show form for creating a new entry.
      */
@@ -162,7 +81,7 @@ class EntryController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.entries.index', $contest)
+        return redirect()->route('admin.contests.show', $contest)
             ->with('success', 'Entry created successfully.');
     }
 
@@ -276,7 +195,7 @@ class EntryController extends Controller
             $contest->quizEntries()->where('id', $entry)->update($updateData);
         }
 
-        return redirect()->route('admin.entries.index', $contest)
+        return redirect()->route('admin.contests.show', $contest)
             ->with('success', 'Entry updated successfully.');
     }
 
@@ -293,7 +212,7 @@ class EntryController extends Controller
             $contest->quizEntries()->where('id', $entry)->delete();
         }
 
-        return redirect()->route('admin.entries.index', $contest)
+        return redirect()->route('admin.contests.show', $contest)
             ->with('success', 'Entry deleted successfully.');
     }
 }

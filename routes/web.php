@@ -38,7 +38,6 @@ Route::middleware(['auth'])->group(function () {
     // under the "contest/{contest}" prefix).
     Route::prefix('admin/contests')->group(function () {
         // Entry management (general routes first, then parameterized)
-        Route::get('/{contest}/entries', [EntryController::class, 'index'])->name('admin.entries.index');
         Route::get('/{contest}/entries/create', [EntryController::class, 'create'])->name('admin.entries.create');
         Route::post('/{contest}/entries', [EntryController::class, 'store'])->name('admin.entries.store');
         Route::get('/{contest}/entries/leaderboard', [VoteController::class, 'leaderboard'])->name('admin.entries.leaderboard');

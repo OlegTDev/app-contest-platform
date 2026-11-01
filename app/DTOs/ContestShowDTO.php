@@ -7,7 +7,8 @@ namespace App\DTOs;
 use Illuminate\Contracts\Support\Arrayable;
 
 /**
- * @phpstan-type QuizActivityType array{id: int, title: string, description: string|null, is_visible: bool, created_at: string}
+ * @phpstan-type MediaType array{id: int, file_name: string, file_url: string, thumbnail_url: string|null, file_type: string, file_extension: string, file_size: int|null, is_main: bool, created_at: string|null}
+ * @phpstan-type QuizActivityType array{id: int, type: string, title: string, description: string|null, question: string|null, options: array<int, array{id: string, text: string, is_correct: bool}>|null, quiz_type: string|null, is_scheduled: bool, is_visible: bool, media: array<int, MediaType>, created_at: string}
  * @phpstan-type VotingActivityType array{id: int, title: string, description: string|null, author_name: string|null, author_department: string|null, votes_count: int, is_voted: bool, fields_data: array<string, mixed>|null, media: array<int, array{id: int, file_name: string, file_url: string, file_type: string, file_extension: string, file_size: int|null, is_main: bool, created_at: string}>, created_at: string}
  * @phpstan-type LeaderboardType array{id: int, title: string, votes_count: int, author_name: string|null}
  *
@@ -39,6 +40,7 @@ final readonly class ContestShowDTO implements Arrayable
         public array $votingActivities = [],
         /** @var array<LeaderboardType> */
         public array $leaderboard = [],
+        public bool $canManage = false,
     ) {}
 
     /**
@@ -60,6 +62,7 @@ final readonly class ContestShowDTO implements Arrayable
             'is_archived' => $this->isArchived,
             'activities' => array_merge($this->quizActivities, $this->votingActivities),
             'leaderboard' => $this->leaderboard,
+            'can_manage' => $this->canManage,
             'created_at' => $this->createdAt,
         ];
     }
