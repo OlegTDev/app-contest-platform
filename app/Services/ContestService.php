@@ -226,7 +226,7 @@ final readonly class ContestService
             $with['entries.media'] = [];
         }
 
-        $with['entries'] = fn ($query) => $query->orderBy('id');
+        $with['entries'] = fn ($query) => $query->orderBy('id')->with('user');
 
         $contest->load($with);
     }

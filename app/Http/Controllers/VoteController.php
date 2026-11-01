@@ -41,15 +41,12 @@ class VoteController extends Controller
         }
 
         DB::transaction(function () use ($contest, $entry, $user) {
-            // Create vote
+            // Create vote (ContestEntryObserver handles votes_count increment)
             ContestVote::create([
                 'contest_id' => $contest->id,
                 'entry_id' => $entry->id,
                 'user_id' => $user->id,
             ]);
-
-            // Increment votes count
-            $entry->increment('votes_count');
         });
 
         return back()->with('success', 'Голос засчитан!');
@@ -78,9 +75,9 @@ class VoteController extends Controller
             return back()->with('error', 'Вы не голосовали за эту работу.');
         }
 
-        DB::transaction(function () use ($vote, $entry) {
+        DB::transaction(function () use ($vote) {
             $vote->delete();
-            $entry->decrement('votes_count');
+            // ContestEntryObserver handles votes_count decrement
         });
 
         return back()->with('success', 'Голос удалён.');

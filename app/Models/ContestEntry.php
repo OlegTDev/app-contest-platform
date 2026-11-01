@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Observers\ContestEntryObserver;
 use App\Services\TimeWindowService;
 use Database\Factories\ContestEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['contest_id', 'user_id', 'title', 'description', 'author_name', 'author_department', 'fields_data', 'votes_count'])]
+#[ObservedBy(ContestEntryObserver::class)]
 class ContestEntry extends Model
 {
     /** @use HasFactory<ContestEntryFactory> */
@@ -75,5 +78,29 @@ class ContestEntry extends Model
     public function isVisible(): bool
     {
         return app(TimeWindowService::class)->isWithinWindow($this->show_from, $this->show_until);
+    }
+
+    /**
+     * Get author name — uses user relation if loaded, falls back to denormalized field.
+     */
+    public function getAuthorNameAttribute(): ?string
+    {
+        if ($this->relationLoaded('user') && $this->user !== null) {
+            return $this->user->name;
+        }
+
+        return $this->attributes['author_name'] ?? null;
+    }
+
+    /**
+     * Get author department — uses user relation if loaded, falls back to denormalized field.
+     */
+    public function getAuthorDepartmentAttribute(): ?string
+    {
+        if ($this->relationLoaded('user') && $this->user !== null) {
+            return $this->user->department;
+        }
+
+        return $this->attributes['author_department'] ?? null;
     }
 }
