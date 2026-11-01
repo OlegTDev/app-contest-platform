@@ -237,18 +237,23 @@ final readonly class ContestService
      */
     private function loadContestRelations(Contest $contest, bool $withMedia = true): void
     {
-        $with = [
-            'quizEntries' => fn ($query) => $query->active()->orderBy('sort_order'),
-        ];
+        $with = [];
 
-        if ($withMedia) {
-            $with['quizEntries.media'] = [];
-            $with['entries.media'] = [];
+        if ($contest->type->value === 'quiz') {
+            $with['quizEntries'] = fn ($query) => $query->active()->orderBy('sort_order');
+            if ($withMedia) {
+                $with['quizEntries.media'] = [];
+            }
+        } else {
+            $with['entries'] = fn ($query) => $query->orderBy('id')->with('user');
+            if ($withMedia) {
+                $with['entries.media'] = [];
+            }
         }
 
-        $with['entries'] = fn ($query) => $query->orderBy('id')->with('user');
-
-        $contest->load($with);
+        if (! empty($with)) {
+            $contest->load($with);
+        }
     }
 
     /**
