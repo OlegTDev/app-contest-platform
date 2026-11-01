@@ -36,7 +36,7 @@ class ContestController extends Controller
      */
     public function publicShow(Request $request, Contest $contest): Response
     {
-        abort_unless(in_array($contest->status, ['published', 'archived'], strict: true), 404);
+        abort_unless(in_array($contest->status, ['published', 'archived', 'closed', 'paused'], strict: true), 404);
 
         $user = $request->user();
         $userVoteEntryIds = $user !== null
