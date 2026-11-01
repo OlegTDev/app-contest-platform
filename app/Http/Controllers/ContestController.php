@@ -41,6 +41,12 @@ class ContestController extends Controller
             abort(404);
         }
 
+        if (method_exists($contest, 'loadMissing')) {
+            $contest->loadMissing($contest->type->value === 'quiz' ? ['quizEntries', 'quizEntries.media'] : ['entries', 'entries.media', 'entries.user']);
+        } else {
+            $contest->load($contest->type->value === 'quiz' ? ['quizEntries' => fn ($q) => $q->active()->orderBy('sort_order'), 'quizEntries.media'] : ['entries' => fn ($q) => $q->orderBy('id')->with('user'), 'entries.media']);
+        }
+
         $user = $request->user();
         $userVoteEntryIds = $user !== null
             ? $this->userActivity->getUserVoteEntryIds($user, $contest->id)->toArray()
