@@ -30,7 +30,7 @@ class ContestAdminController extends Controller
             'search' => $request->input('search'),
         ], $this->user()->id);
 
-        return Inertia::render('contests/index', [
+        return Inertia::render('admin.contests.index', [
             'contests' => $contests,
             'filters' => [
                 'status' => $request->input('status'),
@@ -45,7 +45,7 @@ class ContestAdminController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('contests/create', [
+        return Inertia::render('admin.contests.create', [
             'contestTypes' => ContestType::selectOptions(),
         ]);
     }
@@ -67,7 +67,7 @@ class ContestAdminController extends Controller
     {
         $data = $this->contestService->getAdminShowData($contest, $this->user()->id);
 
-        return Inertia::render('contests/show', [
+        return Inertia::render('admin.contests.show', [
             'contest' => $data->toArray(),
         ]);
     }
@@ -79,7 +79,7 @@ class ContestAdminController extends Controller
     {
         $this->canManageContest($contest);
 
-        return Inertia::render('contests/edit', [
+        return Inertia::render('admin.contests.edit', [
             'contest' => $this->contestService->getAdminEditData($contest),
             'contestTypes' => ContestType::selectOptions(),
         ]);
