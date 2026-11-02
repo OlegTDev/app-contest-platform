@@ -27,7 +27,7 @@ class ContestController extends Controller
     {
         $contests = $this->contestService->getActiveContests();
 
-        return Inertia::render('contests/PublicIndex', [
+        return Inertia::render('contests.index', [
             'contests' => $contests->toArray(),
         ]);
     }
@@ -66,7 +66,7 @@ class ContestController extends Controller
 
         $data = $this->contestService->getPublicShowData($contest, $userVoteEntryIds, $viewedEntryIds, $answeredQuizEntryIds);
 
-        return Inertia::render('contests/PublicShow', [
+        return Inertia::render('contests.show.index', [
             'contest' => $data->toArray(),
             'leaderboard' => $this->contestService->getLeaderboard($contest),
         ]);
