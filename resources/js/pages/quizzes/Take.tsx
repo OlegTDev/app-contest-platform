@@ -55,7 +55,7 @@ export default function QuizTake({ quiz, contest, alreadyCompleted, existingAnsw
             return;
         }
 
-        router.post(`/contests/${contest.id}/quizzes/${quiz.id}/submit`, {
+        router.post(`/contest/${contest.id}/quizzes/${quiz.id}/submit`, {
             selected_options: selectedOptions,
         }, {
             preserveScroll: true,
@@ -79,7 +79,7 @@ export default function QuizTake({ quiz, contest, alreadyCompleted, existingAnsw
                             title="Вы уже прошли эту викторину"
                             subTitle="Пройти заново нельзя. Результаты уже сохранены."
                             extra={[
-                                <Link key="result" href={`/contests/${contest.id}/quizzes/${quiz.id}/result`}>
+                                <Link key="result" href={`/contest/${contest.id}/quizzes/${quiz.id}/result`}>
                                     <Button type="primary">Посмотреть результаты</Button>
                                 </Link>,
                             ]}
