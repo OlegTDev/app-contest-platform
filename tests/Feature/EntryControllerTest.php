@@ -20,7 +20,7 @@ describe('EntryController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}/entries/create");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('entries/Create'))
+                ->assertInertia(fn ($page) => $page->component('entries/create'))
                 ->assertInertia(fn ($page) => $page->where('contest.type', 'voting'));
         });
 
@@ -30,7 +30,7 @@ describe('EntryController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}/entries/create");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('entries/Create'))
+                ->assertInertia(fn ($page) => $page->component('entries/create'))
                 ->assertInertia(fn ($page) => $page->where('contest.type', 'quiz'));
         });
 
@@ -233,7 +233,7 @@ describe('EntryController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}/entries/{$entry->id}/edit");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('entries/Edit'))
+                ->assertInertia(fn ($page) => $page->component('entries/edit'))
                 ->assertInertia(fn ($page) => $page->where('entry.title', $entry->title));
         });
 
@@ -244,7 +244,7 @@ describe('EntryController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}/entries/{$entry->id}/edit");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('entries/Edit'))
+                ->assertInertia(fn ($page) => $page->component('entries/edit'))
                 ->assertInertia(fn ($page) => $page->where('entry.title', $entry->title));
         });
 

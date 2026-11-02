@@ -25,7 +25,7 @@ describe('Admin\UserController', function () {
             $response = $this->actingAs($this->admin)->get('/admin/users');
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('admin/users/Index'));
+                ->assertInertia(fn ($page) => $page->component('admin/users/index'));
         });
 
         it('rejects moderator from user list (admin middleware)', function () {

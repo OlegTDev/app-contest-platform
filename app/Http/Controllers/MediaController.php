@@ -30,7 +30,7 @@ class MediaController extends Controller
             'created_at' => $m->created_at?->format('Y-m-d H:i') ?? '',
         ]);
 
-        return Inertia::render('media/Index', [
+        return Inertia::render('media/index', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,
@@ -92,7 +92,7 @@ class MediaController extends Controller
             'created_at' => $m->created_at?->format('Y-m-d H:i') ?? '',
         ]);
 
-        return Inertia::render('media/EntryIndex', [
+        return Inertia::render('media/entry-index', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,

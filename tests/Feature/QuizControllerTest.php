@@ -30,14 +30,14 @@ describe('QuizController admin routes', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$this->contest->id}/quizzes");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('quizzes/Index'));
+                ->assertInertia(fn ($page) => $page->component('quizzes/index'));
         });
 
         it('renders quiz index for moderator', function () {
             $response = $this->actingAs($this->moderator)->get("/admin/contests/{$this->contest->id}/quizzes");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('quizzes/Index'));
+                ->assertInertia(fn ($page) => $page->component('quizzes/index'));
         });
 
         it('rejects regular user from quiz index', function () {
@@ -52,7 +52,7 @@ describe('QuizController admin routes', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$this->contest->id}/quizzes/create");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('quizzes/Builder'));
+                ->assertInertia(fn ($page) => $page->component('quizzes/builder'));
         });
     });
 
@@ -104,7 +104,7 @@ describe('QuizController admin routes', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$this->contest->id}/quizzes/{$this->entry->id}/edit");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('quizzes/Builder'))
+                ->assertInertia(fn ($page) => $page->component('quizzes/builder'))
                 ->assertInertia(fn ($page) => $page->where('quiz.title', $this->entry->title));
         });
 
@@ -176,7 +176,7 @@ describe('QuizController participant routes', function () {
             $response = $this->actingAs($this->user)->get("/contest/{$this->contest->id}/quizzes/{$this->entry->id}/take");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('quizzes/Take'))
+                ->assertInertia(fn ($page) => $page->component('quizzes/take'))
                 ->assertInertia(fn ($page) => $page->where('quiz.question', 'What is 2+2?'));
         });
 
@@ -255,7 +255,7 @@ describe('QuizController participant routes', function () {
             $response = $this->actingAs($this->user)->get("/contest/{$this->contest->id}/quizzes/{$this->entry->id}/result");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('quizzes/Result'))
+                ->assertInertia(fn ($page) => $page->component('quizzes/result'))
                 ->assertInertia(fn ($page) => $page->where('answer.is_correct', true));
         });
 

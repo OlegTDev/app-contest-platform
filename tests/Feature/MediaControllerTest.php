@@ -2,6 +2,7 @@
 
 use App\Enums\ContestType;
 use App\Models\Contest;
+use App\Models\ContestEntry;
 use App\Models\Media;
 use App\Models\QuizEntry;
 use App\Models\User;
@@ -21,14 +22,14 @@ describe('MediaController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$this->contest->id}/media");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('media/Index'));
+                ->assertInertia(fn ($page) => $page->component('media/index'));
         });
 
         it('renders media index for moderator', function () {
             $response = $this->actingAs($this->moderator)->get("/admin/contests/{$this->contest->id}/media");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('media/Index'));
+                ->assertInertia(fn ($page) => $page->component('media/index'));
         });
 
         it('rejects regular user from media index', function () {
@@ -81,12 +82,12 @@ describe('MediaController', function () {
 
     describe('entryIndex', function () {
         it('renders entry media index for voting entry', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
 
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$this->contest->id}/entries/{$entry->id}/media");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('media/EntryIndex'));
+                ->assertInertia(fn ($page) => $page->component('media/entry-index'));
         });
 
         it('renders entry media index for quiz entry', function () {
@@ -96,12 +97,12 @@ describe('MediaController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}/entries/{$entry->id}/media");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('media/EntryIndex'));
+                ->assertInertia(fn ($page) => $page->component('media/entry-index'));
         });
 
         it('returns 404 for entry not belonging to contest', function () {
             $otherContest = Contest::factory()->create(['type' => ContestType::VOTING]);
-            $otherEntry = \App\Models\ContestEntry::factory()->create(['contest_id' => $otherContest->id]);
+            $otherEntry = ContestEntry::factory()->create(['contest_id' => $otherContest->id]);
 
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$this->contest->id}/entries/{$otherEntry->id}/media");
 
@@ -115,7 +116,7 @@ describe('MediaController', function () {
         });
 
         it('uploads files to voting entry', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $file = UploadedFile::fake()->image('photo.jpg', 100);
 
             $response = $this->actingAs($this->admin)->post("/admin/contests/{$this->contest->id}/entries/{$entry->id}/media", [
@@ -127,7 +128,7 @@ describe('MediaController', function () {
         });
 
         it('rejects regular user from uploading to entry', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $file = UploadedFile::fake()->image('photo.jpg', 100);
 
             $response = $this->actingAs($this->user)->post("/admin/contests/{$this->contest->id}/entries/{$entry->id}/media", [
@@ -146,7 +147,7 @@ describe('MediaController', function () {
         it('deletes media from contest', function () {
             $media = Media::factory()->create([
                 'contest_id' => $this->contest->id,
-                'file_path' => 'contests/' . $this->contest->id . '/photo.jpg',
+                'file_path' => 'contests/'.$this->contest->id.'/photo.jpg',
                 'file_name' => 'photo.jpg',
             ]);
 
@@ -180,12 +181,12 @@ describe('MediaController', function () {
         });
 
         it('deletes media from voting entry', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $media = Media::factory()->create([
                 'contest_id' => $this->contest->id,
                 'entry_id' => $entry->id,
-                'entry_type' => \App\Models\ContestEntry::class,
-                'file_path' => 'entries/' . $entry->id . '/photo.jpg',
+                'entry_type' => ContestEntry::class,
+                'file_path' => 'entries/'.$entry->id.'/photo.jpg',
                 'file_name' => 'photo.jpg',
             ]);
 
@@ -196,12 +197,12 @@ describe('MediaController', function () {
         });
 
         it('rejects regular user from deleting entry media', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $media = Media::factory()->create([
                 'contest_id' => $this->contest->id,
                 'entry_id' => $entry->id,
-                'entry_type' => \App\Models\ContestEntry::class,
-                'file_path' => 'entries/' . $entry->id . '/photo.jpg',
+                'entry_type' => ContestEntry::class,
+                'file_path' => 'entries/'.$entry->id.'/photo.jpg',
                 'file_name' => 'photo.jpg',
             ]);
 
@@ -213,11 +214,11 @@ describe('MediaController', function () {
 
     describe('toggleMain', function () {
         it('toggles main media for voting entry', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $media = Media::factory()->create([
                 'contest_id' => $this->contest->id,
                 'entry_id' => $entry->id,
-                'entry_type' => \App\Models\ContestEntry::class,
+                'entry_type' => ContestEntry::class,
                 'is_main' => false,
             ]);
 
@@ -228,17 +229,17 @@ describe('MediaController', function () {
         });
 
         it('unsets previous main when setting new one', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $mainMedia = Media::factory()->create([
                 'contest_id' => $this->contest->id,
                 'entry_id' => $entry->id,
-                'entry_type' => \App\Models\ContestEntry::class,
+                'entry_type' => ContestEntry::class,
                 'is_main' => true,
             ]);
             $otherMedia = Media::factory()->create([
                 'contest_id' => $this->contest->id,
                 'entry_id' => $entry->id,
-                'entry_type' => \App\Models\ContestEntry::class,
+                'entry_type' => ContestEntry::class,
                 'is_main' => false,
             ]);
 
@@ -250,11 +251,11 @@ describe('MediaController', function () {
         });
 
         it('rejects regular user from toggling main', function () {
-            $entry = \App\Models\ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
+            $entry = ContestEntry::factory()->create(['contest_id' => $this->contest->id]);
             $media = Media::factory()->create([
                 'contest_id' => $this->contest->id,
                 'entry_id' => $entry->id,
-                'entry_type' => \App\Models\ContestEntry::class,
+                'entry_type' => ContestEntry::class,
             ]);
 
             $response = $this->actingAs($this->user)->post("/admin/contests/{$this->contest->id}/entries/{$entry->id}/media/{$media->id}/main");

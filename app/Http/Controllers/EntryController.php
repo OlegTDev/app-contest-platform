@@ -20,7 +20,7 @@ class EntryController extends Controller
     {
         $this->canManageContest($contest);
 
-        return Inertia::render('entries/Create', [
+        return Inertia::render('entries/create', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,
@@ -95,7 +95,7 @@ class EntryController extends Controller
         if ($contest->type->value === 'voting') {
             $entryModel = $contest->entries()->findOrFail($entry);
 
-            return Inertia::render('entries/Edit', [
+            return Inertia::render('entries/edit', [
                 'contest' => [
                     'id' => $contest->id,
                     'title' => $contest->title,
@@ -114,7 +114,7 @@ class EntryController extends Controller
 
         $entryModel = $contest->quizEntries()->findOrFail($entry);
 
-        return Inertia::render('entries/Edit', [
+        return Inertia::render('entries/edit', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,

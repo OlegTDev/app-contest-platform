@@ -49,7 +49,7 @@ class QuizController extends Controller
                 'created_at' => $entry->created_at !== null ? $entry->created_at->format('Y-m-d H:i') : null,
             ]);
 
-        return Inertia::render('quizzes/Index', [
+        return Inertia::render('quizzes/index', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,
@@ -66,7 +66,7 @@ class QuizController extends Controller
     {
         $this->canManageContest($contest);
 
-        return Inertia::render('quizzes/Builder', [
+        return Inertia::render('quizzes/builder', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,
@@ -114,7 +114,7 @@ class QuizController extends Controller
         $this->canManageContest($contest);
         abort_unless($entry->contest_id === $contest->id, 404);
 
-        return Inertia::render('quizzes/Builder', [
+        return Inertia::render('quizzes/builder', [
             'contest' => [
                 'id' => $contest->id,
                 'title' => $contest->title,
@@ -197,7 +197,7 @@ class QuizController extends Controller
 
         $existingAnswer = $this->userContestActivity->getUserAnswerForQuizEntry($user, $entry);
 
-        return Inertia::render('quizzes/Take', [
+        return Inertia::render('quizzes/take', [
             'quiz' => [
                 'id' => $entry->id,
                 'title' => $entry->title,
@@ -254,7 +254,7 @@ class QuizController extends Controller
             return redirect()->route('quizzes.take', [$contest, $entry]);
         }
 
-        return Inertia::render('quizzes/Result', [
+        return Inertia::render('quizzes/result', [
             'quiz' => [
                 'id' => $entry->id,
                 'title' => $entry->title,

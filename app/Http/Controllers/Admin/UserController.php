@@ -28,7 +28,7 @@ final class UserController extends Controller
         $perPage = (int) $request->input('per_page', 15);
         $users = $this->userService->getPaginatedUsers($perPage);
 
-        return Inertia::render('admin/users/Index', [
+        return Inertia::render('admin/users/index', [
             'users' => $users->items(),
             'pagination' => [
                 'current_page' => $users->currentPage(),
