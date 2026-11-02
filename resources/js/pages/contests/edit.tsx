@@ -21,8 +21,8 @@ type FormType = {
   status: string;
   slug: string | null;
   description: string;
-  start_at: string;
-  end_at: string;
+  start_at: string | null;
+  end_at: string | null;
   project_schema: ProjectField[];
 };
 
@@ -42,19 +42,24 @@ type ContestEditProps = {
 };
 
 export default function ContestEdit({ contest, contestTypes }: ContestEditProps): React.JSX.Element {
-  const { data, setData, patch, processing, errors } = useForm<FormType>({
+  const { data, setData, patch, transform, processing, errors } = useForm<FormType>({
     title: contest.title,
     type: contest.type,
     status: contest.status,
     slug: contest.slug ?? null,
     description: contest.description || "",
-    start_at: contest.start_at || "",
-    end_at: contest.end_at || "",
+    start_at: contest.start_at ?? "",
+    end_at: contest.end_at ?? "",
     project_schema: contest.project_schema || [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    transform((formData) => ({
+      ...formData,
+      start_at: formData.start_at || null,
+      end_at: formData.end_at || null,
+    }));
     patch(update({ contest: contest.id }).url, {
       preserveScroll: true,
     });
