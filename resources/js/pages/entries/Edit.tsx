@@ -68,7 +68,7 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
     const [options, setOptions] = useState<Option[]>(initialOptions);
     const [questionType, setQuestionType] = useState<"single" | "multiple">(initialType);
 
-    const { data, setData, patch, processing, errors } = useForm<EditEntryForm>({
+    const { data, setData, patch, transform, processing, errors } = useForm<EditEntryForm>({
         title: entry.title,
         description: entry.description || "",
         author_name: (entry.author_name as string) || "",
@@ -108,24 +108,31 @@ export default function EditEntry({ contest, entry }: EditEntryProps): React.JSX
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const payload: Record<string, unknown> = {
-            title: data.title,
-            description: data.description || null,
-            show_from: data.show_from || null,
-            show_until: data.show_until || null,
-        };
+        // Бэкенд отдаёт даты в формате "Y-m-d H:i" без секунд, а валидация
+        // требует "Y-m-d H:i:s" — нормализуем перед отправкой.
+        const normalizeDate = (value: string | null): string | null =>
+            value ? dayjs(value).format("YYYY-MM-DD HH:mm:ss") : null;
 
         if (isQuiz) {
-            payload.question = data.question || null;
-            payload.options = options;
-            payload.type = questionType;
+            transform((formData) => ({
+                ...formData,
+                description: formData.description || null,
+                question: formData.question || null,
+                show_from: normalizeDate(formData.show_from),
+                show_until: normalizeDate(formData.show_until),
+                options,
+                type: questionType,
+            }));
         } else {
-            payload.author_name = data.author_name || null;
-            payload.author_department = data.author_department || null;
+            transform((formData) => ({
+                ...formData,
+                description: formData.description || null,
+                author_name: formData.author_name || null,
+                author_department: formData.author_department || null,
+            }));
         }
 
         patch(`/admin/contests/${contest.id}/entries/${entry.id}`, {
-            data: payload,
             preserveScroll: true,
             onSuccess: () => {
                 message.success("Карточка успешно обновлена");
