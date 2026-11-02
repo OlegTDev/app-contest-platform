@@ -102,6 +102,18 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
     const [quizAnswering, setQuizAnswering] = useState<number | null>(null);
     const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string[]>>({});
     const [quizResult, setQuizResult] = useState<Record<number, { is_correct: boolean }>>({});
+    const [selectedQuiz, setSelectedQuiz] = useState<QuizActivity | null>(null);
+    const [quizDrawerOpen, setQuizDrawerOpen] = useState(false);
+
+    const activeQuiz =
+        (contest.activities || []).find(
+            (a): a is QuizActivity => a.type === "quiz" && a.id === selectedQuiz?.id
+        ) ?? null;
+
+    const handleOpenQuiz = (quiz: QuizActivity) => {
+        setSelectedQuiz(quiz);
+        setQuizDrawerOpen(true);
+    };
 
     const activeEntry =
         (contest.activities || []).find(
@@ -145,7 +157,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                 (a) => a.type === "quiz"
             ) as QuizActivity;
             if (firstQuiz) {
-                router.get(`/contests/${contest.id}/quizzes/${firstQuiz.id}/take`, {}, {
+                router.get(`/contest/${contest.id}/quizzes/${firstQuiz.id}/take`, {}, {
                     preserveScroll: true,
                 });
             }
@@ -167,11 +179,6 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
     };
 
     const handleQuizSubmit = (quiz: QuizActivity) => {
-        if (!contest.is_time_active && !contest.is_archived) {
-            message.warning("Период викторины завершён");
-            return;
-        }
-
         const selection = selectedAnswers[quiz.id] || [];
         if (selection.length === 0) {
             message.warning("Выберите ответ");
@@ -180,7 +187,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
 
         setQuizAnswering(quiz.id);
 
-        router.post(`/contests/${contest.id}/quizzes/${quiz.id}/submit`, {
+        router.post(`/contest/${contest.id}/quizzes/${quiz.id}/submit`, {
             selected_options: selection,
         }, {
             preserveScroll: true,
@@ -188,7 +195,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
             onSuccess: () => {
                 setQuizAnswering(null);
                 // Redirect to result page
-                router.get(`/contests/${contest.id}/quizzes/${quiz.id}/result`, {}, {
+                router.get(`/contest/${contest.id}/quizzes/${quiz.id}/result`, {}, {
                     preserveScroll: true,
                 });
             },
@@ -423,8 +430,6 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                         if (activity.type !== "quiz") return null;
                                         const quiz = activity as QuizActivity;
                                         const isAnswered = quiz.is_answered || !!quizResult[quiz.id];
-                                        const isAnswering = quizAnswering === quiz.id;
-                                        const selection = selectedAnswers[quiz.id] || [];
                                         const result = quizResult[quiz.id];
 
                                         return (
@@ -432,6 +437,7 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                 <Card
                                                     hoverable
                                                     style={{ height: '100%' }}
+                                                    onClick={() => handleOpenQuiz(quiz)}
                                                     cover={
                                                         quiz.media && quiz.media.length > 0 ? (
                                                             <div style={{ height: 160, overflow: 'hidden', background: '#f0f5ff' }}>
@@ -454,83 +460,30 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                                                         <Title level={5} style={{ marginBottom: 4 }}>
                                                             {quiz.title}
                                                         </Title>
-                                                        
-                                                        {!isAnswered ? (
-                                                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                                                {quiz.options?.map((option) => {
-                                                                    const isSelected = selection.includes(option.id);
-                                                                    return (
-                                                                        <div
-                                                                            key={option.id}
-                                                                            onClick={() => handleQuizAnswerSelect(quiz.id, option.id, quiz.quizType || "single")}
-                                                                            style={{
-                                                                                padding: '8px 12px',
-                                                                                border: isSelected ? '2px solid #1677ff' : '1px solid #d9d9d9',
-                                                                                borderRadius: 6,
-                                                                                cursor: 'pointer',
-                                                                                background: isSelected ? '#e6f0ff' : '#fff',
-                                                                                transition: 'all 0.2s',
-                                                                            }}
-                                                                        >
-                                                                            <Space>
-                                                                                {quiz.quizType === "single" ? (
-                                                                                    <input
-                                                                                        type="radio"
-                                                                                        checked={isSelected}
-                                                                                        readOnly
-                                                                                        style={{ margin: 0 }}
-                                                                                    />
-                                                                                ) : (
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        checked={isSelected}
-                                                                                        readOnly
-                                                                                        style={{ margin: 0 }}
-                                                                                    />
-                                                                                )}
-                                                                                <Text style={{ fontSize: 13 }}>{option.text}</Text>
-                                                                            </Space>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                                <Button
-                                                                    type="primary"
-                                                                    size="small"
-                                                                    block
-                                                                    loading={isAnswering}
-                                                                    disabled={selection.length === 0}
-                                                                    onClick={() => handleQuizSubmit(quiz)}
-                                                                >
-                                                                    Ответить
-                                                                </Button>
-                                                            </Space>
+
+                                                        {quiz.question && (
+                                                            <Paragraph
+                                                                type="secondary"
+                                                                ellipsis={{ rows: 2 }}
+                                                                style={{ marginBottom: 8 }}
+                                                            >
+                                                                {quiz.question}
+                                                            </Paragraph>
+                                                        )}
+
+                                                        {isAnswered ? (
+                                                            <Tag color={result?.is_correct ? "success" : "error"}>
+                                                                {result?.is_correct ? "✓ Правильно" : "✗ Неправильно"}
+                                                            </Tag>
                                                         ) : (
-                                                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                                                {quiz.options?.map((option) => {
-                                                                    const isSelected = selection.includes(option.id);
-                                                                    const isCorrect = option.is_correct;
-                                                                    let tagColor: string | undefined;
-                                                                    
-                                                                    if (isCorrect && isSelected) tagColor = "green";
-                                                                    else if (isCorrect && !isSelected) tagColor = "red";
-                                                                    else if (!isCorrect && isSelected) tagColor = "volcano";
-                                                                    
-                                                                    return (
-                                                                        <Tag
-                                                                            key={option.id}
-                                                                            color={tagColor}
-                                                                            style={{ width: '100%', textAlign: 'center' }}
-                                                                        >
-                                                                            {option.text}
-                                                                        </Tag>
-                                                                    );
-                                                                })}
-                                                                <Tag color={result?.is_correct ? "success" : "error"}>
-                                                                    {result?.is_correct ? "✓ Правильно" : "✗ Неправильно"}
-                                                                </Tag>
+                                                            <Space size={4}>
+                                                                <QuestionCircleOutlined style={{ color: '#1677ff' }} />
+                                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                                    Нажмите для ответа
+                                                                </Text>
                                                             </Space>
                                                         )}
-                                                        
+
                                                         {!quiz.is_visible && (
                                                             <Tag color="orange">Скоро</Tag>
                                                         )}
@@ -847,6 +800,188 @@ export default function PublicShow({ contest, leaderboard }: PublicShowProps): R
                             <Empty description="Нет файлов" image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         )}
                     </Card>
+                </Space>
+            </Drawer>
+            {/* Quiz Drawer */}
+            <Drawer
+                title={
+                    <Space>
+                        <QuestionCircleOutlined style={{ color: '#1677ff' }} />
+                        <span>Вопрос: {activeQuiz?.title ?? ""}</span>
+                    </Space>
+                }
+                placement="right"
+                onClose={() => setQuizDrawerOpen(false)}
+                open={quizDrawerOpen}
+                width={750}
+            >
+                <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                    {/* Media — gallery */}
+                    <Card size="small" title="Медиа">
+                        {activeQuiz?.media && activeQuiz.media.length > 0 ? (
+                            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                {/* Images gallery */}
+                                {activeQuiz.media.filter((f) => f.file_type === 'image').length > 0 && (
+                                    <Image.PreviewGroup>
+                                        <Row gutter={[8, 8]}>
+                                            {activeQuiz.media
+                                                .filter((f) => f.file_type === 'image')
+                                                .map((file) => (
+                                                    <Col span={8} key={file.id}>
+                                                        <Image
+                                                            src={file.file_url}
+                                                            alt={file.file_name}
+                                                            width="100%"
+                                                            height={120}
+                                                            style={{
+                                                                objectFit: 'cover',
+                                                                borderRadius: 6,
+                                                                border: '1px solid #f0f0f0',
+                                                            }}
+                                                            preview={{ mask: null }}
+                                                        />
+                                                    </Col>
+                                                ))}
+                                        </Row>
+                                    </Image.PreviewGroup>
+                                )}
+
+                                {/* Non-image files (video, pdf, documents) */}
+                                {activeQuiz.media.filter((f) => f.file_type !== 'image').length > 0 && (
+                                    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                        {activeQuiz.media.filter((f) => f.file_type === 'image').length > 0 && (
+                                            <Divider style={{ margin: '4px 0' }} />
+                                        )}
+                                        {activeQuiz.media
+                                            .filter((f) => f.file_type !== 'image')
+                                            .map((file) => (
+                                                <Card
+                                                    key={file.id}
+                                                    size="small"
+                                                    hoverable
+                                                    styles={{ body: { padding: '8px 12px' } }}
+                                                    onClick={() => handleMediaClick(file)}
+                                                >
+                                                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                                                        <Space>
+                                                            {getFileIcon(file.file_type)}
+                                                            <Space direction="vertical" size={0}>
+                                                                <Text strong style={{ fontSize: 13 }}>{file.file_name}</Text>
+                                                                <Tag color={getFileTypeColor(file.file_type)}>
+                                                                    {getFileTypeLabel(file.file_type)}
+                                                                </Tag>
+                                                                <Text type="secondary" style={{ fontSize: 11 }}>
+                                                                    {formatFileSize(file.file_size)}
+                                                                </Text>
+                                                            </Space>
+                                                        </Space>
+                                                        <DownloadOutlined style={{ color: '#999' }} />
+                                                    </Space>
+                                                </Card>
+                                            ))}
+                                    </Space>
+                                )}
+                            </Space>
+                        ) : (
+                            <Empty description="Нет файлов" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                        )}
+                    </Card>
+
+                    {/* Question & options */}
+                    {activeQuiz && (
+                        <Card size="small" title="Вопрос">
+                            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                <Paragraph style={{ marginBottom: 0 }}>
+                                    {activeQuiz.question || "Выберите правильный ответ"}
+                                </Paragraph>
+
+                                                {(() => {
+                                    const quiz = activeQuiz;
+                                    const isAnswered = quiz.is_answered || !!quizResult[quiz.id];
+                                    const isAnswering = quizAnswering === quiz.id;
+                                    const selection = selectedAnswers[quiz.id] || [];
+
+                                    if (!isAnswered) {
+                                        return (
+                                            <>
+                                                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                                    {quiz.options?.map((option) => {
+                                                        const isSelected = selection.includes(option.id);
+                                                        return (
+                                                            <div
+                                                                key={option.id}
+                                                                onClick={() => handleQuizAnswerSelect(quiz.id, option.id, quiz.quizType || "single")}
+                                                                style={{
+                                                                    padding: '8px 12px',
+                                                                    border: isSelected ? '2px solid #1677ff' : '1px solid #d9d9d9',
+                                                                    borderRadius: 6,
+                                                                    cursor: 'pointer',
+                                                                    background: isSelected ? '#e6f0ff' : '#fff',
+                                                                    transition: 'all 0.2s',
+                                                                }}
+                                                            >
+                                                                <Space>
+                                                                    {quiz.quizType === "single" ? (
+                                                                        <input type="radio" checked={isSelected} readOnly style={{ margin: 0 }} />
+                                                                    ) : (
+                                                                        <input type="checkbox" checked={isSelected} readOnly style={{ margin: 0 }} />
+                                                                    )}
+                                                                    <Text style={{ fontSize: 13 }}>{option.text}</Text>
+                                                                </Space>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </Space>
+                                                <Button
+                                                    type="primary"
+                                                    block
+                                                    loading={isAnswering}
+                                                    disabled={selection.length === 0}
+                                                    onClick={() => handleQuizSubmit(quiz)}
+                                                >
+                                                    Ответить
+                                                </Button>
+                                            </>
+                                        );
+                                    }
+
+                                    return (
+                                        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                            {quiz.options?.map((option) => {
+                                                const isSelected = selection.includes(option.id);
+                                                const isCorrect = option.is_correct;
+                                                let tagColor: string | undefined;
+
+                                                if (isCorrect && isSelected) tagColor = "green";
+                                                else if (isCorrect && !isSelected) tagColor = "red";
+                                                else if (!isCorrect && isSelected) tagColor = "volcano";
+
+                                                return (
+                                                    <Tag
+                                                        key={option.id}
+                                                        color={tagColor}
+                                                        style={{ width: '100%', textAlign: 'center', whiteSpace: 'normal' }}
+                                                    >
+                                                        {option.text}
+                                                    </Tag>
+                                                );
+                                            })}
+                                            <Tag color={quizResult[quiz.id]?.is_correct ? "success" : "error"}>
+                                                {quizResult[quiz.id]?.is_correct ? "✓ Правильно" : "✗ Неправильно"}
+                                            </Tag>
+                                        </Space>
+                                    );
+                                })()}
+                            </Space>
+                        </Card>
+                    )}
+
+                    {/* Description */}
+                    {activeQuiz?.description && (
+                        <Card size="small" title="Описание">
+                            <Paragraph>{activeQuiz.description}</Paragraph>
+                        </Card>
+                    )}
                 </Space>
             </Drawer>
             {/* Leaderboard Drawer */}
