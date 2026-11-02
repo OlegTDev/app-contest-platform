@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\ContestType;
 use App\Models\Contest;
 use App\Models\ContestEntry;
 use App\Models\User;
-use App\Models\QuizEntry;
 
 beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
@@ -19,7 +19,7 @@ describe('ContestController', function () {
             $response = $this->actingAs($this->user)->get('/');
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/PublicIndex'));
+                ->assertInertia(fn ($page) => $page->component('contests.index'));
         });
 
         it('does not include draft contests in public index', function () {
@@ -47,7 +47,7 @@ describe('ContestController', function () {
             $response = $this->actingAs($this->user)->get("/contests/{$contest->slug}");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/PublicShow'));
+                ->assertInertia(fn ($page) => $page->component('contests.show.index'));
         });
 
         it('returns 404 for draft contest', function () {
@@ -90,7 +90,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->admin)->get('/admin/contests');
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/index'));
+                ->assertInertia(fn ($page) => $page->component('admin.contests.index'));
         });
 
         it('renders admin contests list for moderator', function () {
@@ -99,7 +99,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->moderator)->get('/admin/contests');
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/index'));
+                ->assertInertia(fn ($page) => $page->component('admin.contests.index'));
         });
 
         it('filters contests by status', function () {
@@ -113,8 +113,8 @@ describe('ContestAdminController', function () {
         });
 
         it('filters contests by type', function () {
-            Contest::factory()->create(['type' => \App\Enums\ContestType::VOTING]);
-            Contest::factory()->create(['type' => \App\Enums\ContestType::QUIZ]);
+            Contest::factory()->create(['type' => ContestType::VOTING]);
+            Contest::factory()->create(['type' => ContestType::QUIZ]);
 
             $response = $this->actingAs($this->admin)->get('/admin/contests?type=voting');
 
@@ -137,7 +137,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->admin)->get('/admin/contests/create');
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/create'));
+                ->assertInertia(fn ($page) => $page->component('admin.contests.create'));
         });
 
         it('includes contest types in create form', function () {
@@ -160,7 +160,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->admin)->post('/admin/contests', $data);
 
             $response->assertRedirect();
-            expect(\App\Models\Contest::where('title', 'New Contest')->exists())->toBeTrue();
+            expect(Contest::where('title', 'New Contest')->exists())->toBeTrue();
         });
 
         it('creates a new contest for moderator', function () {
@@ -173,7 +173,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->moderator)->post('/admin/contests', $data);
 
             $response->assertRedirect();
-            expect(\App\Models\Contest::where('title', 'New Contest')->exists())->toBeTrue();
+            expect(Contest::where('title', 'New Contest')->exists())->toBeTrue();
         });
 
         it('rejects regular user from creating contest', function () {
@@ -192,7 +192,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/show'));
+                ->assertInertia(fn ($page) => $page->component('admin.contests.show'));
         });
     });
 
@@ -203,7 +203,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->admin)->get("/admin/contests/{$contest->id}/edit");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/edit'));
+                ->assertInertia(fn ($page) => $page->component('admin.contests.edit'));
         });
 
         it('renders edit form for moderator', function () {
@@ -212,7 +212,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->moderator)->get("/admin/contests/{$contest->id}/edit");
 
             $response->assertStatus(200)
-                ->assertInertia(fn ($page) => $page->component('contests/edit'));
+                ->assertInertia(fn ($page) => $page->component('admin.contests.edit'));
         });
     });
 
@@ -241,7 +241,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->admin)->delete("/admin/contests/{$contest->id}");
 
             $response->assertRedirect();
-            expect(\App\Models\Contest::where('id', $contest->id)->exists())->toBeFalse();
+            expect(Contest::where('id', $contest->id)->exists())->toBeFalse();
         });
 
         it('deletes contest for moderator', function () {
@@ -250,7 +250,7 @@ describe('ContestAdminController', function () {
             $response = $this->actingAs($this->moderator)->delete("/admin/contests/{$contest->id}");
 
             $response->assertRedirect();
-            expect(\App\Models\Contest::where('id', $contest->id)->exists())->toBeFalse();
+            expect(Contest::where('id', $contest->id)->exists())->toBeFalse();
         });
     });
 
